@@ -1,0 +1,13 @@
+services:
+  van-nav:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: van-nav
+    restart: unless-stopped
+    ports:
+      - "6412:6412"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
