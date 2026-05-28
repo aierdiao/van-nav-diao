@@ -1,8 +1,6 @@
 services:
   van-nav:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/thirsty5034/van-nav:latest
     container_name: van-nav
     restart: unless-stopped
     ports:
