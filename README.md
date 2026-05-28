@@ -112,7 +112,7 @@ server {
 ```
 [Unit]
 Description=VanNav
-Documentation=https://github.com/mereithhh/van-nav
+Documentation=https://github.com/thirsty5034/van-nav
 After=network.target
 Wants=network.target
 

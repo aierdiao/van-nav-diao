@@ -25,17 +25,41 @@ func ImportTools(data []types.Tool) ImportToolsResult {
 	imported := 0
 	skipped := 0
 
-	// 准备 SQL 语句，避免循环内重复 Prepare
+	// 开启事务，将所有数据库写入合并为一次批量提交
+	tx, err := database.DB.Begin()
+	if err != nil {
+		utils.CheckErr(err)
+		return ImportToolsResult{Imported: 0, Skipped: len(data), Categories: nil}
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 在事务内准备工具插入语句
 	sql_add_tool := `
 		INSERT OR IGNORE INTO nav_table (id, name, catelog, url, logo, desc, sort, hide)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 		`
-	stmt, err := database.DB.Prepare(sql_add_tool)
+	stmt, err := tx.Prepare(sql_add_tool)
 	if err != nil {
 		utils.CheckErr(err)
 		return ImportToolsResult{Imported: 0, Skipped: len(data), Categories: nil}
 	}
 	defer stmt.Close()
+
+	// 在事务内准备分类插入语句
+	sql_add_catelog := `
+		INSERT OR IGNORE INTO nav_catelog (name, sort, hide)
+		VALUES (?, 0, 0);
+		`
+	catelogStmt, err := tx.Prepare(sql_add_catelog)
+	if err != nil {
+		utils.CheckErr(err)
+		return ImportToolsResult{Imported: 0, Skipped: len(data), Categories: nil}
+	}
+	defer catelogStmt.Close()
 
 	for _, v := range data {
 		// 过滤掉空分类，只收集有效的分类名称
@@ -55,15 +79,28 @@ func ImportTools(data []types.Tool) ImportToolsResult {
 			skipped++
 		}
 	}
+
+	// 在同一事务内批量插入分类
 	for _, catelog := range catelogs {
-		var addCatelogDto types.AddCatelogDto
-		addCatelogDto.Name = catelog
-		AddCatelog(addCatelogDto)
+		_, err = catelogStmt.Exec(catelog)
+		if err != nil {
+			utils.CheckErr(err)
+		}
 	}
-	// 转存所有图片，顺序执行避免 SQLite 锁竞争
-	for _, v := range data {
-		UpdateImg(v.Logo)
+
+	// 提交事务
+	if err = tx.Commit(); err != nil {
+		utils.CheckErr(err)
+		return ImportToolsResult{Imported: 0, Skipped: len(data), Categories: catelogs}
 	}
+
+	// 异步转存所有图片，不阻塞入库主线程
+	go func() {
+		for _, v := range data {
+			UpdateImg(v.Logo)
+		}
+	}()
+
 	return ImportToolsResult{
 		Imported:   imported,
 		Skipped:    skipped,

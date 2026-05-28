@@ -1,6 +1,6 @@
 # Van Nav 项目分析报告
 
-> 原项目：https://github.com/mereithhh/van-nav
+> 原项目：https://github.com/thirsty5034/van-nav
 > Fork 时间：2026-05-01
 > Fork 者：thirsty5034
 

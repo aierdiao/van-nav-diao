@@ -1,6 +1,9 @@
 .github-link-box {
   position: fixed;
+  bottom: 10px;
+  right: 11px;
   cursor: pointer;
+  z-index: 9998;
 }
 .github-link-box svg {
   fill: #3d3d3d;
