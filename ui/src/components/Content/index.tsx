@@ -278,8 +278,10 @@ const Content = (props: any) => {
       <div className="record-wraper">
         <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer">{data?.setting?.govRecord ?? ""}</a>
       </div>
-      {showGithub && <GithubLink />}
-      <DarkSwitch showGithub={showGithub} />
+      <div className="floating-actions">
+        {showGithub && <GithubLink />}
+        <DarkSwitch showGithub={showGithub} />
+      </div>
     </>
   );
 };
