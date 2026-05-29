@@ -32,10 +32,8 @@ jobs:
           mkdir -p public
           cd ui
           echo "Node: $(node -v) pnpm: $(pnpm -v) CI=$CI"
-          pnpm install 2>&1
-          echo "Install done, starting build..."
-          pnpm build 2>&1
-          echo "Build done"
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm build
           cd ..
           cp -r ui/build/* public/
 
