@@ -4,7 +4,7 @@
 FROM node:22-alpine AS frontend
 RUN corepack enable && corepack prepare pnpm@11.4.0 --activate
 WORKDIR /build
-COPY ui/package.json ui/pnpm-lock.yaml ./ui/
+COPY ui/package.json ui/pnpm-lock.yaml ui/pnpm-workspace.yaml ./ui/
 RUN cd ui && pnpm install --frozen-lockfile --ignore-scripts
 COPY ui/ ./ui/
 RUN cd ui && CI=false pnpm build
