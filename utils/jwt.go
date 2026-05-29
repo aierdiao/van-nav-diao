@@ -23,7 +23,7 @@ func RandomJWTKey() string {
 }
 
 // JTW 密钥
-var jwtSecret = []byte("boy_next_door")
+var jwtSecret []byte
 
 func init() {
 	jwtSecret = []byte(RandomJWTKey())
