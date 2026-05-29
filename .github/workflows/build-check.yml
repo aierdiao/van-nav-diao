@@ -24,12 +24,14 @@ jobs:
           go-version: "1.23"
 
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.4.0 --activate
 
       - name: Build Frontend
         run: |
           mkdir -p public
-          cd ui && pnpm install && CI=false pnpm build && cd ..
+          cd ui && pnpm install --frozen-lockfile && CI=false pnpm build && cd ..
           cp -r ui/build/* public/
 
       - name: Build Backend

@@ -25,7 +25,7 @@ var jwtSecret []byte
 
 func init() {
 	jwtSecret = []byte(RandomJWTKey())
-	logger.LogInfo("jwtSecret Setted: %s", jwtSecret)
+	logger.LogInfo("JWT 密钥已初始化（随机生成）")
 }
 
 func SignJWT(user types.User) (string, error) {

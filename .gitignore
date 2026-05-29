@@ -128,3 +128,10 @@ act.secret
 requirements.txt
 
 .DS_Store
+
+# 内部开发文件（不应提交到公开仓库）
+PROJECT_ANALYSIS.md
+SECURITY_FIX_REPORT.md
+upgrade-deps.sh
+AGENTS.md
+.codex/
