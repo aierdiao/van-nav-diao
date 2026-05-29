@@ -24,15 +24,16 @@ jobs:
         uses: actions/setup-go@v5.1.0
         with:
           go-version: 1.23
-      - name: build public files
+      - name: Build Frontend
+        env:
+          CI: "false"
         run: |
-          corepack enable
-          corepack prepare pnpm@11.4.0 --activate
+          npm install -g pnpm@11.4.0
           echo "清空原有数据"
           rm -rf ./public
           mkdir -p public
           echo '构建用户页面'
-          cd ui && pnpm install --frozen-lockfile && CI=false pnpm build && cd ..
+          cd ui && pnpm install && pnpm build && cd ..
           cp -r ui/build/* public/
           echo '构建前端数据完成'
           ls public/static

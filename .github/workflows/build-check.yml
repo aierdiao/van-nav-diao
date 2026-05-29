@@ -27,22 +27,16 @@ jobs:
         run: npm install -g pnpm@11.4.0
 
       - name: Build Frontend
+        env:
+          CI: "false"
         run: |
           mkdir -p public
           cd ui
           echo "Node: $(node -v) pnpm: $(pnpm -v)"
           pnpm install
-          CI=false pnpm build
+          pnpm build
           cd ..
           cp -r ui/build/* public/
-
-      - name: Upload Frontend Build Log on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-build-log
-          path: ui/build/
-          retention-days: 5
 
       - name: Build Backend
         run: |
