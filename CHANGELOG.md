@@ -2,6 +2,34 @@
 
 本文件记录本项目（[thirsty5034/van-nav](https://github.com/thirsty5034/van-nav)）的更新日志。上游项目（[Mereithhh/van-nav](https://github.com/Mereithhh/van-nav)）的历史记录附在末尾。
 
+
+## [2.0.2] - 2026-05-31
+
+### 🚀 New Features
+
+- **密码重置 CLI**：`-reset-password` 参数，无需启动服务即可重置密码，数据零丢失
+- **README 双语**：新增英文翻译 + 中英文语言选择器
+- **后台截图更新**：新增 6 张管理页面截图，移除过时图片
+- **CHANGELOG 规范化**：本项目日志与上游历史分离
+- **发版流程增强**：RELEASE_PROMPT 新增 CHANGELOG 同步步骤
+
+### 🐛 Bug Fixes
+
+- **登录错误提示不显示**：前端字段名不匹配 + antd message 被背景遮挡，改为内联红色错误横幅
+- **部署版本号硬编码**：默认值从 `v2.0.0.0` 改为 `dev` / 空字符串
+- **GoReleaser changelog 覆盖**：禁用自动 changelog，改用 RELEASE_NOTES.md
+
+### ⚙️ Changed
+
+- 移除 PAD 预览、交流群截图、在线体验链接、API 文档链接
+- 新增 `-reset-password` 文档说明
+
+### 🙏 鸣谢
+
+本项目开发过程中得到了[小米大模型团队](https://github.com/XiaomiLM)百万亿 Token 创造者激励计划的支持与赞助，在此表示衷心感谢。
+
+---
+
 ---
 
 ## [2.0.1] - 2026-05-31
