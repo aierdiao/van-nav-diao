@@ -1,6 +1,8 @@
 package service
 
 import (
+	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -289,4 +291,46 @@ func GetMaxSort() (int, error) {
 		return 0, err
 	}
 	return maxSort, nil
+}
+
+
+func DeleteTool(id string) error {
+	sql_delete_tool := `DELETE FROM nav_table WHERE id = ?;`
+	stmt, err := database.DB.Prepare(sql_delete_tool)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	res, err := stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+	_, err = res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	// 删除关联的 logo 图片缓存
+	numberId, err := strconv.Atoi(id)
+	if err != nil {
+		return nil // 工具已删除，图片清理失败非致命
+	}
+	url1 := GetToolLogoUrlById(numberId)
+	if url1 != "" {
+		urlEncoded := url.QueryEscape(url1)
+		sql_delete_img := `DELETE FROM nav_img WHERE url = ?;`
+		imgStmt, err := database.DB.Prepare(sql_delete_img)
+		if err != nil {
+			return nil
+		}
+		defer imgStmt.Close()
+		_, _ = imgStmt.Exec(urlEncoded)
+	}
+	return nil
+}
+
+func UpdateToolDesc(id int, desc string) error {
+	sql := `UPDATE nav_table SET desc = ? WHERE id = ?`
+	_, err := database.DB.Exec(sql, desc, id)
+	return err
 }

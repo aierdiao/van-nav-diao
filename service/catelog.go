@@ -97,3 +97,19 @@ func GetAllCatelog() []types.Catelog {
 	}
 	return results
 }
+
+
+func DeleteCatelog(id string) error {
+	sql_delete_catelog := `DELETE FROM nav_catelog WHERE id = ?;`
+	stmt, err := database.DB.Prepare(sql_delete_catelog)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	res, err := stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+	_, err = res.RowsAffected()
+	return err
+}

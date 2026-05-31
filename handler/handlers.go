@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mereith/nav/database"
 	"github.com/mereith/nav/logger"
 	"github.com/mereith/nav/service"
 	"github.com/mereith/nav/types"
@@ -55,17 +54,15 @@ func ImportToolsHandler(c *gin.Context) {
 func DeleteApiTokenHandler(c *gin.Context) {
 	// 删除 Token
 	id := c.Param("id")
-	sql_delete_api_token := `
-		UPDATE nav_api_token
-		SET disabled = 1
-		WHERE id = ?;
-		`
-	stmt, err := database.DB.Prepare(sql_delete_api_token)
-	utils.CheckErr(err)
-	res, err := stmt.Exec(id)
-	utils.CheckErr(err)
-	_, err = res.RowsAffected()
-	utils.CheckErr(err)
+	err := service.DeleteApiToken(id)
+	if err != nil {
+		utils.CheckErr(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "删除 API Token 成功",
@@ -367,29 +364,15 @@ func AddToolHandler(c *gin.Context) {
 func DeleteToolHandler(c *gin.Context) {
 	// 删除工具
 	id := c.Param("id")
-	sql_delete_tool := `
-		DELETE FROM nav_table WHERE id = ?;
-		`
-	stmt, err := database.DB.Prepare(sql_delete_tool)
-	utils.CheckErr(err)
-	res, err := stmt.Exec(id)
-	utils.CheckErr(err)
-	_, err = res.RowsAffected()
-	utils.CheckErr(err)
-	// 删除工具的 logo，如果有
-	numberId, err := strconv.Atoi(id)
-	utils.CheckErr(err)
-	url1 := service.GetToolLogoUrlById(numberId)
-	urlEncoded := url.QueryEscape(url1)
-	sql_delete_tool_img := `
-		DELETE FROM nav_img WHERE url = ?;
-		`
-	stmt, err = database.DB.Prepare(sql_delete_tool_img)
-	utils.CheckErr(err)
-	res, err = stmt.Exec(urlEncoded)
-	utils.CheckErr(err)
-	_, err = res.RowsAffected()
-	utils.CheckErr(err)
+	err := service.DeleteTool(id)
+	if err != nil {
+		utils.CheckErr(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "删除成功",
@@ -442,8 +425,7 @@ func UpdateToolDescOnlyHandler(c *gin.Context) {
 		return
 	}
 
-	sql := `UPDATE nav_table SET desc = ? WHERE id = ?`
-	_, err = database.DB.Exec(sql, body.Desc, id)
+	err = service.UpdateToolDesc(id, body.Desc)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success":      false,
@@ -480,15 +462,15 @@ func AddCatelogHandler(c *gin.Context) {
 func DeleteCatelogHandler(c *gin.Context) {
 	// 删除分类
 	id := c.Param("id")
-	sql_delete_catelog := `
-		DELETE FROM nav_catelog WHERE id = ?;
-		`
-	stmt, err := database.DB.Prepare(sql_delete_catelog)
-	utils.CheckErr(err)
-	res, err := stmt.Exec(id)
-	utils.CheckErr(err)
-	_, err = res.RowsAffected()
-	utils.CheckErr(err)
+	err := service.DeleteCatelog(id)
+	if err != nil {
+		utils.CheckErr(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "删除分类成功",
@@ -588,7 +570,7 @@ func UpdateToolsSortHandler(c *gin.Context) {
 
 // 获取所有搜索引擎
 func GetAllSearchEnginesHandler(c *gin.Context) {
-	engines, err := database.GetAllSearchEngines()
+	engines, err := service.GetAllSearchEngines()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success":      false,
@@ -604,7 +586,7 @@ func GetAllSearchEnginesHandler(c *gin.Context) {
 
 // 获取启用的搜索引擎（用于前端搜索功能）
 func GetEnabledSearchEnginesHandler(c *gin.Context) {
-	engines, err := database.GetEnabledSearchEngines()
+	engines, err := service.GetEnabledSearchEngines()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success":      false,
@@ -630,17 +612,13 @@ func AddSearchEngineHandler(c *gin.Context) {
 		return
 	}
 	
-	id, err := database.AddSearchEngine(engine)
+	id, err := service.AddSearchEngine(engine)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success":      false,
 			"errorMessage": err.Error(),
 		})
 		return
-	}
-	// 更新图片缓存（和工具添加一致）
-	if engine.Logo != "" {
-		go service.UpdateImg(engine.Logo)
 	}
 
 	c.JSON(200, gin.H{
@@ -676,17 +654,13 @@ func UpdateSearchEngineHandler(c *gin.Context) {
 	}
 	engine.Id = id
 	
-	err = database.UpdateSearchEngine(engine)
+	err = service.UpdateSearchEngine(engine)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success":      false,
 			"errorMessage": err.Error(),
 		})
 		return
-	}
-	// 更新图片缓存（和工具更新一致）
-	if engine.Logo != "" {
-		go service.UpdateImg(engine.Logo)
 	}
 
 	c.JSON(200, gin.H{
@@ -707,7 +681,7 @@ func DeleteSearchEngineHandler(c *gin.Context) {
 		return
 	}
 	
-	err = database.DeleteSearchEngine(id)
+	err = service.DeleteSearchEngine(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success":      false,
@@ -737,7 +711,7 @@ func UpdateSearchEngineSortHandler(c *gin.Context) {
 		return
 	}
 	
-	err = database.UpdateSearchEngineSort(sortData)
+	err = service.UpdateSearchEngineSort(sortData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success":      false,
@@ -767,7 +741,7 @@ func UpdateCatelogSortHandler(c *gin.Context) {
 		return
 	}
 
-	err = database.UpdateCatelogSort(sortData)
+	err = service.UpdateCatelogSort(sortData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success":      false,
@@ -1167,50 +1141,13 @@ func GetMaxSortHandler(c *gin.Context) {
 
 // ExportConfigHandler 导出所有配置
 func ExportConfigHandler(c *gin.Context) {
-	tools := service.GetAllTool()
-	catelogs := service.GetAllCatelog()
-	searchEngines, err := database.GetAllSearchEngines()
+	resp, err := service.ExportFullConfig()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success":      false,
-			"errorMessage": "获取搜索引擎失败: " + err.Error(),
+			"errorMessage": "导出配置失败: " + err.Error(),
 		})
 		return
-	}
-	tokens, err := database.GetAllTokens()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success":      false,
-			"errorMessage": "获取Token失败: " + err.Error(),
-		})
-		return
-	}
-	settings, err := database.GetAllSettings()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success":      false,
-			"errorMessage": "获取设置失败: " + err.Error(),
-		})
-		return
-	}
-	siteConfig, err := database.GetSiteConfigAsMap()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success":      false,
-			"errorMessage": "获取网站配置失败: " + err.Error(),
-		})
-		return
-	}
-
-	resp := types.ExportConfigResponse{
-		ExportTime:    time.Now().Format("2006-01-02T15:04:05Z"),
-		Version:       "1.0",
-		Tools:         tools,
-		Catelogs:      catelogs,
-		SearchEngines: searchEngines,
-		ApiTokens:     tokens,
-		Settings:      settings,
-		SiteConfig:    siteConfig,
 	}
 
 	c.JSON(200, gin.H{
@@ -1230,113 +1167,7 @@ func ImportConfigHandler(c *gin.Context) {
 		return
 	}
 
-	result := types.ImportConfigResponse{
-		Success: true,
-		Errors:  make([]string, 0),
-	}
-
-	// 按顺序导入：分类 → 工具 → 搜索引擎 → Token → 设置
-
-	// 1. 导入分类（先清空）
-	if err := database.DeleteAllCatelogs(); err != nil {
-		result.Success = false
-		result.Errors = append(result.Errors, "清空分类失败: "+err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success":      false,
-			"errorMessage": "清空分类失败: " + err.Error(),
-		})
-		return
-	}
-	if err := database.InsertCatelogs(req.Catelogs); err != nil {
-		result.Success = false
-		result.Errors = append(result.Errors, "导入分类失败: "+err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success":      false,
-			"errorMessage": "导入分类失败: " + err.Error(),
-		})
-		return
-	}
-	result.CatelogsImported = len(req.Catelogs)
-
-	// 2. 导入工具（先清空）
-	if err := database.DeleteAllTools(); err != nil {
-		result.Success = false
-		result.Errors = append(result.Errors, "清空工具失败: "+err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success":      false,
-			"errorMessage": "清空工具失败: " + err.Error(),
-		})
-		return
-	}
-	if err := database.InsertTools(req.Tools); err != nil {
-		result.Success = false
-		result.Errors = append(result.Errors, "导入工具失败: "+err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success":      false,
-			"errorMessage": "导入工具失败: " + err.Error(),
-		})
-		return
-	}
-	result.ToolsImported = len(req.Tools)
-
-	// 3. 导入搜索引擎（先清空）
-	if err := database.DeleteAllSearchEngines(); err != nil {
-		result.Success = false
-		result.Errors = append(result.Errors, "清空搜索引擎失败: "+err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success":      false,
-			"errorMessage": "清空搜索引擎失败: " + err.Error(),
-		})
-		return
-	}
-	if err := database.InsertSearchEngines(req.SearchEngines); err != nil {
-		result.Success = false
-		result.Errors = append(result.Errors, "导入搜索引擎失败: "+err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success":      false,
-			"errorMessage": "导入搜索引擎失败: " + err.Error(),
-		})
-		return
-	}
-	result.SearchEnginesImported = len(req.SearchEngines)
-
-	// 4. 导入 API Token（按name去重）
-	for _, token := range req.ApiTokens {
-		if database.TokenExists(token.Name) {
-			result.ApiTokensSkipped++
-			continue
-		}
-		if err := database.InsertToken(token); err != nil {
-			result.Errors = append(result.Errors, "导入Token '"+token.Name+"' 失败: "+err.Error())
-			continue
-		}
-		result.ApiTokensImported++
-	}
-
-	// 5. 导入设置（合并更新）
-	for key, value := range req.Settings {
-		if err := database.UpdateSettingField(key, value); err != nil {
-			result.Errors = append(result.Errors, "更新设置 '"+key+"' 失败: "+err.Error())
-			continue
-		}
-		result.SettingsUpdated++
-	}
-
-	// 6. 导入网站配置（直接替换）
-	if req.SiteConfig != nil && len(req.SiteConfig) > 0 {
-		if err := database.UpdateSiteConfigFromMap(req.SiteConfig); err != nil {
-			result.Errors = append(result.Errors, "更新网站配置失败: "+err.Error())
-		} else {
-			result.SiteConfigUpdated = 1
-		}
-	}
-
-	if len(result.Errors) > 0 {
-		result.Success = false
-		result.Message = "部分导入完成，但有错误"
-	} else {
-		result.Message = "全部导入成功"
-	}
+	result := service.ImportFullConfig(req)
 
 	c.JSON(200, gin.H{
 		"success": true,
@@ -1387,10 +1218,7 @@ func CheckLinksHandler(c *gin.Context) {
 
 // OrganizeDeadLinksHandler 先刷新检测，再将失效链接移至末尾，最后返回更新后的完整数据
 func OrganizeDeadLinksHandler(c *gin.Context) {
-	// 先检测所有链接刷新 is_alive，确保数据一致
-	service.CheckAllLinks()
-
-	affected, err := database.OrganizeDeadLinks()
+	affected, tools, catelogs, setting, siteConfig, err := service.OrganizeDeadLinks()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success":      false,
@@ -1398,12 +1226,6 @@ func OrganizeDeadLinksHandler(c *gin.Context) {
 		})
 		return
 	}
-
-	// 返回整理后的完整工具列表，前端直接用 POST 响应更新 UI（绕过 SW 缓存）
-	tools := service.GetAllTool()
-	catelogs := service.GetAllCatelog()
-	setting := service.GetSetting()
-	siteConfig := service.GetSiteConfig()
 
 	c.JSON(200, gin.H{
 		"success": true,

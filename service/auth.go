@@ -71,3 +71,23 @@ func UpdateUser(data types.UpdateUserDto) {
 	_, err = res.RowsAffected()
 	utils.CheckErr(err)
 }
+
+
+func DeleteApiToken(id string) error {
+	sql_delete_api_token := `
+		UPDATE nav_api_token
+		SET disabled = 1
+		WHERE id = ?;
+		`
+	stmt, err := database.DB.Prepare(sql_delete_api_token)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	res, err := stmt.Exec(id)
+	if err != nil {
+		return err
+	}
+	_, err = res.RowsAffected()
+	return err
+}
