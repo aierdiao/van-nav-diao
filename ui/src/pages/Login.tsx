@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { message } from 'antd';
 import { login } from '../utils/api';
 import { useGlobalTheme } from '../utils/useGlobalTheme';
 import DarkSwitch from '../components/DarkSwitch';
@@ -11,23 +10,22 @@ const Login: React.FC = () => {
   useGlobalTheme();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 实现登录逻辑
+    setErrorMsg('');
     try {
       const response = await login(username, password);
       if (response.success) {
         localStorage.setItem('_token', response.data.token);
-        message.success('登录成功');
         navigate('/admin');
       } else {
-        message.error(response.errorMessage || "登录失败");
+        setErrorMsg(response.errorMessage || '登录失败');
       }
     } catch (error) {
-      message.error('登录失败');
-      console.error('登录失败:', error);
+      setErrorMsg('登录失败，请检查网络连接');
     }
   };
 
@@ -54,6 +52,7 @@ const Login: React.FC = () => {
               required
             />
           </div>
+          {errorMsg && <div className="login-error">{errorMsg}</div>}
           <button type="submit" className="login-button">
             登录
           </button>

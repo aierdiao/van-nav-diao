@@ -129,3 +129,20 @@ body.dark-mode .input-group input:focus {
   width: 24px;
   height: 24px;
 }
+
+.login-error {
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #ff4d4f;
+  font-size: 14px;
+  text-align: center;
+}
+
+body.dark-mode .login-error {
+  background-color: rgba(255, 77, 79, 0.1);
+  border-color: rgba(255, 77, 79, 0.3);
+  color: #ff7875;
+}
