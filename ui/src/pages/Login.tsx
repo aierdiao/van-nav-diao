@@ -23,7 +23,7 @@ const Login: React.FC = () => {
         message.success('登录成功');
         navigate('/admin');
       } else {
-        message.error(response.message);
+        message.error(response.errorMessage || "登录失败");
       }
     } catch (error) {
       message.error('登录失败');
