@@ -135,3 +135,4 @@ SECURITY_FIX_REPORT.md
 upgrade-deps.sh
 AGENTS.md
 .codex/
+vendor/
