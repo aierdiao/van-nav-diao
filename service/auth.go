@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/mereith/nav/database"
+	"github.com/mereith/nav/logger"
 	"github.com/mereith/nav/types"
 	"github.com/mereith/nav/utils"
 )
@@ -90,4 +91,19 @@ func DeleteApiToken(id string) error {
 	}
 	_, err = res.RowsAffected()
 	return err
+}
+
+// UpgradeUserPassword 将旧版明文密码升级为 bcrypt 哈希
+func UpgradeUserPassword(userId int, hashedPassword string) {
+	sql := `UPDATE nav_user SET password = ? WHERE id = ?;`
+	stmt, err := database.DB.Prepare(sql)
+	if err != nil {
+		logger.LogError("升级密码失败: %s", err)
+		return
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(hashedPassword, userId)
+	if err != nil {
+		logger.LogError("升级密码失败: %s", err)
+	}
 }

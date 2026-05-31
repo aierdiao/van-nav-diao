@@ -110,7 +110,7 @@ func main() {
 	router.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedExtensions([]string{".png", ".jpg", ".jpeg", ".ico", ".svg"})))
 	//router.Use(gzip.Gzip(gzip.DefaultCompression))
 	// 嵌入文件夹
-	router.GET("/manifest.json", handler.ManifastHanlder)
+	router.GET("/manifest.json", handler.ManifestHandler)
 	router.Use(Serve("/", BinaryFileSystem(fs, "public")))
 	api := router.Group("/api")
 	api.Use(func(c *gin.Context) {

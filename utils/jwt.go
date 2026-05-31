@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"os"
 	"strings"
 	"time"
 
@@ -23,9 +24,29 @@ func RandomJWTKey() string {
 
 var jwtSecret []byte
 
+const jwtSecretFile = "./data/jwt_secret"
+
 func init() {
-	jwtSecret = []byte(RandomJWTKey())
-	logger.LogInfo("JWT 密钥已初始化（随机生成）")
+	// 优先使用环境变量
+	if envKey := os.Getenv("JWT_SECRET"); envKey != "" {
+		jwtSecret = []byte(envKey)
+		logger.LogInfo("JWT 密钥已从环境变量加载")
+		return
+	}
+	// 尝试从文件读取（重启后保持一致）
+	if data, err := os.ReadFile(jwtSecretFile); err == nil && len(data) > 0 {
+		jwtSecret = data
+		logger.LogInfo("JWT 密钥已从文件加载")
+		return
+	}
+	// 首次启动：生成随机密钥并持久化到文件
+	key := RandomJWTKey()
+	jwtSecret = []byte(key)
+	if err := os.WriteFile(jwtSecretFile, jwtSecret, 0600); err != nil {
+		logger.LogError("JWT 密钥持久化失败（重启后已有 token 将失效）: %v", err)
+	} else {
+		logger.LogInfo("JWT 密钥已生成并持久化到 %s", jwtSecretFile)
+	}
 }
 
 func SignJWT(user types.User) (string, error) {
@@ -42,7 +63,7 @@ func SignJWTForAPI(tokenName string, tokenId int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"name": tokenName,
 		"id":   tokenId,
-		"exp":  time.Now().Add(time.Hour * 24 * 365 * 100).Unix(),
+		"exp":  time.Now().Add(time.Hour * 24 * 365 * 10).Unix(),
 	})
 	tokenString, err := token.SignedString([]byte(jwtSecret))
 	return tokenString, err

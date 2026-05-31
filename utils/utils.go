@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"encoding/base64"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -62,7 +62,7 @@ func GetImgBase64FromUrl(url string) string {
 	defer res.Body.Close()
 
 	// 读取获取的[]byte数据
-	data, _ := ioutil.ReadAll(res.Body)
+	data, _ := io.ReadAll(res.Body)
 
 	imageBase64 := base64.StdEncoding.EncodeToString(data)
 	return imageBase64

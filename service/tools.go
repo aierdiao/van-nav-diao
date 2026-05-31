@@ -98,6 +98,11 @@ func ImportTools(data []types.Tool) ImportToolsResult {
 
 	// 异步转存所有图片，不阻塞入库主线程
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.LogError("ImportTools async image download panic: %v", r)
+			}
+		}()
 		for _, v := range data {
 			UpdateImg(v.Logo)
 		}

@@ -39,6 +39,11 @@ func getIcon(url string) string {
 }
 
 func LazyFetchLogo(url string, id int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.LogError("LazyFetchLogo panic: %v", r)
+		}
+	}()
 	// 如果 logo 为空，就去获取 logo
 	logo := getIcon(url)
 	UpdateToolIcon(id, logo)
@@ -77,6 +82,11 @@ func GetImgFromDB(url1 string) types.Img {
 }
 
 func UpdateImg(url1 string) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.LogError("UpdateImg panic: %v", r)
+		}
+	}()
 	// 除了更新工具本身之外，也要更新 img 表
 	// 先看有没有，有的话就不管了，没有的话就创建
 	urlEncoded := url.QueryEscape(url1)

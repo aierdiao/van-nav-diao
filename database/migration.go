@@ -1,5 +1,11 @@
 package database
 
+import (
+	"os"
+
+	"github.com/mereith/nav/logger"
+)
+
 func migration_2024_12_13() {
 	// 1. 首先更新现有的 NULL 值为 0
 	sql_update_null_sort := `
@@ -10,7 +16,8 @@ func migration_2024_12_13() {
 
 	_, err := DB.Exec(sql_update_null_sort)
 	if err != nil {
-		panic(err)
+			logger.LogError("migration_2024_12_13 失败: %s", err)
+		os.Exit(1)
 	}
 
 	// 2. 创建新表
@@ -25,7 +32,8 @@ func migration_2024_12_13() {
 
 	_, err = DB.Exec(sql_create_new_table)
 	if err != nil {
-		panic(err)
+			logger.LogError("migration_2024_12_13 失败: %s", err)
+		os.Exit(1)
 	}
 
 	// 3. 复制数据
@@ -36,7 +44,8 @@ func migration_2024_12_13() {
 
 	_, err = DB.Exec(sql_copy_data)
 	if err != nil {
-		panic(err)
+			logger.LogError("migration_2024_12_13 失败: %s", err)
+		os.Exit(1)
 	}
 
 	// 4. 删除旧表
@@ -44,7 +53,8 @@ func migration_2024_12_13() {
 
 	_, err = DB.Exec(sql_drop_old_table)
 	if err != nil {
-		panic(err)
+			logger.LogError("migration_2024_12_13 失败: %s", err)
+		os.Exit(1)
 	}
 
 	// 5. 重命名新表
@@ -52,6 +62,7 @@ func migration_2024_12_13() {
 
 	_, err = DB.Exec(sql_rename_table)
 	if err != nil {
-		panic(err)
+			logger.LogError("migration_2024_12_13 失败: %s", err)
+		os.Exit(1)
 	}
 }

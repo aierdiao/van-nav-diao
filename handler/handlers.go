@@ -16,7 +16,6 @@ import (
 	"github.com/mereith/nav/service"
 	"github.com/mereith/nav/types"
 	"github.com/mereith/nav/utils"
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
@@ -297,14 +296,20 @@ func LoginHandler(c *gin.Context) {
 		})
 		return
 	}
-	if user.Password != data.Password {
-		// 尝试 bcrypt 比较（兼容新哈希格式）
-		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(data.Password)); err != nil {
+	// 使用 bcrypt 验证密码（兼容旧版明文：自动升级为哈希）
+	if !utils.CheckPassword(data.Password, user.Password) {
+		// 兜底：旧版明文密码兼容（登录成功后自动升级为 bcrypt 哈希）
+		if user.Password != data.Password {
 			c.JSON(200, gin.H{
 				"success":      false,
 				"errorMessage": "密码错误",
 			})
 			return
+		}
+		// 明文匹配 → 自动升级为 bcrypt 哈希
+		if hashed, err := utils.HashPassword(data.Password); err == nil {
+			service.UpgradeUserPassword(user.Id, hashed)
+			logger.LogInfo("用户 %s 密码已自动升级为 bcrypt 哈希", user.Name)
 		}
 	}
 	// 生成 token
@@ -496,7 +501,7 @@ func UpdateCatelogHandler(c *gin.Context) {
 	})
 }
 
-func ManifastHanlder(c *gin.Context) {
+func ManifestHandler(c *gin.Context) {
 
 	setting := service.GetSetting()
 	title := setting.Title
@@ -1346,6 +1351,11 @@ func TestBackupConnectionHandler(c *gin.Context) {
 // BackupNowHandler 立即执行备份
 func BackupNowHandler(c *gin.Context) {
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.LogError("手动备份 panic: %v", r)
+			}
+		}()
 		err := service.ExecuteBackup()
 		if err != nil {
 			logger.LogError("手动备份失败: %s", err)
