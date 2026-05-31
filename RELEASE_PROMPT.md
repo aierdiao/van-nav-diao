@@ -13,7 +13,7 @@
 3. 开发者创建并推送 `v*` tag → GitHub Actions `.github/workflows/release.yml` 自动触发
 4. 工作流执行：构建前端 → GoReleaser 交叉编译 6 平台 → 自动创建 GitHub Release 并上传产物
 
-因此你的完整工作流是：**编写 RELEASE_NOTES.md → commit → 创建 annotated tag → push tag**，后续编译、打包、发布全部由 CI 自动完成。
+因此你的完整工作流是：**编写 RELEASE_NOTES.md + 更新 CHANGELOG.md → commit → 创建 annotated tag → push tag**，后续编译、打包、发布全部由 CI 自动完成。
 
 ## 第一步：确定版本号
 
@@ -90,11 +90,39 @@ grep "DEFAULT" database/init.db.go | grep deployment_version
 cat > RELEASE_NOTES.md << 'EOF'
 （第二步编写的内容）
 EOF
+```
 
-git add RELEASE_NOTES.md .goreleaser.yml
+同时更新 `CHANGELOG.md`，在文件顶部的分隔线（`---`）之后、上一个版本之前插入新版本条目：
+
+```markdown
+## [X.Y.Z] - YYYY-MM-DD
+
+### 🚀 New Features
+- （用户可感知的新功能，每条一行）
+
+### 🐛 Bug Fixes
+- （修复的问题，每条一行）
+
+### ⚙️ Changed
+- （内部改进、CI/Docker、工程化变更）
+```
+
+**编写规范**：
+- `CHANGELOG.md` 的分类使用 emoji 前缀（🚀 / 🐛 / ⚙️ / 🔒 / 🏗️），与 `RELEASE_NOTES.md` 的纯文本格式不同
+- 用户可感知的功能和修复写在 New Features / Bug Fixes
+- 内部改进、CI、Docker、架构变更写在 Changed
+- 安全修复写在 🔒 Security
+- 同一个 commit 可以同时出现在 RELEASE_NOTES.md（给 GitHub Release）和 CHANGELOG.md（给项目文档）中，内容可以略有不同
+
+提交：
+
+```bash
+git add RELEASE_NOTES.md CHANGELOG.md .goreleaser.yml
 git commit -m "docs: prepare release notes for vX.Y.Z"
 git push origin master
 ```
+
+**注意**：RELEASE_NOTES.md 和 CHANGELOG.md 必须在同一次 commit 中一起提交，确保两者内容一致。
 
 ## 第五步：⚠️ 向用户确认
 
@@ -102,7 +130,8 @@ git push origin master
 
 1. **目标版本号**和**上一个版本号**
 2. **RELEASE_NOTES.md 完整正文**（用户可要求修改）
-3. **将要执行的 Git 命令**：
+3. **CHANGELOG.md 新增条目**（用户可要求修改）
+4. **将要执行的 Git 命令**：
    ```bash
    git tag -a vX.Y.Z -m "Release van-nav vX.Y.Z"
    git push origin vX.Y.Z
