@@ -1,44 +1,152 @@
 # Van Nav
 
-一个轻量的导航站，现在有搜索引擎集成了，很适合作为主页使用。有配套的[浏览器插件](https://github.com/Mereithhh/van-nav-extension)和 API。 [在线体验](https://demo-tools.mereith.com) (总有人改后台数据，后台密码就不放出来了)
+一个轻量的导航站，支持搜索引擎集成，适合作为主页使用。有配套的[浏览器插件](https://github.com/Mereithhh/van-nav-extension)和 API。
 
-> 新增了 [API 文档](https://van-nav-api.mereith.dev)，用 AI 生成的，如果不准确请提 Issue 哦。
+> 本项目 fork 自 [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav)，在原版基础上进行了架构重构、安全加固和工程化改进。详见[与上游项目的区别](#与上游项目的区别)。
 
 ## 预览
 
-### PC
+### PC 端
 
-<img src="images/pc_preview.png" alt="PC" style="width: 100%;"/>
+<p align="center">
+<img src="images/pc-light.png" alt="PC 端浅色模式" width="49%"/>
+<img src="images/pc-dark.png" alt="PC 端深色模式" width="49%"/>
+</p>
 
-### PAD
+### 移动端
 
-<img src="images/pad_preview.png" alt="PAD" style="width: 100%;"/>
+<p align="center">
+<img src="images/phone-light.png" alt="移动端浅色模式" width="24%"/>
+<img src="images/phone-dark.png" alt="移动端深色模式" width="24%"/>
+</p>
 
-### PHONE
+### 后台管理
 
-<img src="images/phone_preview.png" alt="PHONE" style="width: 100%;"/>
+<p align="center">
+<img src="images/admin-tools-light.png" alt="工具管理" width="49%"/>
+<img src="images/admin-tools-dark.png" alt="工具管理（深色）" width="49%"/>
+</p>
 
-### 后台设置
+<p align="center">
+<img src="images/admin-categories.png" alt="分类管理" width="49%"/>
+<img src="images/admin-search-engines.png" alt="搜索引擎管理" width="49%"/>
+</p>
 
-<img src="images/login.jpg" alt="登录" style="width: 100%;"/>
+<p align="center">
+<img src="images/admin-api-tokens.png" alt="API Token 管理" width="49%"/>
+<img src="images/admin-settings.png" alt="系统设置" width="49%"/>
+</p>
 
-<img src="images/admin.jpg" alt="后台设置" style="width: 100%;"/>
+## 与上游项目的区别
 
-### 交流群
+本项目 fork 自 [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav)（最新代码 `8b9a544`）。以下是本项目相对上游的**新增功能**和**改进差异**。
 
-<img src="images/qqqun.jpg" alt="交流群" style="height: 200px;"/>
+### 新增功能
 
-> qq 交流群： 873773083
+#### WebDAV 云备份与恢复
+
+上游无此功能。本项目支持将数据库加密备份到坚果云等 WebDAV 服务：
+
+- 后台可配置 WebDAV 连接信息、备份周期（每日/每周/每月/自定义 cron）
+- 备份文件自动 AES-256-GCM 加密，密钥自动生成无需手动配置
+- 支持保留策略（不限制/按数量/按天数自动清理过期备份）
+- 后台可查看云端备份文件列表，一键恢复指定备份
+- 恢复前自动备份当前数据库，防止误操作
+
+#### 全量配置导入导出
+
+上游仅支持工具的导入导出。本项目支持**所有配置**的一键备份和恢复：
+
+- 导出范围：工具、分类、搜索引擎、API Token、系统设置、网站配置
+- 导出格式：JSON 文件，可在任意实例间迁移
+- 导入时自动按类型处理（分类先清空再写入、Token 按名称去重、设置合并更新）
+
+#### 链接健康检查
+
+上游无此功能。后台可批量检测所有工具链接的存活状态：
+
+- 并发检测（10 路并发，HEAD 请求优先，失败降级 GET）
+- 标记每条链接的 HTTP 状态码和存活状态
+- 支持一键将失效链接排序到列表末尾
+
+#### 工具描述自动获取
+
+上游无此功能。支持"一键更新描述"批量获取工具页面的 `<title>` 和 `<meta description>`：
+
+- 支持 GBK/GB2312/UTF-8 自动编码识别
+- 自动检测反爬页面（验证码等），避免误采集
+- 单个工具可通过 `GET /api/admin/fetch-page-info?url=xxx` 获取
+
+#### 部署版本号管理
+
+上游无此功能。编译时通过 ldflags 注入 Git tag 作为版本号，启动时自动同步到数据库：
+
+- 后台「系统设置」页面显示当前部署版本
+- 支持通过 API 递增构建号（供 CI/CD 流水线调用）
+- 更新部署后版本号自动对齐，无需手动修改
+
+#### Docker Compose 支持
+
+上游无 `docker-compose.yml`。本项目提供开箱即用的 Compose 配置：
+
+```yaml
+services:
+  van-nav:
+    image: ghcr.io/thirsty5034/van-nav:latest
+    container_name: van-nav
+    restart: unless-stopped
+    ports:
+      - "6412:6412"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+```
+
+#### GHCR 多架构镜像
+
+上游镜像托管在 Docker Hub。本项目切换到 GitHub Container Registry，支持多架构：
+
+```bash
+docker pull ghcr.io/thirsty5034/van-nav:latest
+```
+
+支持 `linux/amd64`、`linux/arm64`、`linux/arm`、`darwin/amd64`、`darwin/arm64`。
+
+### 安全改进
+
+| 改进项 | 上游 | 本项目 |
+|--------|------|--------|
+| JWT 密钥 | 每次重启随机生成，所有已签发 token 立即失效 | 持久化到 `./data/jwt_secret`，重启后 token 保持有效 |
+| 密码校验 | bcrypt + 明文回退比较 | bcrypt-first，旧版明文密码首次登录自动升级为 bcrypt 哈希 |
+| API Token 有效期 | 100 年 | 10 年 |
+| 数据库迁移 | `panic(err)` 崩溃并吐栈 trace | `logger.LogError` + `os.Exit(1)`，输出清晰错误信息 |
+| 依赖安全 | 存在 98 个 npm 漏洞 + 15 个 Dependabot 告警 | 全部修复 |
+
+### 可靠性改进
+
+| 改进项 | 上游 | 本项目 |
+|--------|------|--------|
+| goroutine panic 兜底 | 无 `defer/recover`，异步线程 panic 直接崩进程 | 4 个异步路径全部保护 |
+| 错误响应 | 5 个删除/更新 Handler 静默吞错后仍返回 200 | 显式返回 HTTP 500 + 错误信息 |
+| 批量导入 | 循环内每条记录独立 Prepare + Exec | 事务内复用 Prepared Statement，单次批量提交 |
+
+### 工程化改进
+
+| 改进项 | 上游 | 本项目 |
+|--------|------|--------|
+| CI 工具链 | Node.js 较旧版本 | Node.js 22 + pnpm 11.4.0 + Go 1.23 |
+| Docker 构建 | 单阶段 | 多阶段构建（前端 + 后端 + 运行时分离） |
+| 发版流程 | 手动发布 | GoReleaser 自动交叉编译 6 平台 + 结构化 Release Notes |
+| 分层架构 | handler 直接调用 database（10 处） | 全部通过 Service 层中转，handler 包零 database 引用 |
+| 架构断路器 | 无 | `assert_architecture.sh` 编译期扫描，阻止分层违规回归 |
 
 ## 使用技巧/快捷键
 
-其实这个导航站有很多小设计，合理使用可以提高使用效率：
-
-- 只要在这个页面里，直接输入键盘任何按键，可以直接聚焦到搜索框开始输入。
-- 搜索完按回车会直接在新标签页打开第一个结果。
-- 搜索完按一下对应卡片右上角的数字按钮 + Ctrl(mac 也可以用 command 键) ，也会直接打开对应结果。
-
-另外可以设置跳转方式哦。
+- 直接在页面输入任意按键，自动聚焦到搜索框
+- 搜索后按回车，直接在新标签页打开第一个结果
+- 搜索后按对应卡片右上角数字 + Ctrl/Command，直接打开对应结果
+- 支持自定义跳转方式（新标签页/当前标签页）
 
 ## CHANGELOG
 
@@ -48,33 +156,63 @@
 
 ### Docker
 
-```
-docker run -d --name tools --restart always -p 6412:6412 -v /path/to/your/data:/app/data mereith/van-nav:latest
+```bash
+docker run -d \
+  --name van-nav \
+  --restart unless-stopped \
+  -p 6412:6412 \
+  -v ./data:/app/data \
+  -e TZ=Asia/Shanghai \
+  ghcr.io/thirsty5034/van-nav:latest
 ```
 
 打开浏览器 [http://localhost:6412](http://localhost:6412) 即可访问。
 
-- 默认端口 6412
-- 默认账号密码 admin admin 第一次运行后请进入后台修改
-- 数据库会自动创建在当前文件夹中： `nav.db`
+- 默认端口 `6412`
+- 默认账号密码 `admin` / `admin`，首次运行后请进入后台修改
+- 数据存储在挂载的 `./data` 目录中
+
+### Docker Compose
+
+新建 `docker-compose.yml`：
+
+```yaml
+services:
+  van-nav:
+    image: ghcr.io/thirsty5034/van-nav:latest
+    container_name: van-nav
+    restart: unless-stopped
+    ports:
+      - "6412:6412"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+```
+
+启动：
+
+```bash
+docker compose up -d
+```
 
 ### 可执行文件
 
-下载 release 文件夹里面对应平台的二进制文件，直接运行即可。
+下载 [Releases](https://github.com/thirsty5034/van-nav/releases) 中对应平台的二进制文件，直接运行。
+
+```bash
+./van-nav -port 6412
+```
 
 打开浏览器 [http://localhost:6412](http://localhost:6412) 即可访问。
 
-- 默认端口 6412 动时添加 `-port <port>` 参数可指定运行端口。
-- 默认账号密码 admin admin ，第一次运行后请进入后台修改
-- 数据库会自动创建在当前文件夹中： `nav.db`
+- 默认端口 `6412`，添加 `-port <port>` 参数可指定端口
+- 默认账号密码 `admin` / `admin`，首次运行后请进入后台修改
+- 数据库自动创建在当前目录：`data/nav.db`
 
 ### nginx 反向代理
 
-参考配置
-
-> 其中 `<yourhost>` 和 `<your-cert-path>` 替换成你自己的。
-
-```
+```nginx
 server {
     listen 80;
     server_name <yourhost>;
@@ -82,15 +220,16 @@ server {
 }
 
 server {
-    listen 443   ssl http2;
+    listen 443 ssl http2;
     server_name <yourhost>;
 
-    ssl_certificate <your-cert-path>
+    ssl_certificate <your-cert-path>;
     ssl_certificate_key <your-key-path>;
     ssl_verify_client off;
     proxy_ssl_verify off;
+
     location / {
-        proxy_pass  http://127.0.0.1:6412;
+        proxy_pass http://127.0.0.1:6412;
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -103,26 +242,22 @@ server {
 
 ### systemd 服务
 
-可以注册成系统服务，开机启动。
+1. 复制二进制文件到 `/usr/local/bin` 并加执行权限
 
-1. 复制二进制文件到 `/usr/local/bin` 目录下，并加上执行权限
+2. 创建 `/etc/systemd/system/van-nav.service`：
 
-2. 新建 `VanNav.serivce` 文件于 `/usr/lib/systemd/system` 目录下:
-
-```
+```ini
 [Unit]
 Description=VanNav
-Documentation=https://github.com/thirsty5034/van-nav
 After=network.target
 Wants=network.target
 
 [Service]
 WorkingDirectory=/usr/local/bin
-ExecStart=/usr/local/bin/nav
+ExecStart=/usr/local/bin/van-nav
 Restart=on-abnormal
 RestartSec=5s
 KillMode=mixed
-
 StandardOutput=null
 StandardError=syslog
 
@@ -130,65 +265,53 @@ StandardError=syslog
 WantedBy=multi-user.target
 ```
 
-3. 执行:
+3. 常用运维命令：
 
-```
-sudo systemctl daemon-reload && sudo systemctl enable --now VanNav.service
+```bash
+# 启动 / 停止 / 重启
+sudo systemctl start van-nav
+sudo systemctl stop van-nav
+sudo systemctl restart van-nav
+
+# 查看状态 / 实时日志
+sudo systemctl status van-nav
+sudo journalctl -u van-nav -f
+
+# 开机自启 / 取消自启
+sudo systemctl enable van-nav
+sudo systemctl disable van-nav
 ```
 
 ## 浏览器插件
 
-具体请看： [浏览器插件仓库](https://github.com/Mereithhh/van-nav-extension)
-
-具有一键增加工具，快速打开管理后台和主站等功能。具体自行探索哦。
-
-## API
-
-本导航站支持 API，可以用自己的方法添加工具。
-
-尝试用 ai 生成 api 文档，具体请看
-
-> [API 文档](https://van-nav-api.mereith.dev)
+[浏览器插件仓库](https://github.com/Mereithhh/van-nav-extension) — 一键添加工具、快速打开管理后台和主站。
 
 ## FAQ
 
-- 忘记密码了怎么办： [看这里](https://github.com/Mereithhh/van-nav/issues/36)
+### 忘记密码怎么办
+
+数据库存储在 `data/nav.db`（SQLite），可通过以下方式重置：
+
+1. 停止服务
+2. 使用 sqlite3 直接修改密码哈希：
+
+```bash
+# 安装 sqlite3（如未安装）
+# Debian/Ubuntu: sudo apt install sqlite3
+# Alpine: apk add sqlite
+# macOS: 已预装
+
+# 生成 bcrypt 哈希（使用项目自带的工具或在线工具）
+# 默认密码 admin 的 bcrypt 哈希值为：
+# $2a$10$...（每次生成不同，最简单的方式是重新初始化）
+
+# 最简单的方式：删除数据库后重启（会丢失所有数据）
+rm data/nav.db && sudo systemctl restart van-nav
+# 重启后默认账号密码恢复为 admin / admin
+```
+
+> 建议升级前通过后台「配置导入导出」功能导出配置备份。
 
 ## 参与开发
 
-最近重构过一次，整体的代码结构暂时不会有大变动，所以欢迎参与开发！
-
-如果你有 golang 和 react 开发经验，可以很轻松上手。
-
-如果没有方向，可以试试去解决 issue 里的问题或者开发新功能，开发之前可以先提个 issue 让我知道。
-
-## 状态
-
-可以优化的点太多了，慢慢完善吧……
-
-- [x] 多平台构建流水线
-- [x] 定制化 logo 和标题
-- [x] 导入导出功能
-- [x] 暗色主题切换
-- [x] 移动端优化
-- [x] 自动获取网站 logo
-- [x] 拼音匹配的模糊搜索功能
-- [x] 按键直接搜索，搜索后回车直接打开第一项
-- [x] 图片存库，避免跨域和加载慢的问题
-- [x] gzip 全局压缩
-- [x] 中文 url 图片修复
-- [x] svg 图片修复
-- [x] 浏览器插件
-- [x] 自动获取网站题目和描述等信息
-- [x] 后台按钮可自定义隐藏
-- [x] github 按钮可隐藏
-- [x] 支持登录后才能查看的隐藏卡片
-- [x] 搜索引擎集成功能
-- [x] 增加一些搜索后快捷键直接打开卡片
-- [x] 支持自定义跳转方式
-- [x] 自动主题切换
-- [ ] 国际化
-- [x] 增加 ServiceWork ,离线可用,可安装
-- [ ] 网站状态检测
-- [x] 支持后台设置默认跳转方式
-- [x] 支持指定监听端口
+本项目使用 Go + React 技术栈。如有 Golang 和 React 开发经验，可以很轻松上手。欢迎提交 Issue 和 PR。
