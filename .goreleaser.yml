@@ -39,9 +39,7 @@ snapshot:
   name_template: "{{ incpatch .Version }}-next"
 
 changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
-      - "version"
+  disable: true
+
+release:
+  release_notes_file: RELEASE_NOTES.md
