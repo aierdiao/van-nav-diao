@@ -290,27 +290,29 @@ sudo systemctl disable van-nav
 
 ### 忘记密码怎么办
 
-数据库存储在 `data/nav.db`（SQLite），可通过以下方式重置：
-
-1. 停止服务
-2. 使用 sqlite3 直接修改密码哈希：
+使用 `-reset-password` 参数重置管理员密码，**数据不会丢失**：
 
 ```bash
-# 安装 sqlite3（如未安装）
-# Debian/Ubuntu: sudo apt install sqlite3
-# Alpine: apk add sqlite
-# macOS: 已预装
+# 先停止服务
+sudo systemctl stop van-nav
 
-# 生成 bcrypt 哈希（使用项目自带的工具或在线工具）
-# 默认密码 admin 的 bcrypt 哈希值为：
-# $2a$10$...（每次生成不同，最简单的方式是重新初始化）
+# 重置密码（两种方式）
+./van-nav -reset-password admin          # 重置为 admin
+./van-nav -reset-password 'MyStr0ngP@ss' # 重置为指定密码
 
-# 最简单的方式：删除数据库后重启（会丢失所有数据）
-rm data/nav.db && sudo systemctl restart van-nav
-# 重启后默认账号密码恢复为 admin / admin
+# 重启服务
+sudo systemctl start van-nav
 ```
 
-> 建议升级前通过后台「配置导入导出」功能导出配置备份。
+Docker 用户：
+
+```bash
+docker exec van-nav ./van-nav -reset-password admin
+```
+
+重置后请通过后台「系统设置」尽快修改为强密码。
+
+> 建议定期通过后台「配置导入导出」功能导出配置备份。
 
 ## 参与开发
 

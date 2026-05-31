@@ -15,6 +15,7 @@ import (
 	"github.com/mereith/nav/logger"
 	"github.com/mereith/nav/middleware"
 	"github.com/mereith/nav/service"
+	"github.com/mereith/nav/utils"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -65,6 +66,7 @@ func BinaryFileSystem(data embed.FS, root string) *binaryFileSystem {
 
 var port = flag.String("port", "6412", "指定监听端口")
 var addr = flag.String("addr", "0.0.0.0", "指定监听地址")
+var resetPassword = flag.String("reset-password", "", "重置管理员密码，执行后退出（留空重置为 admin，指定值则设为该密码）")
 
 // syncDeploymentVersion 启动时同步部署版本号到数据库
 // 确保新部署和更新部署都能获得一致的版本号（来自编译包）
@@ -94,9 +96,50 @@ func syncDeploymentVersion() {
 	}
 }
 
+// flagWasSet 检查某个 flag 是否被用户显式传入
+func flagWasSet(name string) bool {
+	visited := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			visited = true
+		}
+	})
+	return visited
+}
+
 func main() {
 	flag.Parse()
 	database.InitDB()
+
+	// 重置密码模式：无需启动 HTTP 服务
+	if *resetPassword != "" || flag.Lookup("reset-password") != nil && !flagWasSet("reset-password") {
+		// 只有当 -reset-password 被显式传入时才执行
+		if flagWasSet("reset-password") {
+			newPwd := *resetPassword
+			if newPwd == "" {
+				newPwd = "admin"
+			}
+			hashed, err := utils.HashPassword(newPwd)
+			if err != nil {
+				logger.LogError("密码哈希失败: %s", err)
+				os.Exit(1)
+			}
+			stmt, err := database.DB.Prepare(`UPDATE nav_user SET password = ? WHERE id = (SELECT id FROM nav_user ORDER BY id ASC LIMIT 1)`)
+			if err != nil {
+				logger.LogError("数据库操作失败: %s", err)
+				os.Exit(1)
+			}
+			defer stmt.Close()
+			_, err = stmt.Exec(hashed)
+			if err != nil {
+				logger.LogError("密码重置失败: %s", err)
+				os.Exit(1)
+			}
+			fmt.Printf("✅ 管理员密码已重置为: %s\n", newPwd)
+			fmt.Println("请通过后台管理页面尽快修改为强密码。")
+			os.Exit(0)
+		}
+	}
 	// 同步部署版本号到数据库（确保新部署/更新部署版本一致）
 	syncDeploymentVersion()
 	// 初始化备份加密密钥（自动生成或从环境变量/数据库读取）
