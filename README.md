@@ -317,3 +317,630 @@ docker exec van-nav ./van-nav -reset-password admin
 ## 参与开发
 
 本项目使用 Go + React 技术栈。如有 Golang 和 React 开发经验，可以很轻松上手。欢迎提交 Issue 和 PR。
+
+---
+
+# English
+
+## Van Nav
+
+A lightweight navigation site with search engine integration, suitable as a homepage. Comes with a [browser extension](https://github.com/Mereithhh/van-nav-extension) and API.
+
+> This project is forked from [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav), with architectural restructuring, security hardening, and engineering improvements on top of the original. See [Differences from Upstream](#differences-from-upstream) for details.
+
+### Preview
+
+#### Desktop
+
+<p align="center">
+<img src="images/pc-light.png" alt="Desktop Light Mode" width="49%"/>
+<img src="images/pc-dark.png" alt="Desktop Dark Mode" width="49%"/>
+</p>
+
+#### Mobile
+
+<p align="center">
+<img src="images/phone-light.png" alt="Mobile Light Mode" width="24%"/>
+<img src="images/phone-dark.png" alt="Mobile Dark Mode" width="24%"/>
+</p>
+
+#### Admin Panel
+
+<p align="center">
+<img src="images/admin-tools-light.png" alt="Tool Management" width="49%"/>
+<img src="images/admin-tools-dark.png" alt="Tool Management (Dark)" width="49%"/>
+</p>
+
+<p align="center">
+<img src="images/admin-categories.png" alt="Category Management" width="49%"/>
+<img src="images/admin-search-engines.png" alt="Search Engine Management" width="49%"/>
+</p>
+
+<p align="center">
+<img src="images/admin-api-tokens.png" alt="API Token Management" width="49%"/>
+<img src="images/admin-settings.png" alt="System Settings" width="49%"/>
+</p>
+
+### Differences from Upstream
+
+This project is forked from [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav) (latest commit `8b9a544`). Below are the **new features** and **improvements** relative to the upstream project.
+
+#### New Features
+
+**WebDAV Cloud Backup & Restore**
+
+Not available in upstream. This project supports encrypted database backup to WebDAV services such as Jianguoyun (Nutstore):
+
+- Configurable WebDAV connection info and backup schedule (daily / weekly / monthly / custom cron)
+- Backup files are automatically encrypted with AES-256-GCM; encryption key is auto-generated
+- Retention policy support (unlimited / by count / by days to auto-clean expired backups)
+- View cloud backup file list in the admin panel, restore any backup with one click
+- Current database is auto-backed up before restore to prevent accidental data loss
+
+**Full Configuration Import & Export**
+
+Upstream only supports tool import/export. This project supports **all configuration** backup and restore:
+
+- Export scope: tools, categories, search engines, API tokens, system settings, site configuration
+- Export format: JSON file, portable across any instance
+- Import automatically processes by type (categories cleared before write, tokens deduplicated by name, settings merged)
+
+**Link Health Check**
+
+Not available in upstream. Batch-detect the status of all tool links from the admin panel:
+
+- Concurrent detection (10-way concurrency, HEAD request first, fallback to GET on failure)
+- Mark each link's HTTP status code and alive status
+- One-click sort dead links to the end of the list
+
+**Auto-fetch Tool Descriptions**
+
+Not available in upstream. "One-click update descriptions" to batch-fetch `<title>` and `<meta description>` from tool pages:
+
+- Auto encoding detection for GBK / GB2312 / UTF-8
+- Auto-detect anti-scraping pages (captchas, etc.) to avoid false scraping
+- Single tool can be fetched via `GET /api/admin/fetch-page-info?url=xxx`
+
+**Deployment Version Management**
+
+Not available in upstream. Git tag is injected as version number via ldflags at compile time and auto-synced to database at startup:
+
+- "System Settings" page in admin panel displays the current deployment version
+- API endpoint to increment build number (for CI/CD pipelines)
+- Version number auto-aligns after deployment, no manual edits needed
+
+**Docker Compose Support**
+
+Upstream has no `docker-compose.yml`. This project provides an out-of-the-box Compose configuration.
+
+**GHCR Multi-Architecture Images**
+
+Upstream images are hosted on Docker Hub. This project uses GitHub Container Registry with multi-architecture support: `linux/amd64`, `linux/arm64`, `linux/arm`, `darwin/amd64`, `darwin/arm64`.
+
+#### Security Improvements
+
+| Improvement | Upstream | This Project |
+|-------------|----------|--------------|
+| JWT Secret | Randomly generated on each restart, all issued tokens immediately invalidated | Persisted to `./data/jwt_secret`, tokens remain valid after restart |
+| Password Verification | bcrypt + plaintext fallback comparison | bcrypt-first, legacy plaintext passwords auto-upgraded to bcrypt hash on first login |
+| API Token Expiry | 100 years | 10 years |
+| Database Migration | `panic(err)` crashes with stack trace | `logger.LogError` + `os.Exit(1)`, outputs clear error message |
+| Dependency Security | 98 npm vulnerabilities + 15 Dependabot alerts | All fixed |
+
+#### Reliability Improvements
+
+| Improvement | Upstream | This Project |
+|-------------|----------|--------------|
+| goroutine Panic Recovery | No `defer/recover`, async goroutine panic crashes the process | All 4 async paths protected |
+| Error Responses | 5 delete/update Handlers silently swallow errors, still return 200 | Explicit HTTP 500 + error message |
+| Batch Import | Each record individually Prepare + Exec inside loop | Prepared Statement reused inside transaction, single batch commit |
+
+#### Engineering Improvements
+
+| Improvement | Upstream | This Project |
+|-------------|----------|--------------|
+| CI Toolchain | Older Node.js version | Node.js 22 + pnpm 11.4.0 + Go 1.23 |
+| Docker Build | Single-stage | Multi-stage build (frontend + backend + runtime separated) |
+| Release Process | Manual release | GoReleaser auto cross-compiles for 6 platforms + structured Release Notes |
+| Layered Architecture | Handler directly calls database (10 occurrences) | All routed through Service layer, handler package has zero database imports |
+| Architecture Circuit Breaker | None | `assert_architecture.sh` compile-time scan to prevent layering violation regressions |
+
+### Tips & Shortcuts
+
+- Start typing anywhere on the page to auto-focus the search box
+- After searching, press Enter to open the first result in a new tab
+- After searching, press the number on the corresponding card + Ctrl/Command to open that result directly
+- Customizable navigation behavior (new tab / current tab)
+
+### CHANGELOG
+
+See [CHANGELOG.md](CHANGELOG.md) for details.
+
+### Installation
+
+#### Docker
+
+```bash
+docker run -d \
+  --name van-nav \
+  --restart unless-stopped \
+  -p 6412:6412 \
+  -v ./data:/app/data \
+  -e TZ=Asia/Shanghai \
+  ghcr.io/thirsty5034/van-nav:latest
+```
+
+Open your browser at [http://localhost:6412](http://localhost:6412).
+
+- Default port: `6412`
+- Default credentials: `admin` / `admin` — change via admin panel after first run
+- Data is stored in the mounted `./data` directory
+
+#### Docker Compose
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  van-nav:
+    image: ghcr.io/thirsty5034/van-nav:latest
+    container_name: van-nav
+    restart: unless-stopped
+    ports:
+      - "6412:6412"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+```
+
+Start:
+
+```bash
+docker compose up -d
+```
+
+#### Standalone Binary
+
+Download the binary for your platform from [Releases](https://github.com/thirsty5034/van-nav/releases) and run directly.
+
+```bash
+./van-nav -port 6412
+```
+
+Open your browser at [http://localhost:6412](http://localhost:6412).
+
+- Default port: `6412`, use `-port <port>` to specify a different port
+- Default credentials: `admin` / `admin` — change via admin panel after first run
+- Database auto-created in the current directory: `data/nav.db`
+
+#### nginx Reverse Proxy
+
+```nginx
+server {
+    listen 80;
+    server_name <yourhost>;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name <yourhost>;
+
+    ssl_certificate <your-cert-path>;
+    ssl_certificate_key <your-key-path>;
+    ssl_verify_client off;
+    proxy_ssl_verify off;
+
+    location / {
+        proxy_pass http://127.0.0.1:6412;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect off;
+        proxy_set_header Upgrade $http_upgrade;
+    }
+}
+```
+
+#### systemd Service
+
+1. Copy the binary to `/usr/local/bin` and make it executable
+
+2. Create `/etc/systemd/system/van-nav.service`:
+
+```ini
+[Unit]
+Description=VanNav
+After=network.target
+Wants=network.target
+
+[Service]
+WorkingDirectory=/usr/local/bin
+ExecStart=/usr/local/bin/van-nav
+Restart=on-abnormal
+RestartSec=5s
+KillMode=mixed
+StandardOutput=null
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target
+```
+
+3. Common commands:
+
+```bash
+# Start / Stop / Restart
+sudo systemctl start van-nav
+sudo systemctl stop van-nav
+sudo systemctl restart van-nav
+
+# Status / Live Logs
+sudo systemctl status van-nav
+sudo journalctl -u van-nav -f
+
+# Enable / Disable Auto-start on Boot
+sudo systemctl enable van-nav
+sudo systemctl disable van-nav
+```
+
+### Browser Extension
+
+[Browser Extension Repository](https://github.com/Mereithhh/van-nav-extension) — One-click add tools, quick access to admin panel and main site.
+
+### FAQ
+
+**Forgot Password**
+
+Use the `-reset-password` parameter to reset the admin password. **No data will be lost**:
+
+```bash
+# Stop the service first
+sudo systemctl stop van-nav
+
+# Reset password (two options)
+./van-nav -reset-password admin          # Reset to admin
+./van-nav -reset-password 'MyStr0ngP@ss' # Reset to a custom password
+
+# Restart the service
+sudo systemctl start van-nav
+```
+
+For Docker users:
+
+```bash
+docker exec van-nav ./van-nav -reset-password admin
+```
+
+After resetting, change to a strong password via the admin panel "System Settings" as soon as possible.
+
+> It is recommended to regularly export a configuration backup via the admin panel "Import & Export".
+
+### Contributing
+
+This project uses a Go + React tech stack. If you have experience with Golang and React, you should be able to get started easily. Issues and PRs are welcome.
+
+
+---
+
+# English
+
+A lightweight navigation site with search engine integration, suitable as a homepage. Comes with a [browser extension](https://github.com/Mereithhh/van-nav-extension) and API.
+
+> This project is forked from [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav), with architectural restructuring, security hardening, and engineering improvements on top of the original. See [Differences from Upstream](#differences-from-upstream) for details.
+
+## Preview
+
+### Desktop
+
+<p align="center">
+<img src="images/pc-light.png" alt="Desktop Light Mode" width="49%"/>
+<img src="images/pc-dark.png" alt="Desktop Dark Mode" width="49%"/>
+</p>
+
+### Mobile
+
+<p align="center">
+<img src="images/phone-light.png" alt="Mobile Light Mode" width="24%"/>
+<img src="images/phone-dark.png" alt="Mobile Dark Mode" width="24%"/>
+</p>
+
+### Admin Panel
+
+<p align="center">
+<img src="images/admin-tools-light.png" alt="Tool Management" width="49%"/>
+<img src="images/admin-tools-dark.png" alt="Tool Management (Dark)" width="49%"/>
+</p>
+
+<p align="center">
+<img src="images/admin-categories.png" alt="Category Management" width="49%"/>
+<img src="images/admin-search-engines.png" alt="Search Engine Management" width="49%"/>
+</p>
+
+<p align="center">
+<img src="images/admin-api-tokens.png" alt="API Token Management" width="49%"/>
+<img src="images/admin-settings.png" alt="System Settings" width="49%"/>
+</p>
+
+## Differences from Upstream
+
+This project is forked from [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav) (latest commit `8b9a544`). Below are the **new features** and **improvements** relative to the upstream project.
+
+### New Features
+
+#### WebDAV Cloud Backup & Restore
+
+Not available in upstream. This project supports encrypted database backup to WebDAV services such as Jianguoyun (Nutstore):
+
+- Configurable WebDAV connection info and backup schedule (daily / weekly / monthly / custom cron)
+- Backup files are automatically encrypted with AES-256-GCM; encryption key is auto-generated
+- Retention policy support (unlimited / by count / by days to auto-clean expired backups)
+- View cloud backup file list in the admin panel, restore any backup with one click
+- Current database is auto-backed up before restore to prevent accidental data loss
+
+#### Full Configuration Import & Export
+
+Upstream only supports tool import/export. This project supports **all configuration** backup and restore:
+
+- Export scope: tools, categories, search engines, API tokens, system settings, site configuration
+- Export format: JSON file, portable across any instance
+- Import automatically processes by type (categories cleared before write, tokens deduplicated by name, settings merged)
+
+#### Link Health Check
+
+Not available in upstream. Batch-detect the status of all tool links from the admin panel:
+
+- Concurrent detection (10-way concurrency, HEAD request first, fallback to GET on failure)
+- Mark each link's HTTP status code and alive status
+- One-click sort dead links to the end of the list
+
+#### Auto-fetch Tool Descriptions
+
+Not available in upstream. "One-click update descriptions" to batch-fetch `<title>` and `<meta description>` from tool pages:
+
+- Auto encoding detection for GBK / GB2312 / UTF-8
+- Auto-detect anti-scraping pages (captchas, etc.) to avoid false scraping
+- Single tool can be fetched via `GET /api/admin/fetch-page-info?url=xxx`
+
+#### Deployment Version Management
+
+Not available in upstream. Git tag is injected as version number via ldflags at compile time and auto-synced to database at startup:
+
+- "System Settings" page in admin panel displays the current deployment version
+- API endpoint to increment build number (for CI/CD pipelines)
+- Version number auto-aligns after deployment, no manual edits needed
+
+#### Docker Compose Support
+
+Upstream has no `docker-compose.yml`. This project provides an out-of-the-box Compose configuration:
+
+```yaml
+services:
+  van-nav:
+    image: ghcr.io/thirsty5034/van-nav:latest
+    container_name: van-nav
+    restart: unless-stopped
+    ports:
+      - "6412:6412"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+```
+
+#### GHCR Multi-Architecture Images
+
+Upstream images are hosted on Docker Hub. This project uses GitHub Container Registry with multi-architecture support:
+
+```bash
+docker pull ghcr.io/thirsty5034/van-nav:latest
+```
+
+Supported architectures: `linux/amd64`, `linux/arm64`, `linux/arm`, `darwin/amd64`, `darwin/arm64`.
+
+### Security Improvements
+
+| Improvement | Upstream | This Project |
+|-------------|----------|--------------|
+| JWT Secret | Randomly generated on each restart, all issued tokens immediately invalidated | Persisted to `./data/jwt_secret`, tokens remain valid after restart |
+| Password Verification | bcrypt + plaintext fallback comparison | bcrypt-first, legacy plaintext passwords auto-upgraded to bcrypt hash on first login |
+| API Token Expiry | 100 years | 10 years |
+| Database Migration | `panic(err)` crashes with stack trace | `logger.LogError` + `os.Exit(1)`, outputs clear error message |
+| Dependency Security | 98 npm vulnerabilities + 15 Dependabot alerts | All fixed |
+
+### Reliability Improvements
+
+| Improvement | Upstream | This Project |
+|-------------|----------|--------------|
+| goroutine Panic Recovery | No `defer/recover`, async goroutine panic crashes the process | All 4 async paths protected |
+| Error Responses | 5 delete/update Handlers silently swallow errors, still return 200 | Explicit HTTP 500 + error message |
+| Batch Import | Each record individually Prepare + Exec inside loop | Prepared Statement reused inside transaction, single batch commit |
+
+### Engineering Improvements
+
+| Improvement | Upstream | This Project |
+|-------------|----------|--------------|
+| CI Toolchain | Older Node.js version | Node.js 22 + pnpm 11.4.0 + Go 1.23 |
+| Docker Build | Single-stage | Multi-stage build (frontend + backend + runtime separated) |
+| Release Process | Manual release | GoReleaser auto cross-compiles for 6 platforms + structured Release Notes |
+| Layered Architecture | Handler directly calls database (10 occurrences) | All routed through Service layer, handler package has zero database imports |
+| Architecture Circuit Breaker | None | `assert_architecture.sh` compile-time scan to prevent layering violation regressions |
+
+## Tips & Shortcuts
+
+- Start typing anywhere on the page to auto-focus the search box
+- After searching, press Enter to open the first result in a new tab
+- After searching, press the number on the corresponding card + Ctrl/Command to open that result directly
+- Customizable navigation behavior (new tab / current tab)
+
+## CHANGELOG
+
+See [CHANGELOG.md](CHANGELOG.md) for details.
+
+## Installation
+
+### Docker
+
+```bash
+docker run -d \
+  --name van-nav \
+  --restart unless-stopped \
+  -p 6412:6412 \
+  -v ./data:/app/data \
+  -e TZ=Asia/Shanghai \
+  ghcr.io/thirsty5034/van-nav:latest
+```
+
+Open your browser at [http://localhost:6412](http://localhost:6412).
+
+- Default port: `6412`
+- Default credentials: `admin` / `admin` — change via admin panel after first run
+- Data is stored in the mounted `./data` directory
+
+### Docker Compose
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  van-nav:
+    image: ghcr.io/thirsty5034/van-nav:latest
+    container_name: van-nav
+    restart: unless-stopped
+    ports:
+      - "6412:6412"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+```
+
+Start:
+
+```bash
+docker compose up -d
+```
+
+### Standalone Binary
+
+Download the binary for your platform from [Releases](https://github.com/thirsty5034/van-nav/releases) and run directly.
+
+```bash
+./van-nav -port 6412
+```
+
+Open your browser at [http://localhost:6412](http://localhost:6412).
+
+- Default port: `6412`, use `-port <port>` to specify a different port
+- Default credentials: `admin` / `admin` — change via admin panel after first run
+- Database auto-created in the current directory: `data/nav.db`
+
+### nginx Reverse Proxy
+
+```nginx
+server {
+    listen 80;
+    server_name <yourhost>;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name <yourhost>;
+
+    ssl_certificate <your-cert-path>;
+    ssl_certificate_key <your-key-path>;
+    ssl_verify_client off;
+    proxy_ssl_verify off;
+
+    location / {
+        proxy_pass http://127.0.0.1:6412;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect off;
+        proxy_set_header Upgrade $http_upgrade;
+    }
+}
+```
+
+### systemd Service
+
+1. Copy the binary to `/usr/local/bin` and make it executable
+
+2. Create `/etc/systemd/system/van-nav.service`:
+
+```ini
+[Unit]
+Description=VanNav
+After=network.target
+Wants=network.target
+
+[Service]
+WorkingDirectory=/usr/local/bin
+ExecStart=/usr/local/bin/van-nav
+Restart=on-abnormal
+RestartSec=5s
+KillMode=mixed
+StandardOutput=null
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target
+```
+
+3. Common commands:
+
+```bash
+# Start / Stop / Restart
+sudo systemctl start van-nav
+sudo systemctl stop van-nav
+sudo systemctl restart van-nav
+
+# Status / Live Logs
+sudo systemctl status van-nav
+sudo journalctl -u van-nav -f
+
+# Enable / Disable Auto-start on Boot
+sudo systemctl enable van-nav
+sudo systemctl disable van-nav
+```
+
+## Browser Extension
+
+[Browser Extension Repository](https://github.com/Mereithhh/van-nav-extension) — One-click add tools, quick access to admin panel and main site.
+
+## FAQ
+
+### Forgot Password
+
+Use the `-reset-password` parameter to reset the admin password. **No data will be lost**:
+
+```bash
+# Stop the service first
+sudo systemctl stop van-nav
+
+# Reset password (two options)
+./van-nav -reset-password admin          # Reset to admin
+./van-nav -reset-password 'MyStr0ngP@ss' # Reset to a custom password
+
+# Restart the service
+sudo systemctl start van-nav
+```
+
+For Docker users:
+
+```bash
+docker exec van-nav ./van-nav -reset-password admin
+```
+
+After resetting, change to a strong password via the admin panel "System Settings" as soon as possible.
+
+> It is recommended to regularly export a configuration backup via the admin panel "Import & Export".
+
+## Contributing
+
+This project uses a Go + React tech stack. If you have experience with Golang and React, you should be able to get started easily. Issues and PRs are welcome.
