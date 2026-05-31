@@ -24,7 +24,7 @@ const INDEX = "index.html"
 
 // Build-time version, overridden by ldflags during compilation
 // Usage: go build -ldflags "-X main.Version=v2.0.0.0"
-var Version = "v2.0.0.0"
+var Version = "dev"
 
 //go:embed public
 var fs embed.FS

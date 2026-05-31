@@ -64,7 +64,27 @@ git diff --stat $PREV_TAG..HEAD
 - 同类 commit 可合并为一条
 - CI/Docker 内部改动归入 Changed，用户可感知的功能变更归入 Fixed 或 Added
 
-## 第三步：写入文件并提交
+## 第三步：验证部署版本号
+
+本项目在后台设置页（/admin/settings）展示「部署版本」，该值由编译时 ldflags `-X main.Version={{ .Tag }}` 注入。
+
+发版前必须确认以下两点：
+
+```bash
+# 1. main.go 的 Version 默认值不应是历史版本号（应为 "dev"，确保 CI 编译时必须通过 ldflags 覆盖）
+grep 'var Version' main.go
+
+# 2. 数据库初始化默认值不应硬编码版本号（应为空字符串，由 syncDeploymentVersion 在启动时写入正确值）
+grep "DEFAULT" database/init.db.go | grep deployment_version
+```
+
+如果发现版本号被硬编码为某个具体值（如 `v2.0.0.0`），必须在发版前修正，否则：
+- 新安装的实例会显示错误的版本号
+- 升级的实例可能跳过版本同步
+
+确认无误后，继续下一步。
+
+## 第四步：写入文件并提交
 
 ```bash
 cat > RELEASE_NOTES.md << 'EOF'
@@ -76,7 +96,7 @@ git commit -m "docs: prepare release notes for vX.Y.Z"
 git push origin master
 ```
 
-## 第四步：⚠️ 向用户确认
+## 第五步：⚠️ 向用户确认
 
 **在执行任何 git tag 操作之前**，你必须将以下内容完整展示给用户并等待明确同意：
 
@@ -100,7 +120,7 @@ git push origin master
 
 **严禁在用户确认前执行 git tag 或 git push 命令。**
 
-## 第五步：执行发版
+## 第六步：执行发版
 
 用户确认后：
 
@@ -109,7 +129,7 @@ git tag -a vX.Y.Z -m "Release van-nav vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
-## 第六步：验证
+## 第七步：验证
 
 推送 tag 后，验证 CI 触发并报告结果：
 
