@@ -442,7 +442,7 @@ return (
               loading={fetchingInfo}
               onClick={handleFetchInfo}
             >
-              t("admin.search.batch.fetchDesc")
+              {t("admin.search.batch.fetchInfo")}
             </Button>
           </div>
         </Form>

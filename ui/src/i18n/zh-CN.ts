@@ -537,6 +537,7 @@ const zhCN: Record<string, string> = {
   "admin.catelog.msg.sortUpdated": "排序已更新",
   "admin.search.msg.enterLogo": "请输入图标文件名或网址",
   "admin.search.msg.invalidLogo": "请输入有效的网址或图标文件名",
+  "admin.search.batch.fetchInfo": "一键获取描述和图标",
 };
 
 export default zhCN;

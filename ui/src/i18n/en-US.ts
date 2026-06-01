@@ -419,6 +419,7 @@ const enUS: Record<string, string> = {
   "admin.catelog.msg.sortUpdated": "Sort order updated",
   "admin.search.msg.enterLogo": "Please enter icon filename or URL",
   "admin.search.msg.invalidLogo": "Please enter a valid URL or icon filename",
+  "admin.search.batch.fetchInfo": "Auto-fetch description and icon",
 };
 
 export default enUS;
