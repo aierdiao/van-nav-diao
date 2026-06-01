@@ -149,3 +149,16 @@ func UpdateLanguage(language string) error {
 	_, err := database.DB.Exec(sql, language)
 	return err
 }
+
+func GetLanguage() string {
+	var language string
+	sql := `SELECT COALESCE(language, 'zh-CN') FROM nav_setting ORDER BY id ASC LIMIT 1`
+	err := database.DB.QueryRow(sql).Scan(&language)
+	if err != nil {
+		return "zh-CN"
+	}
+	if language != "zh-CN" && language != "en-US" {
+		return "zh-CN"
+	}
+	return language
+}
