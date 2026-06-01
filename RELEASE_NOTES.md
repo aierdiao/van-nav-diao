@@ -31,4 +31,4 @@
 
 **🙏 鸣谢**
 
-本项目开发过程中得到了[小米大模型团队](https://github.com/XiaomiLM)百万亿 Token 创造者激励计划的支持与赞助，在此表示衷心感谢。
+本项目开发过程中得到了[小米大模型团队](https://platform.xiaomimimo.com/)百万亿 Token 创造者激励计划的支持与赞助，在此表示衷心感谢。
