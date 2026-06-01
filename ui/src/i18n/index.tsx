@@ -23,6 +23,20 @@ const I18nContext = createContext<I18nContextType>({
 
 export const useTranslation = () => useContext(I18nContext);
 
+// 独立翻译函数，用于非 React 上下文（如工具函数、API 层）
+// 从 localStorage 读取语言偏好，回退到 zh-CN
+export const t = (key: string, params?: Record<string, string | number>): string => {
+  const lang = (localStorage.getItem('language') as Language) || 'zh-CN';
+  const dict = messages[lang] || messages['zh-CN'];
+  let value = dict[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      value = value.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+    });
+  }
+  return value;
+};
+
 // 获取浏览器首选语言
 function getBrowserLang(): Language {
   const nav = navigator.language || '';

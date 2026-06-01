@@ -458,6 +458,9 @@ const enUS: Record<string, string> = {
   "common.delete": "Delete",
   "home.cache.failed": "Cache restore failed",
   "home.cache.networkError": "Network error, trying cache restore",
+  "home.searchEngine.category": "Search",
+  "home.searchEngine.desc": "Search 「{query}」 in {name}",
+  "home.searchEngine.name": "Search with {name}",
 };
 
 export default enUS;

@@ -576,6 +576,9 @@ const zhCN: Record<string, string> = {
   "common.delete": "删除",
   "home.cache.failed": "缓存恢复失败",
   "home.cache.networkError": "网络错误，尝试从缓存恢复",
+  "home.searchEngine.category": "搜索",
+  "home.searchEngine.desc": "在 {name} 中搜索 「{query}」",
+  "home.searchEngine.name": "使用 {name} 搜索",
 };
 
 export default zhCN;

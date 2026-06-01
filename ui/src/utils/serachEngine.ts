@@ -1,4 +1,5 @@
 import { fetchGetEnabledSearchEngines } from './api';
+import { t } from '../i18n';
 
 // 搜索引擎缓存
 let searchEnginesCache: any[] = [];
@@ -66,13 +67,13 @@ export const generateSearchEngineCard = async (searchString: string) => {
       .filter((engine: any) => engine.enabled)
       .sort((a: any, b: any) => a.sort - b.sort)
       .map((engine: any, index: number) => ({
-        name: `使用 ${engine.name} 搜索`,
+        name: t('home.searchEngine.name', { name: engine.name }),
         url: generateSearchUrl(engine.urlTemplate, searchString),
-        desc: `在 ${engine.name} 中搜索 「${searchString}」`,
+        desc: t('home.searchEngine.desc', { name: engine.name, query: searchString }),
         id: 8800880000 + engine.id,
         logo: engine.logo,
         hide: false,
-        catelog: '搜索' // 搜索引擎卡片统一分类
+        catelog: t('home.searchEngine.category')
       }));
   } catch (error) {
     console.error('生成搜索引擎卡片失败:', error);
