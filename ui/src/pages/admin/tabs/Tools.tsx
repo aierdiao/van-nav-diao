@@ -722,7 +722,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 width={50}
               /> */}
               <Table.Column title={
-                <span>隐藏
+                <span>{t("admin.tools.form.hide")}
                   <Tooltip title={t("admin.tools.form.hideHint")}>
                     <QuestionCircleOutlined style={{ marginLeft: '5px' }} />
                   </Tooltip>
@@ -905,7 +905,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                   <Tooltip title={t("admin.tools.form.hideHint")}>
                     <QuestionCircleOutlined style={{ marginLeft: '5px' }} />
                   </Tooltip>
-                  &nbsp;隐藏
+                  {t("admin.tools.form.hide")}
                 </span>
               }
               labelCol={{ span: 4 }}>
@@ -1030,7 +1030,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                   <Tooltip title={t("admin.tools.form.hideHint")}>
                     <QuestionCircleOutlined style={{ marginLeft: '5px' }} />
                   </Tooltip>
-                  &nbsp;隐藏
+                  {t("admin.tools.form.hide")}
                 </span>
               }
               labelCol={{ span: 4 }}>
