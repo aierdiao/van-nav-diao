@@ -143,3 +143,9 @@ func UpdateSetting(data types.Setting) error {
 	}
 	return nil
 }
+
+func UpdateLanguage(language string) error {
+	sql := `UPDATE nav_setting SET language = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
+	_, err := database.DB.Exec(sql, language)
+	return err
+}

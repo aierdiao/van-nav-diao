@@ -1,6 +1,6 @@
 import { Button, Card, Form, Input, InputNumber, message, Modal, Select, Space, Spin, Switch, Table, TimePicker, Upload } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { fetchUpdateSetting, fetchUpdateUser, fetchUpdateSiteConfig, fetchExportConfig, fetchImportConfig, fetchGetDeploymentVersion, fetchGetBackupConfig, fetchSaveBackupConfig, fetchTestBackupConnection, fetchBackupNow, fetchGetBackupStatus, fetchListBackupFiles, fetchRestoreBackup } from "../../../utils/api";
+import { fetchUpdateSetting, fetchUpdateLanguage, fetchUpdateUser, fetchUpdateSiteConfig, fetchExportConfig, fetchImportConfig, fetchGetDeploymentVersion, fetchGetBackupConfig, fetchSaveBackupConfig, fetchTestBackupConnection, fetchBackupNow, fetchGetBackupStatus, fetchListBackupFiles, fetchRestoreBackup } from "../../../utils/api";
 import { useData } from "../hooks/useData";
 import { CloudDownloadOutlined, CloudUploadOutlined, CloudServerOutlined, ExclamationCircleOutlined, SyncOutlined, WarningOutlined, RollbackOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -443,8 +443,8 @@ export const Setting: React.FC<SettingProps> = (props) => {
       {/* 语言切换 */}
       <div style={{ marginBottom: 16 }}>
         <Space>
-          <Button size="small" type={language === 'zh-CN' ? 'primary' : 'default'} onClick={async () => { setLanguage('zh-CN'); try { await fetchUpdateSetting({ language: 'zh-CN' }); } catch (e) {} }}>中文</Button>
-          <Button size="small" type={language === 'en-US' ? 'primary' : 'default'} onClick={async () => { setLanguage('en-US'); try { await fetchUpdateSetting({ language: 'en-US' }); } catch (e) {} }}>English</Button>
+          <Button size="small" type={language === 'zh-CN' ? 'primary' : 'default'} onClick={async () => { setLanguage('zh-CN'); try { await fetchUpdateLanguage('zh-CN'); } catch (e) {} }}>中文</Button>
+          <Button size="small" type={language === 'en-US' ? 'primary' : 'default'} onClick={async () => { setLanguage('en-US'); try { await fetchUpdateLanguage('en-US'); } catch (e) {} }}>English</Button>
         </Space>
       </div>
 

@@ -188,6 +188,7 @@ func main() {
 			admin.PUT("/user", handler.UpdateUserHandler)
 
 			admin.PUT("/setting", handler.UpdateSettingHandler)
+			admin.PUT("/setting/language", handler.UpdateLanguageHandler)
 
 			admin.PUT("/siteConfig", handler.UpdateSiteConfigHandler)
 

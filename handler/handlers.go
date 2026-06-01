@@ -1245,6 +1245,35 @@ func OrganizeDeadLinksHandler(c *gin.Context) {
 	})
 }
 
+// UpdateLanguageHandler 仅更新语言设置，不覆盖其他配置
+func UpdateLanguageHandler(c *gin.Context) {
+	var req struct {
+		Language string `json:"language"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
+	if req.Language != "zh-CN" && req.Language != "en-US" {
+		req.Language = "zh-CN"
+	}
+	err := service.UpdateLanguage(req.Language)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "语言设置已更新",
+	})
+}
+
 // GetDeploymentVersionHandler 获取当前部署版本号
 func GetDeploymentVersionHandler(c *gin.Context) {
 	version := service.GetDeploymentVersion()
