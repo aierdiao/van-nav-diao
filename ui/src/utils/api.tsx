@@ -202,12 +202,6 @@ export const fetchGetEnabledSearchEngines = async () => {
     return data?.data || [];
 };
 
-// 获取语言设置（公开接口）
-export const fetchGetLanguage = async (): Promise<string> => {
-    const { data } = await axios.get(`/api/language`);
-    return data?.data || 'zh-CN';
-};
-
 // 添加搜索引擎
 export const fetchAddSearchEngine = async (payload: any) => {
     const { data } = await axios.post(`/api/admin/searchEngine`, payload);

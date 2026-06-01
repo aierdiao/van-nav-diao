@@ -173,9 +173,6 @@ func main() {
 		// 获取启用的搜索引擎（公开接口）
 		api.GET("/searchEngines", handler.GetEnabledSearchEnginesHandler)
 		
-		// 获取语言设置（公开接口）
-		api.GET("/language", handler.GetLanguageHandler)
-		
 		// 管理员用的
 		admin := api.Group("/admin")
 		admin.Use(middleware.JWTMiddleware())

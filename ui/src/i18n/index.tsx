@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
-import { fetchGetLanguage } from '../utils/api';
 import zhCN from './zh-CN';
 import enUS from './en-US';
 
@@ -60,18 +59,6 @@ export const I18nProvider: React.FC<{ children: ReactNode; serverLang?: string }
     }
     return resolveInitialLang();
   });
-
-  // 启动时从服务器获取语言设置（无痕模式下 localStorage 为空）
-  useEffect(() => {
-    fetchGetLanguage().then((lang) => {
-      if (lang === 'zh-CN' || lang === 'en-US') {
-        setLangState(lang);
-        localStorage.setItem('lang', lang);
-      }
-    }).catch(() => {
-      // 忽略错误，使用本地缓存或浏览器语言
-    });
-  }, []);
 
   // 后端偏好同步：当 serverLang 变化时（登录后），覆盖本地偏好
   useEffect(() => {

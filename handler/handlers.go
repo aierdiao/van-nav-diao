@@ -605,14 +605,6 @@ func GetEnabledSearchEnginesHandler(c *gin.Context) {
 	})
 }
 
-func GetLanguageHandler(c *gin.Context) {
-	language := service.GetLanguage()
-	c.JSON(200, gin.H{
-		"success": true,
-		"data":    language,
-	})
-}
-
 // 添加搜索引擎
 func AddSearchEngineHandler(c *gin.Context) {
 	var engine types.SearchEngine
