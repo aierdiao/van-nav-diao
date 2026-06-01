@@ -290,7 +290,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                 title={
                   <span>
                     {t("admin.catelog.table.hidden")}
-                    <Tooltip title={t("admin.catelog.form.hideHint")}>
+                    <Tooltip title={t("admin.catelog.form.hiddenTooltip")}>
                       <QuestionCircleOutlined style={{ marginLeft: "5px" }} />
                     </Tooltip>
                   </span>
@@ -378,7 +378,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
             required
             label={
               <span>
-                <Tooltip title={t("admin.catelog.form.hideHint")}>
+                <Tooltip title={t("admin.catelog.form.hiddenTooltip")}>
                   <QuestionCircleOutlined style={{ marginLeft: "5px" }} />
                 </Tooltip>
                 &nbsp;t("admin.catelog.table.hidden")
@@ -430,7 +430,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
               required
               label={
                 <span>
-                  <Tooltip title={t("admin.catelog.form.hideHint")}>
+                  <Tooltip title={t("admin.catelog.form.hiddenTooltip")}>
                     <QuestionCircleOutlined style={{ marginLeft: "5px" }} />
                   </Tooltip>
                   &nbsp;t("admin.catelog.table.hidden")
