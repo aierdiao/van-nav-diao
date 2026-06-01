@@ -17,13 +17,18 @@ import { useTranslation } from "../../i18n";
 // 系统工具名称翻译映射
 const systemToolTranslations: Record<string, Record<string, string>> = {
   'zh-CN': {
-    '原地跳转': 'Same Tab',
-    '新建窗口': 'New Tab',
-    '本站管理后台': 'Admin Panel',
-    '管理后台': 'Admin',
-    '偏好设置': 'Settings',
-    '点击切换跳转方式': 'Click to toggle jump target',
-    '本导航站的管理后台哦': 'Admin panel for this navigation site',
+    '原地跳转': '原地跳转',
+    '新建窗口': '新建窗口',
+    '本站管理后台': '本站管理后台',
+    '管理后台': '管理后台',
+    '偏好设置': '偏好设置',
+    '点击切换跳转方式': '点击切换跳转方式',
+    '本导航站的管理后台哦': '本导航站的管理后台哦',
+    '搜索': '搜索',
+    '技术': '技术',
+    '社区': '社区',
+    '工具': '工具',
+    '购物': '购物',
   },
   'en-US': {
     '原地跳转': 'Same Tab',
@@ -33,6 +38,11 @@ const systemToolTranslations: Record<string, Record<string, string>> = {
     '偏好设置': 'Settings',
     '点击切换跳转方式': 'Click to toggle jump target',
     '本导航站的管理后台哦': 'Admin panel for this navigation site',
+    '搜索': 'Search',
+    '技术': 'Tech',
+    '社区': 'Community',
+    '工具': 'Tools',
+    '购物': 'Shopping',
   },
 };
 
@@ -230,7 +240,7 @@ const Content = (props: any) => {
           des={translateSystemTool(item.desc)}
           logo={item.logo}
           key={item.id}
-          catelog={item.catelog}
+          catelog={translateSystemTool(item.catelog)}
           index={index}
           isSearching={searchString.trim() !== ""}
           noImageMode={data?.siteConfig?.noImageMode || false}
