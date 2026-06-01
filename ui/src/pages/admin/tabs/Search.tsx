@@ -28,6 +28,7 @@ import {
   fetchPageInfo,
 } from '../../../utils/api';
 import { clearSearchEngineCache } from '../../../utils/serachEngine';
+import { useTranslation } from '../../../i18n';
 
 interface SearchEngine {
   id: number;
@@ -72,6 +73,7 @@ const DraggableRow = ({ children, ...props }: any) => {
 };
 
 const SearchEngineManager: React.FC = () => {
+  const { t } = useTranslation();
   const [engines, setEngines] = useState<SearchEngine[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -224,7 +226,7 @@ const SearchEngineManager: React.FC = () => {
         <Space>
           <Button type="link" onClick={() => handleEdit(record)}>编辑</Button>
           <Popconfirm
-            title="确定要删除这个搜索引擎吗？"
+            title={t("admin.search.confirm.deleteSingle")}
             onConfirm={() => handleDelete(record)}
           >
             <Button type="link" danger>删除</Button>
@@ -353,11 +355,11 @@ return (
       <Card
         title={
           <Space>
-            <span>搜索引擎管理</span>
+            <span>{t("admin.search.title")}</span>
             <span style={{ color: '#999', fontSize: 13 }}>当前共 {engines.length} 条</span>
             {selectedRows.length > 0 && (
               <Popconfirm
-                title="确定删除选中的搜索引擎吗？"
+                title={t("admin.search.confirm.bulkDelete")}
                 onConfirm={handleBulkDelete}
               >
                 <Button type="link" danger>删除 ({selectedRows.length})</Button>
@@ -402,18 +404,18 @@ return (
       >
         <Form form={form} layout="vertical">
           <Form.Item name="name" label="名称" rules={[{ required: true, message: '请输入搜索引擎名称' }]}>
-            <Input placeholder="例如：百度" />
+            <Input placeholder={t("admin.search.form.namePlaceholder")} />
           </Form.Item>
           <Form.Item
             name="urlTemplate"
-            label="搜索URL模板"
-            extra="使用 {query} 或 %s 作为搜索关键词占位符"
+            label={t("admin.search.form.urlTemplate")}
+            extra={t("admin.search.form.urlTemplateHint")}
             rules={[{ required: true, message: '请输入搜索URL模板' }, { validator: validateUrlTemplate }]}
           >
             <Input placeholder="https://www.google.com/search?q={query}" />
           </Form.Item>
-          <Form.Item name="description" label="描述">
-            <Input placeholder="搜索引擎的简要描述（可选）" />
+          <Form.Item name="description" label={t("admin.search.form.desc")}>
+            <Input placeholder={t("admin.search.form.descHint")} />
           </Form.Item>
           <Form.Item
             name="logo"

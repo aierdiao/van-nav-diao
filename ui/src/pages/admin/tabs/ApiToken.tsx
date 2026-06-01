@@ -1,142 +1,103 @@
-
 import { Button, Card, Form, Input, Modal, message, Popconfirm, Space, Spin, Table, Typography } from 'antd';
 import { useCallback, useState } from 'react';
 import { fetchAddApiToken, fetchDeleteApiToken } from '../../../utils/api';
 import { useData } from '../hooks/useData';
-export interface ApiTokenProps {
+import { useTranslation } from '../../../i18n';
 
-}
+export interface ApiTokenProps {}
+
 export const ApiToken: React.FC<ApiTokenProps> = (props) => {
+  const { t } = useTranslation();
   const [addForm] = Form.useForm();
   const [showAddModel, setShowAddModel] = useState(false);
   const { store, loading, reload } = useData();
+
   const handleDelete = useCallback(
     async (id: number) => {
       try {
         await fetchDeleteApiToken(id);
-        message.success("删除成功!");
+        message.success(t('admin.token.msg.deleteSuccess'));
       } catch (err) {
-        message.warning("删除失败!");
+        message.warning(t('admin.token.msg.deleteFailed'));
       } finally {
         reload();
       }
     },
-    [reload]
+    [reload, t]
   );
+
   const handleCreate = useCallback(
     async (record: any) => {
       try {
         await fetchAddApiToken(record);
-        message.success("添加成功!");
+        message.success(t('admin.token.msg.addSuccess'));
       } catch (err) {
-        message.warning("添加失败!");
+        message.warning(t('admin.token.msg.addFailed'));
       } finally {
         setShowAddModel(false);
         reload();
       }
     },
-    [reload, setShowAddModel]
+    [reload, setShowAddModel, t]
   );
+
   return (
     <Card
       title={
         <Space>
-          <span>API Token 管理</span>
-          <span style={{ color: '#999', fontSize: 13 }}>当前共 {store?.tokens?.length ?? 0} 条</span>
+          <span>{t('admin.token.title')}</span>
+          <span style={{ color: '#999', fontSize: 13 }}>{t('admin.token.total', { count: store?.tokens?.length ?? 0 })}</span>
         </Space>
       }
       extra={
         <Space>
-          <Button
-            type="primary"
-            onClick={() => {
-              setShowAddModel(true);
-            }}
-          >
-            添加
+          <Button type="primary" onClick={() => setShowAddModel(true)}>
+            {t('admin.token.btn.add')}
           </Button>
-          <Button
-            type="primary"
-            onClick={() => {
-              reload();
-            }}
-          >
-            刷新
+          <Button type="primary" onClick={() => reload()}>
+            {t('admin.token.btn.refresh')}
           </Button>
         </Space>
       }
     >
       <Spin spinning={loading}>
         <Table dataSource={store?.tokens || []} rowKey="id" size="small" pagination={{
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-            defaultPageSize: 10,
-            showTotal: (total) => `共 ${total} 条`,
-          }}>
-          <Table.Column title="序号" dataIndex="id" width={30} />
-          <Table.Column
-            title="名称"
-            dataIndex="name"
-            width={150}
-            render={(_, record: any) => {
-              return (
-                <div>
-                  <span style={{ marginLeft: 8 }}>{record.name}</span>
-                </div>
-              );
-            }}
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50'],
+          defaultPageSize: 10,
+          showTotal: (total) => `共 ${total} 条`,
+        }}>
+          <Table.Column title={t('admin.token.table.id')} dataIndex="id" width={30} />
+          <Table.Column title={t('admin.token.table.name')} dataIndex="name" width={150}
+            render={(_, record: any) => (
+              <div><span style={{ marginLeft: 8 }}>{record.name}</span></div>
+            )}
           />
-          <Table.Column
-            title="值"
-            dataIndex="value"
-            width={200}
-            render={(val, record: any) => {
-              return (
-                <div style={{ maxWidth: "300px" }}>
-
-                  <Typography.Text copyable ellipsis={true}>
-                    {val}
-                  </Typography.Text>
-                </div>
-              );
-            }}
+          <Table.Column title={t('admin.token.table.value')} dataIndex="value" width={200}
+            render={(val) => (
+              <div style={{ maxWidth: "300px" }}>
+                <Typography.Text copyable ellipsis={true}>{val}</Typography.Text>
+              </div>
+            )}
           />
-          <Table.Column
-            title="操作"
-            width={120}
-            dataIndex="action"
-            key="action"
-            render={(_, record: any) => {
-              return (
-                <Space>
-                  <Popconfirm
-                    onConfirm={() => {
-                      handleDelete(record.id);
-                    }}
-                    title={`确定要删除 Token ${record.name} 吗？`}
-                  >
-                    <Button type="link" danger>删除</Button>
-                  </Popconfirm>
-                </Space>
-              );
-            }}
+          <Table.Column title={t('admin.token.table.action')} width={120} dataIndex="action" key="action"
+            render={(_, record: any) => (
+              <Space>
+                <Popconfirm onConfirm={() => handleDelete(record.id)}
+                  title={t('admin.token.confirm.delete', { name: record.name })}>
+                  <Button type="link" danger>{t('common.delete')}</Button>
+                </Popconfirm>
+              </Space>
+            )}
           />
         </Table>
       </Spin>
-      <Modal
-        visible={showAddModel}
-        title={"新建 Token"}
-        onCancel={() => {
-          setShowAddModel(false);
-        }}
-        onOk={() => {
-          const values = addForm?.getFieldsValue();
-          handleCreate(values);
-        }}
-      >
+      <Modal visible={showAddModel} title={t('admin.token.modal.add')}
+        onCancel={() => setShowAddModel(false)}
+        onOk={() => { const values = addForm?.getFieldsValue(); handleCreate(values); }}>
         <Form form={addForm}>
-          <Form.Item name="name" required label="名称" labelCol={{ span: 4 }}>
-            <Input placeholder="请输入 API Token 名称" />
+          <Form.Item name="name" required label={t('admin.token.table.name')} labelCol={{ span: 4 }}>
+            <Input placeholder={t('admin.token.form.name')} />
           </Form.Item>
         </Form>
       </Modal>

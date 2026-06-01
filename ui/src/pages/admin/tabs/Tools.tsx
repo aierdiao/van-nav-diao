@@ -37,6 +37,7 @@ import {
   fetchOrganizeDeadLinks,
 } from "../../../utils/api";
 import { useData } from "../hooks/useData";
+import { useTranslation } from "../../../i18n";
 import type { DragEndEvent } from '@dnd-kit/core';
 import { DndContext } from '@dnd-kit/core';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
@@ -122,6 +123,7 @@ const Row = ({ children, ...props }: RowProps) => {
 
 export interface ToolsProps { }
 export const Tools: React.FC<ToolsProps> = (props) => {
+  const { t } = useTranslation();
   const { store, loading, reload, setStoreData } = useData();
   const [showEdit, setShowEdit] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
@@ -204,9 +206,9 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     async (id: number) => {
       try {
         await fetchDeleteTool(id);
-        message.success("删除成功!");
+        message.success(t("admin.tools.msg.deleteSuccess"));
       } catch (err) {
-        message.warning("删除失败!");
+        message.warning(t("admin.tools.msg.deleteFailed"));
       } finally {
         reload();
       }
@@ -216,10 +218,10 @@ export const Tools: React.FC<ToolsProps> = (props) => {
   const handleToggleHide = useCallback(async (record: any, hide: boolean) => {
     try {
       await fetchUpdateTool({ ...record, hide });
-      message.success("更新成功");
+      message.success(t("admin.tools.msg.updateSuccess"));
       reload();
     } catch (error) {
-      message.error("更新失败");
+      message.error(t("admin.tools.msg.updateFailed"));
     }
   }, [reload]);
   const handleUpdate = useCallback(
@@ -263,7 +265,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
   const handleImport = useCallback(
     async (data: any) => {
       if (!data || !Array.isArray(data) || data.length === 0) {
-        message.warning("导入数据为空");
+        message.warning(t("admin.tools.msg.importEmpty"));
         return;
       }
       const loadingMsg = message.loading(`正在导入 ${data.length} 条工具数据...`, 0);
@@ -295,9 +297,9 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           await fetchDeleteTool(each.id);
         } catch (err) { }
       }
-      message.success("删除成功!");
+      message.success(t("admin.tools.msg.deleteSuccess"));
     } catch (err) {
-      message.success("删除失败!");
+      message.success(t("admin.tools.msg.deleteFailed"));
     } finally {
       reload();
     }
@@ -421,10 +423,10 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         reload();
         message.success(`检测完成：${res.data.alive} 个正常，${res.data.dead} 个失效`);
       } else {
-        message.error(res.errorMessage || "检测失败");
+        message.error(res.errorMessage || t("admin.tools.msg.checkFailed"));
       }
     } catch (err: any) {
-      message.error("检测请求失败：" + (err.message || "网络错误"));
+      message.error("检测请求失败：" + (err.message || t("admin.tools.msg.networkError")));
     } finally {
       setChecking(false);
     }
@@ -443,10 +445,10 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         }
         message.success(res.message || `已整理 ${res.data?.affected || 0} 条失效链接`);
       } else {
-        message.error(res.errorMessage || "整理失败");
+        message.error(res.errorMessage || t("admin.tools.msg.organizeFailed"));
       }
     } catch (err: any) {
-      message.error("整理请求失败：" + (err.message || "网络错误"));
+      message.error("整理请求失败：" + (err.message || t("admin.tools.msg.networkError")));
     } finally {
       setOrganizing(false);
     }
@@ -505,7 +507,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           <span style={{ color: '#999', fontSize: 13 }}>{`当前共 ${store?.tools?.length ?? 0} 条`}</span>
           {selectedRows.length > 0 && (
             <Popconfirm
-              title="确定删除这些吗？"
+              title={t("admin.tools.confirm.delete")}
               onConfirm={() => {
                 handleBulkDelete();
               }}
@@ -515,7 +517,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           )}
           {selectedRows.length > 0 && (
             <Popconfirm
-              title="确定重置这些的图标吗？（会自动获取网站默认的）"
+              title={t("admin.tools.confirm.resetIcon")}
               onConfirm={() => {
                 handleBulkResetLogo();
               }}
@@ -525,7 +527,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           )}
           {selectedRows.length > 0 && (
             <Popconfirm
-              title="确定重新缓存这些的图标吗？（会自动获取图标缓存到数据库）"
+              title={t("admin.tools.confirm.recacheIcon")}
               onConfirm={() => {
                 handleBulkCacheLogo();
               }}
@@ -560,7 +562,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           <Select
             style={{ minWidth: 120 }}
             options={getOptions(store?.catelogs || [])}
-            placeholder="分类筛选"
+            placeholder={t("admin.tools.filter.category")}
             allowClear
             // size="small"
             onClear={() => {
@@ -662,12 +664,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 key="sort"
                 align="center"
                 width={50}
-                title="排序"
+                title={t("admin.tools.table.sort")}
                 render={() => <DragHandle />}
               />
               
               <Table.Column
-                title="名称"
+                title={t("admin.tools.table.name")}
                 dataIndex="name"
                 width={120}
                 render={(_, record: any) => {
@@ -691,12 +693,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 }}
               />
               <Table.Column
-                title="分类"
+                title={t("admin.tools.table.category")}
                 dataIndex="catelog"
                 width={60}
               />
               <Table.Column
-                title="网址"
+                title={t("admin.tools.table.url")}
                 dataIndex="url"
                 width={150}
                 render={(url) => (
@@ -721,7 +723,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               /> */}
               <Table.Column title={
                 <span>隐藏
-                  <Tooltip title="开启后只有登录后才会展示该工具">
+                  <Tooltip title={t("admin.tools.form.hideHint")}>
                     <QuestionCircleOutlined style={{ marginLeft: '5px' }} />
                   </Tooltip>
                 </span>
@@ -729,7 +731,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 return <Switch checked={Boolean(val)} onChange={(checked) => handleToggleHide(record, checked)} />
               }} />
               <Table.Column
-                title="状态"
+                title={t("admin.tools.table.status")}
                 dataIndex="is_alive"
                 width={70}
                 align="center"
@@ -744,7 +746,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 }}
               />
               <Table.Column
-                title="操作"
+                title={t("admin.tools.table.action")}
                 width={120}
                 dataIndex="action"
                 key="action"
@@ -778,7 +780,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       </Spin>
       {<Modal
         open={showAddModel}
-        title={"新建工具"}
+        title={t("admin.tools.modal.add")}
         onCancel={() => {
           setShowAddModel(false);
           addForm.resetFields();
@@ -802,29 +804,29 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               name="name"
               required
               label="名称"
-              rules={[{ required: true, message: "请填写名称" }]}
+              rules={[{ required: true, message: t("admin.tools.form.nameRequired") }]}
               labelCol={{ span: 4 }}
             >
-              <Input placeholder="请输入工具名称" />
+              <Input placeholder={t("admin.tools.form.name")} />
             </Form.Item>
             <Form.Item
               name="url"
               rules={[
-                { required: true, message: "请填写网址" },
+                { required: true, message: t("admin.tools.form.urlRequired") },
                 {
                   pattern: /^(https?:\/\/)/,
-                  message: "网址必须以 http:// 或 https:// 开头"
+                  message: t("admin.tools.form.urlFormat")
                 }
               ]}
               required
               label="网址"
               labelCol={{ span: 4 }}
             >
-              <Input placeholder="请输入完整URL（以 http:// 或 https:// 开头）" />
+              <Input placeholder={t("admin.tools.form.urlPlaceholder")} />
             </Form.Item>
-            <Form.Item name="logo" label="logo 网址" labelCol={{ span: 4 }}>
+            <Form.Item name="logo" label={t("admin.tools.form.logoUrl")} labelCol={{ span: 4 }}>
               <Input 
-                placeholder="请输入 logo url, 为空则自动获取"
+                placeholder={t("admin.tools.form.logoPlaceholder")}
                 addonAfter={
                   <Tooltip title="根据网址自动获取 favicon">
                     <Button 
@@ -848,11 +850,11 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               required
               label="分类"
               labelCol={{ span: 4 }}
-              rules={[{ required: true, message: "请选择分类" }]}
+              rules={[{ required: true, message: t("admin.tools.form.categoryRequired") }]}
             >
               <Select
                 options={getOptions(store?.catelogs || [])}
-                placeholder="请选择分类"
+                placeholder={t("admin.tools.form.categoryRequired")}
               />
             </Form.Item>
             <Form.Item
@@ -862,7 +864,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             >
               <Input.TextArea
                 rows={2}
-                placeholder="请输入描述"
+                placeholder={t("admin.tools.form.desc")}
               />
             </Form.Item>
             <Form.Item wrapperCol={{ offset: 4, span: 20 }}>
@@ -880,7 +882,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               </Button>
             </Form.Item>
             <Form.Item
-              rules={[{ required: true, message: "请排序" }]}
+              rules={[{ required: true, message: t("admin.tools.form.sortRequired") }]}
               name="sort"
               required
               label={
@@ -900,7 +902,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               initialValue={false}
               label={
                 <span>
-                  <Tooltip title="开启后只有登录后才会展示该工具">
+                  <Tooltip title={t("admin.tools.form.hideHint")}>
                     <QuestionCircleOutlined style={{ marginLeft: '5px' }} />
                   </Tooltip>
                   &nbsp;隐藏
@@ -914,7 +916,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       </Modal>}
       {<Modal
         open={showEdit}
-        title={"修改工具"}
+        title={t("admin.tools.modal.edit")}
         destroyOnClose
         onCancel={() => {
           setShowEdit(false);
@@ -934,24 +936,24 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               <Input disabled />
             </Form.Item>
             <Form.Item name="name" required label="名称" labelCol={{ span: 4 }}
-              rules={[{ required: true, message: "请填写名称" }]}
+              rules={[{ required: true, message: t("admin.tools.form.nameRequired") }]}
             >
-              <Input placeholder="请输入工具名称" />
+              <Input placeholder={t("admin.tools.form.name")} />
             </Form.Item>
             <Form.Item name="url" required label="网址" labelCol={{ span: 4 }}
               rules={[
-                { required: true, message: "请填写网址" },
+                { required: true, message: t("admin.tools.form.urlRequired") },
                 {
                   pattern: /^(https?:\/\/)/,
-                  message: "网址必须以 http:// 或 https:// 开头"
+                  message: t("admin.tools.form.urlFormat")
                 }
               ]}
             >
               <Input placeholder="请输入 url" />
             </Form.Item>
-            <Form.Item name="logo" label="logo 网址" labelCol={{ span: 4 }}>
+            <Form.Item name="logo" label={t("admin.tools.form.logoUrl")} labelCol={{ span: 4 }}>
               <Input 
-                placeholder="请输入 logo url, 为空则自动获取"
+                placeholder={t("admin.tools.form.logoPlaceholder")}
                 addonAfter={
                   <Tooltip title="根据网址自动获取 favicon">
                     <Button 
@@ -975,7 +977,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               required
               label="分类"
               labelCol={{ span: 4 }}
-              rules={[{ required: true, message: "请选择分类" }]}
+              rules={[{ required: true, message: t("admin.tools.form.categoryRequired") }]}
             >
               <Select
                 options={getOptions(store?.catelogs || [])}
@@ -985,7 +987,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             <Form.Item name="desc" label="描述" labelCol={{ span: 4 }}>
               <Input.TextArea
                 rows={2}
-                placeholder="请输入描述"
+                placeholder={t("admin.tools.form.desc")}
               />
             </Form.Item>
             <Form.Item wrapperCol={{ offset: 4, span: 20 }}>
@@ -1015,7 +1017,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 </span>
               }
               labelCol={{ span: 4 }}
-              rules={[{ required: true, message: "请排序" }]}
+              rules={[{ required: true, message: t("admin.tools.form.sortRequired") }]}
             >
               <InputNumber placeholder="请输入排序" defaultValue={1} />
             </Form.Item>
@@ -1025,7 +1027,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               required
               label={
                 <span>
-                  <Tooltip title="开启后只有登录后才会展示该工具">
+                  <Tooltip title={t("admin.tools.form.hideHint")}>
                     <QuestionCircleOutlined style={{ marginLeft: '5px' }} />
                   </Tooltip>
                   &nbsp;隐藏
@@ -1055,7 +1057,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             loading={checking}
             onClick={handleCheckLinks}
           >
-            {checking ? "检测中..." : "开始检测"}
+            {checking ? "检测中..." : t("admin.tools.check.start")}
           </Button>
           {checkSummary && checkSummary.dead > 0 && (
             <Popconfirm
@@ -1074,14 +1076,14 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         <AntRow gutter={16} style={{ marginBottom: 16 }}>
           <Col span={8}>
             <Statistic
-              title="总数"
+              title={t("admin.tools.total.label")}
               value={checkSummary.total}
               prefix={<ExclamationCircleOutlined />}
             />
           </Col>
           <Col span={8}>
             <Statistic
-              title="正常"
+              title={t("admin.tools.status.normal")}
               value={checkSummary.alive}
               valueStyle={{ color: '#3f8600' }}
               prefix={<CheckCircleOutlined />}
@@ -1089,7 +1091,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           </Col>
           <Col span={8}>
             <Statistic
-              title="失效"
+              title={t("admin.tools.status.dead")}
               value={checkSummary.dead}
               valueStyle={{ color: checkSummary.dead > 0 ? '#cf1322' : undefined }}
               prefix={<CloseCircleOutlined />}
@@ -1111,12 +1113,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           }}
         >
           <Table.Column
-            title="名称"
+            title={t("admin.tools.table.name")}
             dataIndex="title"
             width={120}
           />
           <Table.Column
-            title="网址"
+            title={t("admin.tools.table.url")}
             dataIndex="url"
             width={200}
             render={(url: string) => (
@@ -1131,7 +1133,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             render={(code: number) => code || '-'}
           />
           <Table.Column
-            title="状态"
+            title={t("admin.tools.table.status")}
             dataIndex="alive"
             width={80}
             align="center"
@@ -1146,7 +1148,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             )}
           />
           <Table.Column
-            title="错误信息"
+            title={t("admin.tools.msg.errorInfo")}
             dataIndex="error"
             width={150}
             render={(err: string) => err || '-'}
@@ -1156,7 +1158,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
 
       {!checkSummary && !checking && (
         <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
-          点击"开始检测"按钮，检测所有已收录网站的可用性
+          点击t("admin.tools.check.start")按钮，检测所有已收录网站的可用性
         </div>
       )}
 

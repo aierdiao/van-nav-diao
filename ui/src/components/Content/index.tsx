@@ -12,6 +12,7 @@ import DarkSwitch from "../DarkSwitch";
 import { isLogin } from "../../utils/check";
 import { generateSearchEngineCard } from "../../utils/serachEngine";
 import { toggleJumpTarget, syncJumpTargetFromServer } from "../../utils/setting";
+import { useTranslation } from "../../i18n";
 
 const mutiSearch = (s, t) => {
   const source = (s as string).toLowerCase();
@@ -22,9 +23,10 @@ const mutiSearch = (s, t) => {
 };
 
 const Content = (props: any) => {
+  const { t } = useTranslation();
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(true);
-  const [currTag, setCurrTag] = useState("全部工具");
+  const [currTag, setCurrTag] = useState(t('home.tag.allTools'));
   const [searchString, setSearchString] = useState("");
   const [val, setVal] = useState("");
   const [searchEngineCards, setSearchEngineCards] = useState<any[]>([]);
@@ -83,16 +85,16 @@ const Content = (props: any) => {
         }
       }
     } catch (e) {
-      console.log("网络请求失败，尝试从本地缓存恢复", e);
+      console.log(t('home.cache.networkError'), e);
       try {
         const cached = window.localStorage.getItem("van-nav-cache");
         if (cached) {
           const r = JSON.parse(cached);
           setData(r);
-          console.log("已从本地缓存恢复工具数据");
+          console.log(t('home.cache.restored'));
         }
       } catch (cacheErr) {
-        console.log("本地缓存恢复失败", cacheErr);
+        console.log(t('home.cache.failed'), cacheErr);
       }
     } finally {
       setLoading(false);
@@ -126,7 +128,7 @@ const Content = (props: any) => {
   const handleSetCurrTag = (tag: string) => {
     setCurrTag(tag);
     // 管理后台不记录了
-    if (tag !== "管理后台") {
+    if (tag !== t('home.tag.admin')) {
       window.localStorage.setItem("tag", tag);
     }
     resetSearch(true);
@@ -136,14 +138,14 @@ const Content = (props: any) => {
     setVal("");
     setSearchString("");
     const tagInLocalStorage = window.localStorage.getItem("tag");
-    if (!notSetTag && tagInLocalStorage && tagInLocalStorage !== "" && tagInLocalStorage !== "管理后台") {
+    if (!notSetTag && tagInLocalStorage && tagInLocalStorage !== "" && tagInLocalStorage !== t('home.tag.admin')) {
       setCurrTag(tagInLocalStorage);
     }
   };
 
   const handleSetSearch = (val: string) => {
     if (val !== "" && val) {
-      setCurrTag("全部工具");
+      setCurrTag(t('home.tag.allTools'));
       setSearchString(val.trim());
     } else {
       resetSearch();
@@ -154,7 +156,7 @@ const Content = (props: any) => {
     if (data.tools) {
       const localResult = data.tools
         .filter((item: any) => {
-          if (currTag === "全部工具") {
+          if (currTag === t('home.tag.allTools')) {
             return true;
           }
           return item.catelog === currTag;
@@ -264,7 +266,7 @@ const Content = (props: any) => {
             }}
           />
           <TagSelector
-            tags={data?.catelogs ?? ["全部工具"]}
+            tags={data?.catelogs ?? [t('home.tag.allTools')]}
             currTag={currTag}
             onTagChange={handleSetCurrTag}
           />

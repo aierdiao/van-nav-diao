@@ -18,7 +18,7 @@ func IncrementDeploymentVersion() (string, error) {
 
 func GetSetting() types.Setting {
 	sql_get_user := `
-		SELECT id,favicon,title,govRecord,logo192,logo512,hideAdmin,hideGithub,hideToggleJumpTarget,jumpTargetBlank,showSearchEngine,pcColumnCount,COALESCE(deployment_version,'')
+		SELECT id,favicon,title,govRecord,logo192,logo512,hideAdmin,hideGithub,hideToggleJumpTarget,jumpTargetBlank,showSearchEngine,pcColumnCount,COALESCE(deployment_version,''),COALESCE(language,'zh-CN')
 		FROM nav_setting
 		ORDER BY id ASC
 		LIMIT 1;
@@ -33,7 +33,8 @@ func GetSetting() types.Setting {
 	var showSearchEngine interface{}
 	var pcColumnCount interface{}
 	var deploymentVersion string
-	err := row.Scan(&setting.Id, &setting.Favicon, &setting.Title, &setting.GovRecord, &setting.Logo192, &setting.Logo512, &hideAdmin, &hideGithub, &hideToggleJumpTarget, &jumpTargetBlank, &showSearchEngine, &pcColumnCount, &deploymentVersion)
+	var language string
+	err := row.Scan(&setting.Id, &setting.Favicon, &setting.Title, &setting.GovRecord, &setting.Logo192, &setting.Logo512, &hideAdmin, &hideGithub, &hideToggleJumpTarget, &jumpTargetBlank, &showSearchEngine, &pcColumnCount, &deploymentVersion, &language)
 	if err != nil {
 		logger.LogError("获取配置失败: %s", err)
 		return types.Setting{
@@ -111,13 +112,15 @@ func GetSetting() types.Setting {
 
 	setting.DeploymentVersion = deploymentVersion
 
+	setting.Language = language
+
 	return setting
 }
 
 func UpdateSetting(data types.Setting) error {
 	sql_update_setting := `
 		UPDATE nav_setting
-		SET favicon = ?, title = ?, govRecord = ?, logo192 = ?, logo512 = ?, hideAdmin = ?, hideGithub = ?, hideToggleJumpTarget = ?, jumpTargetBlank = ?, showSearchEngine = ?, pcColumnCount = ?
+		SET favicon = ?, title = ?, govRecord = ?, logo192 = ?, logo512 = ?, hideAdmin = ?, hideGithub = ?, hideToggleJumpTarget = ?, jumpTargetBlank = ?, showSearchEngine = ?, pcColumnCount = ?, language = ?
 		WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1);
 		`
 
@@ -125,7 +128,12 @@ func UpdateSetting(data types.Setting) error {
 	if err != nil {
 		return err
 	}
-	res, err := stmt.Exec(data.Favicon, data.Title, data.GovRecord, data.Logo192, data.Logo512, data.HideAdmin, data.HideGithub, data.HideToggleJumpTarget, data.JumpTargetBlank, data.ShowSearchEngine, data.PcColumnCount)
+		// 语言白名单校验：非法值强制降级到 zh-CN
+	lang := data.Language
+	if lang != "zh-CN" && lang != "en-US" {
+		lang = "zh-CN"
+	}
+	res, err := stmt.Exec(data.Favicon, data.Title, data.GovRecord, data.Logo192, data.Logo512, data.HideAdmin, data.HideGithub, data.HideToggleJumpTarget, data.JumpTargetBlank, data.ShowSearchEngine, data.PcColumnCount, lang)
 	if err != nil {
 		return err
 	}
