@@ -365,13 +365,13 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     try {
       for (const each of selectedRows) {
         try {
-          // 先获取该工具的当前最新数据（防止前面其他操作已{t("admin.tools.btn.edit")}过 logo 等字段）
+          // 先获取该工具的当前最新数据（防止前面其他操作已修改过 logo 等字段）
           const current = store?.tools?.find((t: any) => t.id === each.id) || each;
           const res = await fetchPageInfo(each.url);
           if (res.success) {
             const desc = res.data.description || res.data.title;
             if (desc) {
-              // 只更新描述，不{t("admin.tools.btn.edit")}其他字段
+              // 只更新描述，不修改其他字段
               await fetchUpdateToolDesc(each.id, desc);
               success++;
             } else {
@@ -401,7 +401,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     document.documentElement.appendChild(a);
     a.click();
     document.documentElement.removeChild(a);
-    message.success("导出成功！");
+    message.success(t("admin.tools.msg.exportSuccess"));
     reload();
   }, [reload]);
 
@@ -932,7 +932,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       >
         <Spin spinning={requestLoading}>
           <Form form={updateForm}>
-            <Form.Item name="id" label="序号" labelCol={{ span: 4 }}>
+            <Form.Item name="id" label={t("admin.tools.form.id")} labelCol={{ span: 4 }}>
               <Input disabled />
             </Form.Item>
             <Form.Item name="name" required label={t("admin.tools.form.name")} labelCol={{ span: 4 }}
@@ -949,7 +949,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 }
               ]}
             >
-              <Input placeholder="请输入 url" />
+              <Input placeholder={t("admin.tools.form.urlPlaceholder")} />
             </Form.Item>
             <Form.Item name="logo" label={t("admin.tools.form.logoUrl")} labelCol={{ span: 4 }}>
               <Input 
@@ -981,7 +981,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             >
               <Select
                 options={getOptions(store?.catelogs || [])}
-                placeholder="请选���分类"
+                placeholder={t("admin.tools.form.categoryPlaceholder")}
               />
             </Form.Item>
             <Form.Item name="desc" label={t("admin.tools.form.desc")} labelCol={{ span: 4 }}>
@@ -1057,15 +1057,15 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             loading={checking}
             onClick={handleCheckLinks}
           >
-            {checking ? "检测中..." : t("admin.tools.health.startCheck")}
+            {checking ? t("admin.tools.health.checking") : t("admin.tools.health.startCheck")}
           </Button>
           {checkSummary && checkSummary.dead > 0 && (
             <Popconfirm
-              title={`确定将 ${checkSummary.dead} 条失效链接移至列表末尾？`}
+              title={t("admin.tools.health.confirmOrganize", { count: checkSummary.dead })}
               onConfirm={handleOrganizeDeadLinks}
             >
               <Button loading={organizing}>
-                整理失效链接
+                {t("admin.tools.health.organizeDeadLinks")}
               </Button>
             </Popconfirm>
           )}
@@ -1126,7 +1126,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             )}
           />
           <Table.Column
-            title="状态码"
+            title={t("admin.tools.health.table.statusCode")}
             dataIndex="status_code"
             width={80}
             align="center"
@@ -1139,10 +1139,10 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             align="center"
             render={(alive: boolean, record: LinkCheckResultItem) => (
               alive ? (
-                <Tag color="success">正常</Tag>
+                <Tag color="success">{t("admin.tools.health.alive")}</Tag>
               ) : (
-                <Tooltip title={record.error || '无法访问'}>
-                  <Tag color="error">失效</Tag>
+                <Tooltip title={record.error || t('admin.tools.health.unreachable')}>
+                  <Tag color="error">{t("admin.tools.health.dead")}</Tag>
                 </Tooltip>
               )
             )}
@@ -1164,7 +1164,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
 
       {checking && (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <Spin tip="正在检测所有链接，请稍候..." />
+          <Spin tip={t("admin.tools.health.checkingTip")} />
         </div>
       )}
     </Card>

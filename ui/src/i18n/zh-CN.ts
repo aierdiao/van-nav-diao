@@ -83,6 +83,7 @@ const zhCN: Record<string, string> = {
   "admin.tools.modal.edit": "修改工具",
 
   // 表单
+  "admin.tools.form.id": "序号",
   "admin.tools.form.name": "名称",
   "admin.tools.form.namePlaceholder": "请输入名称",
   "admin.tools.form.nameRequired": "请输入名称",

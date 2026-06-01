@@ -53,6 +53,7 @@ const enUS: Record<string, string> = {
   "admin.tools.bulk.confirmUpdateDesc": "Auto-fetch and update descriptions for selected tools?",
   "admin.tools.modal.add": "Add Tool",
   "admin.tools.modal.edit": "Edit Tool",
+  "admin.tools.form.id": "ID",
   "admin.tools.form.name": "Name",
   "admin.tools.form.namePlaceholder": "Enter name",
   "admin.tools.form.nameRequired": "Please enter a name",
