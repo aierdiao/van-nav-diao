@@ -26,7 +26,7 @@ export const useTranslation = () => useContext(I18nContext);
 // 独立翻译函数，用于非 React 上下文（如工具函数、API 层）
 // 从 localStorage 读取语言偏好，回退到 zh-CN
 export const t = (key: string, params?: Record<string, string | number>): string => {
-  const lang = (localStorage.getItem('language') as Language) || 'zh-CN';
+  const lang = (localStorage.getItem('lang') as Language) || 'zh-CN';
   const dict = messages[lang] || messages['zh-CN'];
   let value = dict[key] || key;
   if (params) {
