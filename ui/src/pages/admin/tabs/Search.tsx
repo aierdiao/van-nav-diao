@@ -314,7 +314,7 @@ const SearchEngineManager: React.FC = () => {
       await fetchUpdateSearchEnginesSort(updates);
       clearSearchEngineCache();
     } catch (error) {
-      message.error('排序更新失败');
+      message.error(t("admin.search.msg.sortFailed"));
       loadEngines();
     }
   };
@@ -324,10 +324,10 @@ const SearchEngineManager: React.FC = () => {
       const values = await form.validateFields();
       if (editingEngine) {
         await fetchUpdateSearchEngine({ ...values, id: editingEngine.id, enabled: editingEngine.enabled });
-        message.success('修改成功');
+        message.success(t("admin.search.msg.updateSuccess"));
       } else {
         await fetchAddSearchEngine({ ...values, enabled: true });
-        message.success('添加成功');
+        message.success(t("admin.search.msg.addSuccess"));
       }
       clearSearchEngineCache();
       setIsModalVisible(false);
@@ -356,13 +356,13 @@ return (
         title={
           <Space>
             <span>{t("admin.search.title")}</span>
-            <span style={{ color: '#999', fontSize: 13 }}>当前共 {engines.length} 条</span>
+            <span style={{ color: '#999', fontSize: 13 }}>{t("admin.search.total", { count: engines.length })}</span>
             {selectedRows.length > 0 && (
               <Popconfirm
                 title={t("admin.search.confirm.bulkDelete")}
                 onConfirm={handleBulkDelete}
               >
-                <Button type="link" danger>删除 ({selectedRows.length})</Button>
+                <Button type="link" danger>{t("admin.search.btn.delete")} ({selectedRows.length})</Button>
               </Popconfirm>
             )}
           </Space>
@@ -421,14 +421,14 @@ return (
             name="logo"
             label={t("admin.search.form.logo")}
             rules={[
-              { required: true, message: '请输入图标文件名或网址' },
+              { required: true, message: t("admin.search.msg.enterLogo") },
               {
                 validator: (_, value) => {
                   if (!value) return Promise.resolve();
                   const urlPattern = /^https?:\/\/.+/i;
                   const filePattern = /\.(ico|png|jpg|jpeg|gif|svg|webp)$/i;
                   if (urlPattern.test(value) || filePattern.test(value)) return Promise.resolve();
-                  return Promise.reject(new Error('请输入有效的网址或图标文件名'));
+                  return Promise.reject(new Error(t("admin.search.msg.invalidLogo")));
                 }
               }
             ]}

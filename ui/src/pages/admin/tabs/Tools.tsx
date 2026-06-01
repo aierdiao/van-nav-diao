@@ -275,8 +275,8 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         if (res.success) {
           const imported = res.tools_imported ?? 0;
           const skipped = res.tools_skipped ?? 0;
-          let msg = `导入完成：成功 ${imported} 条`;
-          if (skipped > 0) msg += `，跳过 ${skipped} 条（ID 已存在）`;
+          let msg = t("admin.tools.msg.importComplete", { imported });
+          if (skipped > 0) msg += t("admin.tools.msg.importSkipped", { skipped });
           message.success(msg + "，正在刷新图标缓存...");
         } else {
           message.warning(res.errorMessage || t("admin.tools.msg.importFailed"));
@@ -365,13 +365,13 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     try {
       for (const each of selectedRows) {
         try {
-          // 先获取该工具的当前最新数据（防止前面其他操作已修改过 logo 等字段）
+          // 先获取该工具的当前最新数据（防止前面其他操作已t("admin.tools.btn.edit")过 logo 等字段）
           const current = store?.tools?.find((t: any) => t.id === each.id) || each;
           const res = await fetchPageInfo(each.url);
           if (res.success) {
             const desc = res.data.description || res.data.title;
             if (desc) {
-              // 只更新描述，不修改其他字段
+              // 只更新描述，不t("admin.tools.btn.edit")其他字段
               await fetchUpdateToolDesc(each.id, desc);
               success++;
             } else {
@@ -512,7 +512,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 handleBulkDelete();
               }}
             >
-              <Button type="link">删除</Button>
+              <Button type="link">{t("admin.tools.btn.delete")}</Button>
             </Popconfirm>
           )}
           {selectedRows.length > 0 && (
@@ -522,7 +522,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 handleBulkResetLogo();
               }}
             >
-              <Button type="link">重置默认图标</Button>
+              <Button type="link">{t("admin.tools.batch.resetDefaultIcon")}</Button>
             </Popconfirm>
           )}
           {selectedRows.length > 0 && (
@@ -657,7 +657,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 showSizeChanger: true,
                 pageSizeOptions: ['10', '20', '50', '100'],
                 defaultPageSize: 10,
-                showTotal: (total) => `共 ${total} 条`
+                showTotal: (total) => t("admin.tools.table.total", { total })
               }}
             >
               <Table.Column
@@ -713,7 +713,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               {/* <Table.Column
                 title={
                   <span>排序
-                    <Tooltip title="升序，按数字从小到大排序">
+                    <Tooltip title={t("admin.tools.form.sortHint")}>
                       <QuestionCircleOutlined style={{ marginLeft: '5px' }} />
                     </Tooltip>
                   </span>
@@ -737,12 +737,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 align="center"
                 render={(alive: boolean | null, record: any) => {
                   if (alive === false) {
-                    return <Tag color="error">失效</Tag>;
+                    return <Tag color="error">{t("admin.tools.status.dead")}</Tag>;
                   }
                   if (alive === true && record.last_checked) {
-                    return <Tag color="success">正常</Tag>;
+                    return <Tag color="success">{t("admin.tools.status.normal")}</Tag>;
                   }
-                  return <Tag>未检测</Tag>;
+                  return <Tag>{t("admin.tools.status.unchecked")}</Tag>;
                 }}
               />
               <Table.Column
@@ -760,15 +760,15 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                           setShowEdit(true);
                         }}
                       >
-                        修改
+                        t("admin.tools.btn.edit")
                       </Button>
                       <Popconfirm
                         onConfirm={() => {
                           handleDelete(record.id);
                         }}
-                        title={`确定要删除 ${record.name} 吗？`}
+                        title={t("admin.tools.confirm.deleteSingle", { name: record.name })}
                       >
-                        <Button type="link" danger>删除</Button>
+                        <Button type="link" danger>{t("admin.tools.btn.delete")}</Button>
                       </Popconfirm>
                     </Space>
                   );
@@ -828,7 +828,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               <Input 
                 placeholder={t("admin.tools.form.logoPlaceholder")}
                 addonAfter={
-                  <Tooltip title="根据网址自动获取 favicon">
+                  <Tooltip title={t("admin.tools.form.autoFavicon")}>
                     <Button 
                       type="text" 
                       size="small" 
@@ -878,7 +878,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 }}
                 style={{ padding: 0, fontSize: 13 }}
               >
-                自动获取描述
+                t("admin.tools.form.autoDesc")
               </Button>
             </Form.Item>
             <Form.Item
@@ -887,15 +887,15 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               required
               label={
                 <span>
-                  <Tooltip title="升序，按数字从小到大排序">
+                  <Tooltip title={t("admin.tools.form.sortHint")}>
                     <QuestionCircleOutlined style={{ marginLeft: '5px' }} />
                   </Tooltip>
-                  &nbsp;排序
+                  {t("admin.tools.form.sort")}
                 </span>
               }
               labelCol={{ span: 4 }}
             >
-              <InputNumber placeholder="请输入排序" />
+              <InputNumber placeholder={t("admin.tools.form.sort")} />
             </Form.Item>
             <Form.Item
               name="hide"
@@ -955,7 +955,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               <Input 
                 placeholder={t("admin.tools.form.logoPlaceholder")}
                 addonAfter={
-                  <Tooltip title="根据网址自动获取 favicon">
+                  <Tooltip title={t("admin.tools.form.autoFavicon")}>
                     <Button 
                       type="text" 
                       size="small" 
@@ -1001,7 +1001,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 }}
                 style={{ padding: 0, fontSize: 13 }}
               >
-                自动获取描述
+                t("admin.tools.form.autoDesc")
               </Button>
             </Form.Item>
 
@@ -1010,16 +1010,16 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               required
               label={
                 <span>
-                  <Tooltip title="升序，按数字从小到大排序">
+                  <Tooltip title={t("admin.tools.form.sortHint")}>
                     <QuestionCircleOutlined style={{ marginLeft: '5px' }} />
                   </Tooltip>
-                  &nbsp;排序
+                  {t("admin.tools.form.sort")}
                 </span>
               }
               labelCol={{ span: 4 }}
               rules={[{ required: true, message: t("admin.tools.form.sortRequired") }]}
             >
-              <InputNumber placeholder="请输入排序" defaultValue={1} />
+              <InputNumber placeholder={t("admin.tools.form.sort")} defaultValue={1} />
             </Form.Item>
 
             <Form.Item
@@ -1109,7 +1109,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50'],
             defaultPageSize: 10,
-            showTotal: (total) => `共 ${total} 条`,
+            showTotal: (total) => t("admin.tools.table.total", { total }),
           }}
         >
           <Table.Column

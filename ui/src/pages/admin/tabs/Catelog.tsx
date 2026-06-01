@@ -258,7 +258,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                 showSizeChanger: true,
                 pageSizeOptions: ['10', '20', '50'],
                 defaultPageSize: 10,
-                showTotal: (total) => `共 ${total} 条`,
+                showTotal: (total) => t("admin.catelog.table.total", { total }),
               }}
             >
               <Table.Column
@@ -361,7 +361,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                 <Tooltip title={t("admin.catelog.form.sortHint")}>
                   <QuestionCircleOutlined style={{ marginLeft: "5px" }} />
                 </Tooltip>
-                &nbsp;排序
+                {t("admin.catelog.form.sort")}
               </span>
             }
             labelCol={{ span: 4 }}
@@ -418,7 +418,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                   <Tooltip title={t("admin.catelog.form.sortHint")}>
                     <QuestionCircleOutlined style={{ marginLeft: "5px" }} />
                   </Tooltip>
-                  &nbsp;排序
+                  {t("admin.catelog.form.sort")}
                 </span>
               }
               labelCol={{ span: 4 }}
