@@ -101,6 +101,7 @@ const zhCN: Record<string, string> = {
   "admin.tools.form.hidden": "隐藏",
   "admin.tools.form.hiddenTooltip": "开启后只有登录后才会展示该工具",
   "admin.tools.form.logo": "Logo",
+  "admin.tools.form.logoUrl": "Logo 网址",
   "admin.tools.form.logoPlaceholder": "请输入 Logo 网址",
 
   // 分类筛选
@@ -514,4 +515,3 @@ const zhCN: Record<string, string> = {
 };
 
 export default zhCN;
-

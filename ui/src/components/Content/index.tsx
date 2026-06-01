@@ -14,6 +14,28 @@ import { generateSearchEngineCard } from "../../utils/serachEngine";
 import { toggleJumpTarget, syncJumpTargetFromServer } from "../../utils/setting";
 import { useTranslation } from "../../i18n";
 
+// 系统工具名称翻译映射
+const systemToolTranslations: Record<string, Record<string, string>> = {
+  'zh-CN': {
+    '原地跳转': 'Same Tab',
+    '新建窗口': 'New Tab',
+    '本站管理后台': 'Admin Panel',
+    '管理后台': 'Admin',
+    '偏好设置': 'Settings',
+    '点击切换跳转方式': 'Click to toggle jump target',
+    '本导航站的管理后台哦': 'Admin panel for this navigation site',
+  },
+  'en-US': {
+    '原地跳转': 'Same Tab',
+    '新建窗口': 'New Tab',
+    '本站管理后台': 'Admin Panel',
+    '管理后台': 'Admin',
+    '偏好设置': 'Settings',
+    '点击切换跳转方式': 'Click to toggle jump target',
+    '本导航站的管理后台哦': 'Admin panel for this navigation site',
+  },
+};
+
 const mutiSearch = (s, t) => {
   const source = (s as string).toLowerCase();
   const target = t.toLowerCase();
@@ -23,7 +45,13 @@ const mutiSearch = (s, t) => {
 };
 
 const Content = (props: any) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+
+  // 翻译系统工具名称
+  const translateSystemTool = (name: string) => {
+    const map = systemToolTranslations[language] || systemToolTranslations['zh-CN'];
+    return map[name] || name;
+  };
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [currTag, setCurrTag] = useState(t('home.tag.allTools'));
@@ -197,9 +225,9 @@ const Content = (props: any) => {
     return filteredData.map((item, index) => {
       return (
         <CardV2
-          title={item.name}
+          title={translateSystemTool(item.name)}
           url={item.url}
-          des={item.desc}
+          des={translateSystemTool(item.desc)}
           logo={item.logo}
           key={item.id}
           catelog={item.catelog}

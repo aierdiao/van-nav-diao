@@ -71,6 +71,7 @@ const enUS: Record<string, string> = {
   "admin.tools.form.hidden": "Hidden",
   "admin.tools.form.hiddenTooltip": "When enabled, the tool is only visible after login",
   "admin.tools.form.logo": "Logo",
+  "admin.tools.form.logoUrl": "Logo URL",
   "admin.tools.form.logoPlaceholder": "Enter logo URL",
   "admin.tools.filter.category": "Filter by category",
   "admin.tools.form.autoGetLogo": "Auto-update Logo URL",

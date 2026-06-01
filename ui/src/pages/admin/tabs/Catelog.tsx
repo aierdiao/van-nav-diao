@@ -188,9 +188,9 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
           sort: index + 1,
         }));
         await fetchUpdateCatelogsSort(updates);
-        message.success('排序已更新');
+        message.success(t("admin.catelog.msg.sortUpdated"));
       } catch (error) {
-        message.error('排序更新失败');
+        message.error(t("admin.catelog.msg.sortFailed"));
         reload();
       }
     }
@@ -207,7 +207,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
               title={t("admin.catelog.confirm.bulkDelete")}
               onConfirm={() => handleBulkDelete()}
             >
-              <Button type="link" danger>删除 ({selectedRows.length})</Button>
+              <Button type="link" danger>{t("admin.catelog.btn.delete")} ({selectedRows.length})</Button>
             </Popconfirm>
           )}
         </Space>
@@ -220,7 +220,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
               setShowAddModel(true);
             }}
           >
-            t("admin.catelog.btn.add")
+            {t("admin.catelog.btn.add")}
           </Button>
           <Button
             type="primary"
@@ -228,7 +228,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
               reload();
             }}
           >
-            刷新
+            {t("admin.catelog.btn.refresh")}
           </Button>
         </Space>
       }
@@ -262,7 +262,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
               }}
             >
               <Table.Column
-                title={<div style={{ textAlign: 'center' }}>排序</div>}
+                title={t("admin.catelog.table.sort")}
                 dataIndex="sort"
                 width={60}
                 render={(_: any, record: CatelogItem) => (
@@ -289,7 +289,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
               <Table.Column
                 title={
                   <span>
-                    隐藏
+                    {t("admin.catelog.table.hidden")}
                     <Tooltip title={t("admin.catelog.form.hideHint")}>
                       <QuestionCircleOutlined style={{ marginLeft: "5px" }} />
                     </Tooltip>
@@ -319,7 +319,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                           setShowEdit(true);
                         }}
                       >
-                        修改
+                        t("admin.catelog.btn.edit")
                       </Button>
                       <Popconfirm
                         onConfirm={() => {
@@ -327,7 +327,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                         }}
                         title={t("admin.catelog.confirm.delete", { name: record.name })}
                       >
-                        <Button type="link" danger>删除</Button>
+                        <Button type="link" danger>{t("admin.catelog.btn.delete")}</Button>
                       </Popconfirm>
                     </Space>
                   );
@@ -349,7 +349,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
         }}
       >
         <Form form={addForm}>
-          <Form.Item name="name" required label="名称" labelCol={{ span: 4 }}>
+          <Form.Item name="name" required label={t("admin.catelog.form.name")} labelCol={{ span: 4 }}>
             <Input placeholder={t("admin.catelog.form.name")} />
           </Form.Item>
           <Form.Item
@@ -381,7 +381,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                 <Tooltip title={t("admin.catelog.form.hideHint")}>
                   <QuestionCircleOutlined style={{ marginLeft: "5px" }} />
                 </Tooltip>
-                &nbsp;隐藏
+                &nbsp;t("admin.catelog.table.hidden")
               </span>
             }
             labelCol={{ span: 4 }}
@@ -404,10 +404,10 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
       >
         <Spin spinning={requestLoading}>
           <Form form={updateForm}>
-            <Form.Item name="id" label="序号" labelCol={{ span: 4 }}>
+            <Form.Item name="id" label={t("admin.catelog.form.id")} labelCol={{ span: 4 }}>
               <Input disabled />
             </Form.Item>
-            <Form.Item name="name" required label="名称" labelCol={{ span: 4 }}>
+            <Form.Item name="name" required label={t("admin.catelog.form.name")} labelCol={{ span: 4 }}>
               <Input placeholder={t("admin.catelog.form.name")} />
             </Form.Item>
             <Form.Item
@@ -433,7 +433,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                   <Tooltip title={t("admin.catelog.form.hideHint")}>
                     <QuestionCircleOutlined style={{ marginLeft: "5px" }} />
                   </Tooltip>
-                  &nbsp;隐藏
+                  &nbsp;t("admin.catelog.table.hidden")
                 </span>
               }
               labelCol={{ span: 4 }}

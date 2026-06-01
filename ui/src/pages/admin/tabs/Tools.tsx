@@ -137,7 +137,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
   const [gettingFavicon, setGettingFavicon] = useState(false);
   const [gettingDesc, setGettingDesc] = useState(false);
 
-  // ==================== 网站健康检测状态 ====================
+  // ==================== {t("admin.tools.health.title")}状态 ====================
   interface LinkCheckResultItem {
     id: number;
     url: string;
@@ -155,7 +155,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
   const handleGetFavicon = async (form: any, formInstance: 'add' | 'update') => {
     const url = form.getFieldValue('url');
     if (!url) {
-      message.warning('请先填写工具网址');
+      message.warning(t("admin.tools.msg.fillUrlFirst"));
       return;
     }
     setGettingFavicon(true);
@@ -163,12 +163,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       const res = await fetchGetFaviconFromApi(url);
       if (res.success && res.logoUrl) {
         form.setFieldsValue({ logo: res.logoUrl });
-        message.success('获取 favicon 成功');
+        message.success(t("admin.tools.msg.faviconSuccess"));
       } else {
-        message.warning(res.errorMessage || '获取失败');
+        message.warning(res.errorMessage || t("admin.tools.msg.fetchFailed"));
       }
     } catch (err: any) {
-      message.error(err.response?.data?.errorMessage || '获取 favicon 失败');
+      message.error(err.response?.data?.errorMessage || t("admin.tools.msg.faviconFailed"));
     } finally {
       setGettingFavicon(false);
     }
@@ -178,7 +178,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
   const handleGetDesc = async (form: any) => {
     const url = form.getFieldValue('url');
     if (!url) {
-      message.warning('请先填写工具网址');
+      message.warning(t("admin.tools.msg.fillUrlFirst"));
       return;
     }
     setGettingDesc(true);
@@ -188,15 +188,15 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         const desc = res.data.description || res.data.title;
         if (desc) {
           form.setFieldsValue({ desc });
-          message.success('获取描述成功');
+          message.success(t("admin.tools.msg.descSuccess"));
         } else {
-          message.warning('未找到描述信息，请手动输入');
+          message.warning(t("admin.tools.msg.descNotFound"));
         }
       } else {
-        message.warning(res.errorMessage || '获取失败，请手动输入描述');
+        message.warning(res.errorMessage || t("admin.tools.msg.descFailed"));
       }
     } catch (err: any) {
-      message.error(err.response?.data?.errorMessage || '获取失败，请手动输入描述');
+      message.error(err.response?.data?.errorMessage || t("admin.tools.msg.descFailed"));
     } finally {
       setGettingDesc(false);
     }
@@ -229,12 +229,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       setRequestLoading(true);
       try {
         await fetchUpdateTool(record);
-        message.success("更新成功! Logo 将在 3 秒后刷新并加载！", 3);
+        message.success(t("admin.tools.msg.updateSuccessLogo"), 3);
         setTimeout(() => {
           reload();
         }, 3000);
       } catch (err) {
-        message.warning("更新失败!");
+        message.warning(t("admin.tools.msg.updateFailed"));
       } finally {
         setRequestLoading(false);
         setShowEdit(false);
@@ -248,12 +248,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       setRequestLoading(true);
       try {
         await fetchAddTool(record);
-        message.success("添加成功! Logo 将在 3 秒后刷新并加载！", 3);
+        message.success(t("admin.tools.msg.addSuccessLogo"), 3);
         setTimeout(() => {
           reload();
         }, 3000);
       } catch (err) {
-        message.warning("添加失败!");
+        message.warning(t("admin.tools.msg.addFailed"));
       } finally {
         setRequestLoading(false);
         setShowAddModel(false);
@@ -279,11 +279,11 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           if (skipped > 0) msg += `，跳过 ${skipped} 条（ID 已存在）`;
           message.success(msg + "，正在刷新图标缓存...");
         } else {
-          message.warning(res.errorMessage || "导入失败!");
+          message.warning(res.errorMessage || t("admin.tools.msg.importFailed"));
         }
       } catch (err) {
         loadingMsg();
-        message.warning("导入失败!");
+        message.warning(t("admin.tools.msg.importFailed"));
       } finally {
         reload();
       }
@@ -311,9 +311,9 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           await fetchUpdateTool({ ...each, logo: "" });
         } catch (err) { }
       }
-      message.success("重置成功!");
+      message.success(t("admin.tools.msg.resetSuccess"));
     } catch (err) {
-      message.success("重置失败!");
+      message.success(t("admin.tools.msg.resetFailed"));
     } finally {
       reload();
     }
@@ -325,9 +325,9 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           await fetchUpdateTool(each);
         } catch (err) { }
       }
-      message.success("重置成功!");
+      message.success(t("admin.tools.msg.resetSuccess"));
     } catch (err) {
-      message.success("重置失败!");
+      message.success(t("admin.tools.msg.resetFailed"));
     } finally {
       reload();
     }
@@ -405,7 +405,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     reload();
   }, [reload]);
 
-  // ==================== 网站健康检测 ====================
+  // ==================== {t("admin.tools.health.title")} ====================
   const handleCheckLinks = useCallback(async () => {
     setChecking(true);
     setCheckResults([]);
@@ -503,8 +503,8 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     <Card
       title={
         <Space>
-          <span>工具管理</span>
-          <span style={{ color: '#999', fontSize: 13 }}>{`当前共 ${store?.tools?.length ?? 0} 条`}</span>
+          <span>{t("admin.tools.title")}</span>
+          <span style={{ color: '#999', fontSize: 13 }}>{t("admin.tools.total", { count: store?.tools?.length ?? 0 })}</span>
           {selectedRows.length > 0 && (
             <Popconfirm
               title={t("admin.tools.confirm.delete")}
@@ -532,27 +532,27 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 handleBulkCacheLogo();
               }}
             >
-              <Button type="link">重置缓存图标</Button>
+              <Button type="link">{t("admin.tools.batch.resetCachedIcon")}</Button>
             </Popconfirm>
           )}
           {selectedRows.length > 0 && (
             <Popconfirm
-              title="根据 Logo API 模板自动获取并更新选中工具的 logo 网址？"
+              title={t("admin.tools.form.logoApiHint")}
               onConfirm={() => {
                 handleBulkUpdateLogoFromApi();
               }}
             >
-              <Button type="link">一键更新Logo网址</Button>
+              <Button type="link">{t("admin.tools.batch.updateLogo")}</Button>
             </Popconfirm>
           )}
           {selectedRows.length > 0 && (
             <Popconfirm
-              title="自动获取并更新选中工具的描述？"
+              title={t("admin.tools.form.autoDesc")}
               onConfirm={() => {
                 handleBulkUpdateDesc();
               }}
             >
-              <Button type="link">一键更新描述</Button>
+              <Button type="link">{t("admin.tools.batch.updateDesc")}</Button>
             </Popconfirm>
           )}
         </Space>
@@ -593,7 +593,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               setShowAddModel(true);
             }}
           >
-            添加
+            {t("admin.tools.btn.add")}
           </Button>
           <Button
             type="primary"
@@ -601,7 +601,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               reload();
             }}
           >
-            刷新
+            {t("admin.tools.btn.refresh")}
           </Button>
           <Upload
             name="tools.json"
@@ -620,7 +620,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               return false;
             }}
           >
-            <Button type="primary">导入</Button>
+            <Button type="primary">{t("admin.tools.btn.import")}</Button>
           </Upload>
           <Button
             type="primary"
@@ -628,7 +628,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               handleExport();
             }}
           >
-            导出
+            {t("admin.tools.btn.export")}
           </Button>
         </Space>
       }
@@ -803,7 +803,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             <Form.Item
               name="name"
               required
-              label="名称"
+              label={t("admin.tools.form.name")}
               rules={[{ required: true, message: t("admin.tools.form.nameRequired") }]}
               labelCol={{ span: 4 }}
             >
@@ -819,7 +819,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 }
               ]}
               required
-              label="网址"
+              label={t("admin.tools.form.url")}
               labelCol={{ span: 4 }}
             >
               <Input placeholder={t("admin.tools.form.urlPlaceholder")} />
@@ -848,7 +848,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             <Form.Item
               name="catelog"
               required
-              label="分类"
+              label={t("admin.tools.form.category")}
               labelCol={{ span: 4 }}
               rules={[{ required: true, message: t("admin.tools.form.categoryRequired") }]}
             >
@@ -859,7 +859,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             </Form.Item>
             <Form.Item
               name="desc"
-              label="描述"
+              label={t("admin.tools.form.desc")}
               labelCol={{ span: 4 }}
             >
               <Input.TextArea
@@ -909,7 +909,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 </span>
               }
               labelCol={{ span: 4 }}>
-              <Switch checkedChildren="开" unCheckedChildren="关" />
+              <Switch checkedChildren={t("admin.common.switch.on")} unCheckedChildren={t("admin.common.switch.off")} />
             </Form.Item>
           </Form>
         </Spin>
@@ -935,12 +935,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             <Form.Item name="id" label="序号" labelCol={{ span: 4 }}>
               <Input disabled />
             </Form.Item>
-            <Form.Item name="name" required label="名称" labelCol={{ span: 4 }}
+            <Form.Item name="name" required label={t("admin.tools.form.name")} labelCol={{ span: 4 }}
               rules={[{ required: true, message: t("admin.tools.form.nameRequired") }]}
             >
               <Input placeholder={t("admin.tools.form.name")} />
             </Form.Item>
-            <Form.Item name="url" required label="网址" labelCol={{ span: 4 }}
+            <Form.Item name="url" required label={t("admin.tools.form.url")} labelCol={{ span: 4 }}
               rules={[
                 { required: true, message: t("admin.tools.form.urlRequired") },
                 {
@@ -975,7 +975,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             <Form.Item
               name="catelog"
               required
-              label="分类"
+              label={t("admin.tools.form.category")}
               labelCol={{ span: 4 }}
               rules={[{ required: true, message: t("admin.tools.form.categoryRequired") }]}
             >
@@ -984,7 +984,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 placeholder="请选���分类"
               />
             </Form.Item>
-            <Form.Item name="desc" label="描述" labelCol={{ span: 4 }}>
+            <Form.Item name="desc" label={t("admin.tools.form.desc")} labelCol={{ span: 4 }}>
               <Input.TextArea
                 rows={2}
                 placeholder={t("admin.tools.form.desc")}
@@ -1034,19 +1034,19 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 </span>
               }
               labelCol={{ span: 4 }}>
-              <Switch checkedChildren="开" unCheckedChildren="关" />
+              <Switch checkedChildren={t("admin.common.switch.on")} unCheckedChildren={t("admin.common.switch.off")} />
             </Form.Item>
           </Form>
         </Spin>
       </Modal>}
     </Card>
 
-    {/* ==================== 网站健康检测 ==================== */}
+    {/* ==================== {t("admin.tools.health.title")} ==================== */}
     <Card
       title={
         <Space>
           <HeartOutlined />
-          <span>网站健康检测</span>
+          <span>{t("admin.tools.health.title")}</span>
         </Space>
       }
       style={{ marginTop: 16 }}
@@ -1057,7 +1057,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             loading={checking}
             onClick={handleCheckLinks}
           >
-            {checking ? "检测中..." : t("admin.tools.check.start")}
+            {checking ? "检测中..." : t("admin.tools.health.startCheck")}
           </Button>
           {checkSummary && checkSummary.dead > 0 && (
             <Popconfirm
@@ -1158,7 +1158,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
 
       {!checkSummary && !checking && (
         <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
-          点击t("admin.tools.check.start")按钮，检测所有已收录网站的可用性
+          {t("admin.tools.health.hint")}
         </div>
       )}
 

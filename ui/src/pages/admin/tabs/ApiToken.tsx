@@ -16,9 +16,9 @@ export const ApiToken: React.FC<ApiTokenProps> = (props) => {
     async (id: number) => {
       try {
         await fetchDeleteApiToken(id);
-        message.success(t('admin.token.msg.deleteSuccess'));
+        message.success(t('admin.apiToken.msg.deleteSuccess'));
       } catch (err) {
-        message.warning(t('admin.token.msg.deleteFailed'));
+        message.warning(t('admin.apiToken.msg.deleteFailed'));
       } finally {
         reload();
       }
@@ -30,9 +30,9 @@ export const ApiToken: React.FC<ApiTokenProps> = (props) => {
     async (record: any) => {
       try {
         await fetchAddApiToken(record);
-        message.success(t('admin.token.msg.addSuccess'));
+        message.success(t('admin.apiToken.msg.addSuccess'));
       } catch (err) {
-        message.warning(t('admin.token.msg.addFailed'));
+        message.warning(t('admin.apiToken.msg.addFailed'));
       } finally {
         setShowAddModel(false);
         reload();
@@ -45,17 +45,17 @@ export const ApiToken: React.FC<ApiTokenProps> = (props) => {
     <Card
       title={
         <Space>
-          <span>{t('admin.token.title')}</span>
-          <span style={{ color: '#999', fontSize: 13 }}>{t('admin.token.total', { count: store?.tokens?.length ?? 0 })}</span>
+          <span>{t('admin.apiToken.title')}</span>
+          <span style={{ color: '#999', fontSize: 13 }}>{t('admin.apiToken.total', { count: store?.tokens?.length ?? 0 })}</span>
         </Space>
       }
       extra={
         <Space>
           <Button type="primary" onClick={() => setShowAddModel(true)}>
-            {t('admin.token.btn.add')}
+            {t('admin.apiToken.btn.add')}
           </Button>
           <Button type="primary" onClick={() => reload()}>
-            {t('admin.token.btn.refresh')}
+            {t('admin.apiToken.btn.refresh')}
           </Button>
         </Space>
       }
@@ -67,24 +67,24 @@ export const ApiToken: React.FC<ApiTokenProps> = (props) => {
           defaultPageSize: 10,
           showTotal: (total) => `共 ${total} 条`,
         }}>
-          <Table.Column title={t('admin.token.table.id')} dataIndex="id" width={30} />
-          <Table.Column title={t('admin.token.table.name')} dataIndex="name" width={150}
+          <Table.Column title={t('admin.apiToken.table.id')} dataIndex="id" width={30} />
+          <Table.Column title={t('admin.apiToken.table.name')} dataIndex="name" width={150}
             render={(_, record: any) => (
               <div><span style={{ marginLeft: 8 }}>{record.name}</span></div>
             )}
           />
-          <Table.Column title={t('admin.token.table.value')} dataIndex="value" width={200}
+          <Table.Column title={t('admin.apiToken.table.value')} dataIndex="value" width={200}
             render={(val) => (
               <div style={{ maxWidth: "300px" }}>
                 <Typography.Text copyable ellipsis={true}>{val}</Typography.Text>
               </div>
             )}
           />
-          <Table.Column title={t('admin.token.table.action')} width={120} dataIndex="action" key="action"
+          <Table.Column title={t('admin.apiToken.table.action')} width={120} dataIndex="action" key="action"
             render={(_, record: any) => (
               <Space>
                 <Popconfirm onConfirm={() => handleDelete(record.id)}
-                  title={t('admin.token.confirm.delete', { name: record.name })}>
+                  title={t('admin.apiToken.confirm.delete', { name: record.name })}>
                   <Button type="link" danger>{t('common.delete')}</Button>
                 </Popconfirm>
               </Space>
@@ -92,12 +92,12 @@ export const ApiToken: React.FC<ApiTokenProps> = (props) => {
           />
         </Table>
       </Spin>
-      <Modal visible={showAddModel} title={t('admin.token.modal.add')}
+      <Modal visible={showAddModel} title={t('admin.apiToken.modal.add')}
         onCancel={() => setShowAddModel(false)}
         onOk={() => { const values = addForm?.getFieldsValue(); handleCreate(values); }}>
         <Form form={addForm}>
-          <Form.Item name="name" required label={t('admin.token.table.name')} labelCol={{ span: 4 }}>
-            <Input placeholder={t('admin.token.form.name')} />
+          <Form.Item name="name" required label={t('admin.apiToken.table.name')} labelCol={{ span: 4 }}>
+            <Input placeholder={t('admin.apiToken.form.namePlaceholder')} />
           </Form.Item>
         </Form>
       </Modal>

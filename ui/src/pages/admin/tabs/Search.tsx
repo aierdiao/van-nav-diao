@@ -87,7 +87,7 @@ const SearchEngineManager: React.FC = () => {
   const handleFetchInfo = async () => {
     const urlTemplate = form.getFieldValue('urlTemplate');
     if (!urlTemplate) {
-      message.warning('请先填写搜索URL模板');
+      message.warning(t("admin.search.msg.fillUrlFirst"));
       return;
     }
     // 从 URL 模板中提取域名（用 URL 解析，比字符串替换更可靠）
@@ -103,7 +103,7 @@ const SearchEngineManager: React.FC = () => {
       }
     }
     if (!baseUrl) {
-      message.warning('无法从 URL 模板中提取网址');
+      message.warning(t("admin.search.msg.cannotExtractUrl"));
       return;
     }
     setFetchingInfo(true);
@@ -121,10 +121,10 @@ const SearchEngineManager: React.FC = () => {
           form.setFieldsValue({ description: desc });
         }
       }
-      message.success('获取完成');
+      message.success(t("admin.search.msg.fetchComplete"));
       clearSearchEngineCache();
     } catch (err: any) {
-      message.error('获取失败: ' + (err.response?.data?.errorMessage || err.message));
+      message.error(t("admin.search.msg.fetchFailed") + " " + (err.response?.data?.errorMessage || err.message));
     } finally {
       setFetchingInfo(false);
     }
@@ -136,7 +136,7 @@ const SearchEngineManager: React.FC = () => {
       const data = await fetchGetAllSearchEngines();
       setEngines(data);
     } catch (error) {
-      message.error('加载搜索引擎失败');
+      message.error(t("admin.search.msg.loadFailed"));
       console.error(error);
     } finally {
       setLoading(false);
@@ -149,17 +149,17 @@ const SearchEngineManager: React.FC = () => {
 
   const validateUrlTemplate = (_: any, value: string) => {
     if (!value) {
-      return Promise.reject(new Error('请输入搜索URL模板'));
+      return Promise.reject(new Error(t("admin.search.msg.enterUrlTemplate")));
     }
     if (!value.includes('{query}') && !value.includes('%s')) {
-      return Promise.reject(new Error('URL模板必须包含 {query} 或 %s 作为搜索关键词占位符'));
+      return Promise.reject(new Error(t("admin.search.msg.urlTemplateRequired")));
     }
     return Promise.resolve();
   };
 
   const columns = [
     {
-      title: <div style={{ textAlign: 'left' }}>排序</div>,
+      title: t("admin.search.table.sort"),
       dataIndex: 'sort',
       width: 60,
       render: (_: any, record: SearchEngine) => (
@@ -193,26 +193,26 @@ const SearchEngineManager: React.FC = () => {
       ),
     },
     {
-      title: '名称',
+      title: t("admin.search.table.name"),
       dataIndex: 'name',
       width: 120,
       ellipsis: true,
     },
     {
-      title: 'URL模板',
+      title: t("admin.search.table.urlTemplate"),
       dataIndex: 'urlTemplate',
       width: 280,
       ellipsis: true,
       render: (url: string) => (<Tooltip title={url}><span>{url}</span></Tooltip>),
     },
     {
-      title: '描述',
+      title: t("admin.search.table.desc"),
       dataIndex: 'description',
       width: 150,
       ellipsis: true,
     },
     {
-      title: '启用',
+      title: t("admin.search.table.enabled"),
       dataIndex: 'enabled',
       width: 80,
       render: (enabled: boolean, record: SearchEngine) => (
@@ -220,16 +220,16 @@ const SearchEngineManager: React.FC = () => {
       ),
     },
     {
-      title: '操作',
+      title: t("admin.search.table.action"),
       width: 120,
       render: (_: any, record: SearchEngine) => (
         <Space>
-          <Button type="link" onClick={() => handleEdit(record)}>编辑</Button>
+          <Button type="link" onClick={() => handleEdit(record)}>{t("admin.search.btn.edit")}</Button>
           <Popconfirm
             title={t("admin.search.confirm.deleteSingle")}
             onConfirm={() => handleDelete(record)}
           >
-            <Button type="link" danger>删除</Button>
+            <Button type="link" danger>{t("admin.search.btn.delete")}</Button>
           </Popconfirm>
         </Space>
       ),
@@ -239,11 +239,11 @@ const SearchEngineManager: React.FC = () => {
   const handleToggleEnabled = async (engine: SearchEngine, enabled: boolean) => {
     try {
       await fetchUpdateSearchEngine({ ...engine, enabled });
-      message.success('更新成功');
+      message.success(t("admin.search.msg.updateSuccess"));
       clearSearchEngineCache();
       loadEngines();
     } catch (error) {
-      message.error('更新失败');
+      message.error(t("admin.search.msg.updateFailed"));
     }
   };
 
@@ -260,19 +260,19 @@ const SearchEngineManager: React.FC = () => {
 
   const handleDelete = (engine: SearchEngine) => {
     Modal.confirm({
-      title: '确定要删除搜索引擎吗？',
-      content: `即将删除搜索引擎「${engine.name}」，此操作不可恢复。`,
-      okText: '确认删除',
+      title: t("admin.search.confirm.deleteSingle"),
+      content: t("admin.search.confirm.deleteContent", { name: engine.name }),
+      okText: t("admin.search.confirm.ok"),
       okType: 'danger',
-      cancelText: '取消',
+      cancelText: t("admin.search.confirm.cancel"),
       onOk: async () => {
         try {
           await fetchDeleteSearchEngine(engine.id);
-          message.success('删除成功');
+          message.success(t("admin.search.msg.deleteSuccess"));
           clearSearchEngineCache();
           loadEngines();
         } catch (error) {
-          message.error('删除失败');
+          message.error(t("admin.search.msg.deleteFailed"));
         }
       },
     });
@@ -281,22 +281,22 @@ const SearchEngineManager: React.FC = () => {
   const handleBulkDelete = () => {
     if (selectedRows.length === 0) return;
     Modal.confirm({
-      title: '确定删除选中的搜索引擎吗？',
-      content: `即将删除 ${selectedRows.length} 个搜索引擎，此操作不可恢复。`,
-      okText: '确认删除',
+      title: t("admin.search.confirm.bulkDelete"),
+      content: t("admin.search.confirm.bulkDeleteContent", { count: selectedRows.length }),
+      okText: t("admin.search.confirm.ok"),
       okType: 'danger',
-      cancelText: '取消',
+      cancelText: t("admin.search.confirm.cancel"),
       onOk: async () => {
         try {
           for (const engine of selectedRows) {
             await fetchDeleteSearchEngine(engine.id);
           }
-          message.success('删除成功');
+          message.success(t("admin.search.msg.deleteSuccess"));
           clearSearchEngineCache();
           setSelectedRows([]);
           loadEngines();
         } catch (error) {
-          message.error('删除失败');
+          message.error(t("admin.search.msg.deleteFailed"));
         }
       },
     });
@@ -369,7 +369,7 @@ return (
         }
         extra={
           <Space>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>添加搜索引擎</Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t("admin.search.btn.add")}</Button>
           </Space>
         }
       >
@@ -403,23 +403,23 @@ return (
         destroyOnClose
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="name" label="名称" rules={[{ required: true, message: '请输入搜索引擎名称' }]}>
+          <Form.Item name="name" label={t("admin.search.form.name")} rules={[{ required: true, message: t("admin.search.form.nameRequired") }]}>
             <Input placeholder={t("admin.search.form.namePlaceholder")} />
           </Form.Item>
           <Form.Item
             name="urlTemplate"
             label={t("admin.search.form.urlTemplate")}
-            extra={t("admin.search.form.urlTemplateHint")}
-            rules={[{ required: true, message: '请输入搜索URL模板' }, { validator: validateUrlTemplate }]}
+            extra={t("admin.search.form.urlTemplateExtra")}
+            rules={[{ required: true, message: t("admin.search.msg.enterUrlTemplate") }, { validator: validateUrlTemplate }]}
           >
             <Input placeholder="https://www.google.com/search?q={query}" />
           </Form.Item>
-          <Form.Item name="description" label={t("admin.search.form.desc")}>
+          <Form.Item name="description" label={t("admin.search.form.description")}>
             <Input placeholder={t("admin.search.form.descHint")} />
           </Form.Item>
           <Form.Item
             name="logo"
-            label="图标"
+            label={t("admin.search.form.logo")}
             rules={[
               { required: true, message: '请输入图标文件名或网址' },
               {
