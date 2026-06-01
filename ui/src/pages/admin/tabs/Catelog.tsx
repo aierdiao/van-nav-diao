@@ -319,7 +319,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                           setShowEdit(true);
                         }}
                       >
-                        t("admin.catelog.btn.edit")
+                        {t("admin.catelog.btn.edit")}
                       </Button>
                       <Popconfirm
                         onConfirm={() => {

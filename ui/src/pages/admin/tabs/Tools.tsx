@@ -365,13 +365,13 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     try {
       for (const each of selectedRows) {
         try {
-          // 先获取该工具的当前最新数据（防止前面其他操作已t("admin.tools.btn.edit")过 logo 等字段）
+          // 先获取该工具的当前最新数据（防止前面其他操作已{t("admin.tools.btn.edit")}过 logo 等字段）
           const current = store?.tools?.find((t: any) => t.id === each.id) || each;
           const res = await fetchPageInfo(each.url);
           if (res.success) {
             const desc = res.data.description || res.data.title;
             if (desc) {
-              // 只更新描述，不t("admin.tools.btn.edit")其他字段
+              // 只更新描述，不{t("admin.tools.btn.edit")}其他字段
               await fetchUpdateToolDesc(each.id, desc);
               success++;
             } else {
@@ -421,12 +421,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         });
         // 检测完成后刷新工具列表（因为 is_alive 字段已更新）
         reload();
-        message.success(`检测完成：${res.data.alive} 个正常，${res.data.dead} 个失效`);
+        message.success(t("admin.tools.health.complete", { alive: res.data.alive, dead: res.data.dead }));
       } else {
         message.error(res.errorMessage || t("admin.tools.msg.checkFailed"));
       }
     } catch (err: any) {
-      message.error("检测请求失败：" + (err.message || t("admin.tools.msg.networkError")));
+      message.error(t("admin.tools.health.checkRequestFailed") + " " + (err.message || t("admin.tools.msg.networkError")));
     } finally {
       setChecking(false);
     }
@@ -443,12 +443,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         } else {
           reload();
         }
-        message.success(res.message || `已整理 ${res.data?.affected || 0} 条失效链接`);
+        message.success(res.message || t("admin.tools.health.organized", { count: res.data?.affected || 0 }));
       } else {
         message.error(res.errorMessage || t("admin.tools.msg.organizeFailed"));
       }
     } catch (err: any) {
-      message.error("整理请求失败：" + (err.message || t("admin.tools.msg.networkError")));
+      message.error(t("admin.tools.health.organizeRequestFailed") + " " + (err.message || t("admin.tools.msg.networkError")));
     } finally {
       setOrganizing(false);
     }
@@ -465,10 +465,10 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           sort: index + 1,
         }));
         fetchUpdateToolsSort(updates).then(() => {
-          message.success('排序更新成功');
+          message.success(t("admin.tools.msg.sortUpdated"));
           reload();
         }).catch(() => {
-          message.error('排序更新失败');
+          message.error(t("admin.tools.msg.sortFailed"));
         });
         return newData;
       });
@@ -760,7 +760,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                           setShowEdit(true);
                         }}
                       >
-                        t("admin.tools.btn.edit")
+                        {t("admin.tools.btn.edit")}
                       </Button>
                       <Popconfirm
                         onConfirm={() => {
