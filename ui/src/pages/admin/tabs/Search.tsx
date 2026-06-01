@@ -206,7 +206,7 @@ const SearchEngineManager: React.FC = () => {
       render: (url: string) => (<Tooltip title={url}><span>{url}</span></Tooltip>),
     },
     {
-      title: t("admin.search.table.desc"),
+      title: t("admin.search.table.description"),
       dataIndex: 'description',
       width: 150,
       ellipsis: true,
@@ -433,7 +433,7 @@ return (
               }
             ]}
           >
-            <Input placeholder="例如：baidu.ico 或 https://example.com/logo.png" />
+            <Input placeholder={t("admin.search.form.logoPlaceholder")} />
           </Form.Item>
           <div style={{ marginBottom: 16 }}>
             <Button
@@ -442,7 +442,7 @@ return (
               loading={fetchingInfo}
               onClick={handleFetchInfo}
             >
-              一键获取描述和图标
+              t("admin.search.batch.fetchDesc")
             </Button>
           </div>
         </Form>

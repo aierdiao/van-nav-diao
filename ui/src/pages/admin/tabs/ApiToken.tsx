@@ -65,7 +65,7 @@ export const ApiToken: React.FC<ApiTokenProps> = (props) => {
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50'],
           defaultPageSize: 10,
-          showTotal: (total) => `共 ${total} 条`,
+          showTotal: (total) => t("admin.apiToken.table.total", { total }),
         }}>
           <Table.Column title={t('admin.apiToken.table.id')} dataIndex="id" width={30} />
           <Table.Column title={t('admin.apiToken.table.name')} dataIndex="name" width={150}

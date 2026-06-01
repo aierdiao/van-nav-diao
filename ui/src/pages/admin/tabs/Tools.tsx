@@ -268,7 +268,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         message.warning(t("admin.tools.msg.importEmpty"));
         return;
       }
-      const loadingMsg = message.loading(`正在导入 ${data.length} 条工具数据...`, 0);
+      const loadingMsg = message.loading(t("admin.tools.msg.importing", { count: data.length }), 0);
       try {
         const res = await fetchImportTools(data);
         loadingMsg();
@@ -277,7 +277,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           const skipped = res.tools_skipped ?? 0;
           let msg = t("admin.tools.msg.importComplete", { imported });
           if (skipped > 0) msg += t("admin.tools.msg.importSkipped", { skipped });
-          message.success(msg + "，正在刷新图标缓存...");
+          message.success(msg + t("admin.tools.msg.refreshingIcon"));
         } else {
           message.warning(res.errorMessage || t("admin.tools.msg.importFailed"));
         }
@@ -336,7 +336,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     if (selectedRows.length === 0) return;
     let success = 0;
     let fail = 0;
-    const hide = message.loading('正在更新 Logo 网址...', 0);
+    const hide = message.loading(t('admin.tools.msg.updatingLogo'), 0);
     try {
       for (const each of selectedRows) {
         try {
@@ -353,7 +353,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       }
     } finally {
       hide();
-      message.success(`更新完成：成功 ${success} 个，失败 ${fail} 个`);
+      message.success(t("admin.tools.msg.updateLogoComplete", { success, fail }));
       reload();
     }
   }, [reload, selectedRows]);
@@ -361,7 +361,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     if (selectedRows.length === 0) return;
     let success = 0;
     let fail = 0;
-    const hide = message.loading('正在获取描述...', 0);
+    const hide = message.loading(t('admin.tools.msg.fetchingDesc'), 0);
     try {
       for (const each of selectedRows) {
         try {
@@ -386,7 +386,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       }
     } finally {
       hide();
-      message.success(`更新完成：成功 ${success} 个，失败 ${fail} 个`);
+      message.success(t("admin.tools.msg.updateLogoComplete", { success, fail }));
       reload();
     }
   }, [reload, selectedRows, store?.tools]);
@@ -878,7 +878,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 }}
                 style={{ padding: 0, fontSize: 13 }}
               >
-                t("admin.tools.form.autoDesc")
+                {t("admin.tools.form.autoDesc")}
               </Button>
             </Form.Item>
             <Form.Item
@@ -1001,7 +1001,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 }}
                 style={{ padding: 0, fontSize: 13 }}
               >
-                t("admin.tools.form.autoDesc")
+                {t("admin.tools.form.autoDesc")}
               </Button>
             </Form.Item>
 

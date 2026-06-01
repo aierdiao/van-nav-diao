@@ -117,7 +117,7 @@ const LoadingFallback = () => {
       backgroundColor: isDarkMode ? '#121212' : '#ffffff',
       color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : '#272e3b',
     }}>
-      <Spin size="large" tip="加载中..." />
+      <Spin size="large" tip="Loading..." />
     </div>
   );
 };
