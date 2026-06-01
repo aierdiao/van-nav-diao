@@ -252,7 +252,11 @@ export const Setting: React.FC<SettingProps> = (props) => {
     siteConfigForm.setFieldsValue(store?.siteConfig ?? {})
     // 从后端设置数据同步语言偏好
     if (store?.setting?.language && (store.setting.language === 'zh-CN' || store.setting.language === 'en-US')) {
-      setLanguage(store.setting.language);
+      if (store.setting.language !== language) {
+        const langName = store.setting.language === 'zh-CN' ? '中文' : 'English';
+        message.info(t('admin.settings.msg.languageSynced', { lang: langName }));
+        setLanguage(store.setting.language);
+      }
     }
   }, [store, setLanguage])
   const handleUpdateUser = useCallback(

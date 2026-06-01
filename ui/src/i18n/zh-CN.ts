@@ -337,6 +337,7 @@ const zhCN: Record<string, string> = {
   "admin.settings.msg.importSuccess": "✅ 导入成功",
   "admin.settings.msg.importSuccessWithError": "⚠️ 导入完成（有错误）",
   "admin.settings.msg.importTokenWarning": "⚠️ 包含敏感令牌信息",
+  "admin.settings.msg.languageSynced": "根据服务器保存记录，已切换为{lang}",
   "admin.settings.msg.importTokenWarningContent": "导出的配置文件中包含 API Token 的完整值，请妥善保管此文件，切勿分享给他人或在非安全环境中存储。",
   "admin.settings.modal.importTitle": "确认导入配置",
   "admin.settings.modal.importConfirm": "确认导入",

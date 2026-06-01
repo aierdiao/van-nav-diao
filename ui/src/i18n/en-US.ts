@@ -241,6 +241,7 @@ const enUS: Record<string, string> = {
   "admin.settings.msg.importSuccess": "✅ Import successful",
   "admin.settings.msg.importSuccessWithError": "⚠️ Import complete (with errors)",
   "admin.settings.msg.importTokenWarning": "⚠️ Contains sensitive token information",
+  "admin.settings.msg.languageSynced": "Language switched to {lang} based on server settings",
   "admin.settings.msg.importTokenWarningContent": "The exported configuration file contains full API token values. Please keep this file secure and do not share it or store it in an insecure environment.",
   "admin.settings.modal.importTitle": "Confirm Configuration Import",
   "admin.settings.modal.importConfirm": "Confirm Import",
