@@ -973,18 +973,16 @@ export const Setting: React.FC<SettingProps> = (props) => {
         />
       </Card>
 
-      {/* 部署版本信息 */}
-      <Card title="部署版本信息" style={{ marginTop: 32 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <span style={{ fontSize: 16, color: "#666" }}>当前版本：</span>
-          <span style={{ fontSize: 20, fontWeight: 600, color: "#1890ff", fontFamily: "monospace" }}>
-            {deploymentVersion}
-          </span>
-          <span style={{ fontSize: 13, color: "#999", marginLeft: "auto" }}>
-            版本号格式：v主版本.次版本.修订版本.构建号
-          </span>
-        </div>
-      </Card>
+      {/* 部署版本信息 — 紧凑 footer */}
+      <div style={{
+        marginTop: 24,
+        padding: '12px 0',
+        textAlign: 'center',
+        color: isDark ? 'rgba(255,255,255,0.3)' : '#bbb',
+        fontSize: 13,
+      }}>
+        VanNav {deploymentVersion}
+      </div>
     </div>
   );
 };
