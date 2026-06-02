@@ -136,3 +136,9 @@ upgrade-deps.sh
 AGENTS.md
 .codex/
 vendor/
+
+
+# 内部开发辅助文件（不推送到公开仓库）
+restart-test.sh
+ARCH_CONTRACT.md
+.codex
