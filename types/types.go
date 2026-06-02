@@ -15,6 +15,7 @@ type Setting struct {
 	ShowSearchEngine     bool   `json:"showSearchEngine"`
 	PcColumnCount        int    `json:"pcColumnCount"`
 	DeploymentVersion    string `json:"deploymentVersion"`
+	Language             string `json:"language"`
 }
 
 type Token struct {

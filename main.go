@@ -15,7 +15,6 @@ import (
 	"github.com/mereith/nav/logger"
 	"github.com/mereith/nav/middleware"
 	"github.com/mereith/nav/service"
-	"github.com/mereith/nav/utils"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -69,31 +68,8 @@ var addr = flag.String("addr", "0.0.0.0", "指定监听地址")
 var resetPassword = flag.String("reset-password", "", "重置管理员密码，执行后退出（留空重置为 admin，指定值则设为该密码）")
 
 // syncDeploymentVersion 启动时同步部署版本号到数据库
-// 确保新部署和更新部署都能获得一致的版本号（来自编译包）
 func syncDeploymentVersion() {
-	var dbVersion string
-	err := database.DB.QueryRow(`SELECT deployment_version FROM nav_setting WHERE id = 1`).Scan(&dbVersion)
-	
-	if err != nil || dbVersion == "" {
-		// 字段不存在或为空 → 写入编译版本
-		_, err := database.DB.Exec(`UPDATE nav_setting SET deployment_version = ? WHERE id = 1`, Version)
-		if err != nil {
-			logger.LogError("同步部署版本号失败: %s", err)
-		} else {
-			logger.LogInfo("部署版本号已初始化: %s", Version)
-		}
-		return
-	}
-	
-	if dbVersion != Version {
-		// 版本不一致 → 更新为编译版本（更新部署场景）
-		_, err := database.DB.Exec(`UPDATE nav_setting SET deployment_version = ? WHERE id = 1`, Version)
-		if err != nil {
-			logger.LogError("更新部署版本号失败: %s", err)
-		} else {
-			logger.LogInfo("部署版本号已更新: %s → %s", dbVersion, Version)
-		}
-	}
+	service.SyncDeploymentVersion(Version)
 }
 
 // flagWasSet 检查某个 flag 是否被用户显式传入
@@ -119,19 +95,7 @@ func main() {
 			if newPwd == "" {
 				newPwd = "admin"
 			}
-			hashed, err := utils.HashPassword(newPwd)
-			if err != nil {
-				logger.LogError("密码哈希失败: %s", err)
-				os.Exit(1)
-			}
-			stmt, err := database.DB.Prepare(`UPDATE nav_user SET password = ? WHERE id = (SELECT id FROM nav_user ORDER BY id ASC LIMIT 1)`)
-			if err != nil {
-				logger.LogError("数据库操作失败: %s", err)
-				os.Exit(1)
-			}
-			defer stmt.Close()
-			_, err = stmt.Exec(hashed)
-			if err != nil {
+			if err := service.ResetAdminPassword(newPwd); err != nil {
 				logger.LogError("密码重置失败: %s", err)
 				os.Exit(1)
 			}
@@ -188,6 +152,7 @@ func main() {
 			admin.PUT("/user", handler.UpdateUserHandler)
 
 			admin.PUT("/setting", handler.UpdateSettingHandler)
+			admin.PUT("/setting/language", handler.UpdateLanguageHandler)
 
 			admin.PUT("/siteConfig", handler.UpdateSiteConfigHandler)
 

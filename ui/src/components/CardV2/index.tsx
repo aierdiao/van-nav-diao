@@ -2,8 +2,10 @@ import { useMemo, useState, useEffect } from "react";
 import "./index.css";
 import { getLogoUrl } from "../../utils/check";
 import { getJumpTarget } from "../../utils/setting";
+import { useTranslation } from "../../i18n";
 
 const Card = ({ title, url, des, logo, catelog, onClick, index, isSearching, noImageMode, compactMode, jumpTargetBlank }: any) => {
+  const { t } = useTranslation();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [showLoading, setShowLoading] = useState(true);
@@ -71,7 +73,7 @@ const Card = ({ title, url, des, logo, catelog, onClick, index, isSearching, noI
   // 处理空分类，显示为"未分类"
   const displayCatelog = useMemo(() => {
     return catelog === null || catelog === undefined || catelog === "" || (typeof catelog === 'string' && catelog.trim() === "") 
-      ? "未分类" 
+      ? t('home.tag.uncategorized') 
       : catelog;
   }, [catelog]);
   

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "../../i18n";
 import "./index.css";
 // import { useState } from 'react';
 
@@ -7,6 +8,7 @@ interface SearchBarProps {
   searchString: string;
 }
 const SearchBar = (props: SearchBarProps) => {
+  const { t } = useTranslation();
   const onKeyDown = (ev) => {
     const reg = /[a-zA-Z0-9]|[\u4e00-\u9fa5]/g;
     if (ev.code === "Enter" || reg.test(ev.key)) {
@@ -28,7 +30,7 @@ const SearchBar = (props: SearchBarProps) => {
         <input
           id="search-bar"
           type="search"
-          placeholder="按任意键直接开始搜索"
+          placeholder={t('home.search.placeholder')}
           value={props.searchString}
           onChange={(ev) => {
             const v = ev.target.value

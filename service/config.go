@@ -9,8 +9,14 @@ import (
 
 // ExportFullConfig 导出所有配置
 func ExportFullConfig() (*types.ExportConfigResponse, error) {
-	tools := GetAllTool()
-	catelogs := GetAllCatelog()
+	tools, err := GetAllTool()
+	if err != nil {
+		return nil, err
+	}
+	catelogs, err := GetAllCatelog()
+	if err != nil {
+		return nil, err
+	}
 
 	searchEngines, err := database.GetAllSearchEngines()
 	if err != nil {
@@ -141,10 +147,22 @@ func OrganizeDeadLinks() (int, []types.Tool, []types.Catelog, types.Setting, typ
 		return 0, nil, nil, types.Setting{}, types.SiteConfig{}, err
 	}
 
-	tools := GetAllTool()
-	catelogs := GetAllCatelog()
-	setting := GetSetting()
-	siteConfig := GetSiteConfig()
+	tools, err := GetAllTool()
+	if err != nil {
+		return 0, nil, nil, types.Setting{}, types.SiteConfig{}, err
+	}
+	catelogs, err := GetAllCatelog()
+	if err != nil {
+		return 0, nil, nil, types.Setting{}, types.SiteConfig{}, err
+	}
+	setting, err := GetSetting()
+	if err != nil {
+		return 0, nil, nil, types.Setting{}, types.SiteConfig{}, err
+	}
+	siteConfig, err := GetSiteConfig()
+	if err != nil {
+		return 0, nil, nil, types.Setting{}, types.SiteConfig{}, err
+	}
 
 	return affected, tools, catelogs, setting, siteConfig, nil
 }

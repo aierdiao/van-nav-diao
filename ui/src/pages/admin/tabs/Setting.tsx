@@ -1,9 +1,10 @@
-import { Button, Card, Form, Input, InputNumber, message, Modal, Select, Spin, Switch, Table, TimePicker, Upload } from "antd";
+import { Button, Card, Form, Input, InputNumber, message, Modal, Select, Space, Spin, Switch, Table, TimePicker, Upload } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { fetchUpdateSetting, fetchUpdateUser, fetchUpdateSiteConfig, fetchExportConfig, fetchImportConfig, fetchGetDeploymentVersion, fetchGetBackupConfig, fetchSaveBackupConfig, fetchTestBackupConnection, fetchBackupNow, fetchGetBackupStatus, fetchListBackupFiles, fetchRestoreBackup } from "../../../utils/api";
+import { fetchUpdateSetting, fetchUpdateLanguage, fetchUpdateUser, fetchUpdateSiteConfig, fetchExportConfig, fetchImportConfig, fetchGetDeploymentVersion, fetchGetBackupConfig, fetchSaveBackupConfig, fetchTestBackupConnection, fetchBackupNow, fetchGetBackupStatus, fetchListBackupFiles, fetchRestoreBackup } from "../../../utils/api";
 import { useData } from "../hooks/useData";
 import { CloudDownloadOutlined, CloudUploadOutlined, CloudServerOutlined, ExclamationCircleOutlined, SyncOutlined, WarningOutlined, RollbackOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useTranslation } from '../../../i18n';
 
 // 辅助函数：将 "HH:mm" 字符串转为 dayjs 对象（不依赖 customParseFormat 插件）
 const parseTimeStr = (timeStr: string) => {
@@ -15,6 +16,7 @@ const parseTimeStr = (timeStr: string) => {
 export interface SettingProps { }
 export const Setting: React.FC<SettingProps> = (props) => {
   const { store, loading, reload } = useData();
+  const { t, language, setLanguage } = useTranslation();
   const [userForm] = Form.useForm();
   const [settingForm] = Form.useForm();
   const [siteConfigForm] = Form.useForm();
@@ -113,15 +115,15 @@ export const Setting: React.FC<SettingProps> = (props) => {
         password: values.password,
       });
       if (res?.success) {
-        message.success("WebDAV 连接成功！");
+        message.success(t("admin.settings.backup.msg.connectionSuccess"));
       } else {
-        message.error(res?.errorMessage || "连接失败");
+        message.error(res?.errorMessage || t("admin.settings.backup.msg.connectionFailed"));
       }
     } catch (err: any) {
       if (err.errorFields) {
-        message.warning("请填写必填字段");
+        message.warning(t("admin.settings.backup.msg.fillRequired"));
       } else {
-        message.error("连接测试失败: " + (err.message || "未知错误"));
+        message.error(t("admin.settings.backup.msg.connectionTestFailed") + (err.message || t("admin.settings.msg.unknownError")));
       }
     } finally {
       setBackupTesting(false);
@@ -134,7 +136,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
     try {
       const res = await fetchBackupNow();
       if (res?.success) {
-        message.success("备份任务已启动，请稍后刷新查看状态");
+        message.success(t("admin.settings.backup.msg.backupStarted"));
         // 延迟后刷新状态和文件列表
         setTimeout(async () => {
           try {
@@ -146,10 +148,10 @@ export const Setting: React.FC<SettingProps> = (props) => {
           } catch (e) {}
         }, 3000);
       } else {
-        message.error(res?.errorMessage || "备份失败");
+        message.error(res?.errorMessage || t("admin.settings.backup.msg.backupFailed"));
       }
     } catch (err: any) {
-      message.error("备份失败: " + (err.message || "未知错误"));
+      message.error(t("admin.settings.backup.msg.backupFailedDetail") + (err.message || t("admin.settings.msg.unknownError")));
     } finally {
       setBackupNowLoading(false);
     }
@@ -176,27 +178,27 @@ export const Setting: React.FC<SettingProps> = (props) => {
   // 从备份恢复数据库
   const handleRestoreBackup = useCallback(async (filename: string) => {
     Modal.confirm({
-      title: "确认恢复数据库",
+      title: t("admin.settings.backup.restore.title"),
       icon: <WarningOutlined />,
-      content: `即将从备份文件 ${filename} 恢复数据库。当前数据库将被覆盖（会自动备份到 .bak 文件）。恢复完成后请刷新页面以查看最新数据。确认继续？`,
-      okText: "确认恢复",
-      cancelText: "取消",
+      content: t("admin.settings.backup.restore.content").replace("{filename}", filename),
+      okText: t("admin.settings.backup.restore.btnOk"),
+      cancelText: t("admin.settings.backup.restore.btnCancel"),
       okType: "danger",
       onOk: async () => {
         setRestoreLoading(filename);
         try {
           const res = await fetchRestoreBackup(filename);
           if (res?.success) {
-            message.success("数据库恢复成功，请刷新页面以查看最新数据");
+            message.success(t("admin.settings.backup.restore.msg.success"));
             // 延迟后刷新页面
             setTimeout(() => {
               window.location.reload();
             }, 1500);
           } else {
-            message.error(res?.errorMessage || "恢复失败");
+            message.error(res?.errorMessage || t("admin.settings.backup.restore.msg.failed"));
           }
         } catch (err: any) {
-          message.error("恢复失败: " + (err.message || "未知错误"));
+          message.error(t("admin.settings.backup.restore.msg.failedDetail") + (err.message || t("admin.settings.msg.unknownError")));
         } finally {
           setRestoreLoading(null);
         }
@@ -220,7 +222,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
       };
       const res = await fetchSaveBackupConfig(payload);
       if (res?.success) {
-        message.success("备份配置已保存");
+        message.success(t("admin.settings.backup.msg.configSaved"));
         // 刷新备份状态
         try {
           const statusRes = await fetchGetBackupStatus();
@@ -229,10 +231,10 @@ export const Setting: React.FC<SettingProps> = (props) => {
           }
         } catch (e) {}
       } else {
-        message.error(res?.errorMessage || "保存失败");
+        message.error(res?.errorMessage || t("admin.settings.backup.msg.saveFailed"));
       }
     } catch (err: any) {
-      message.error("保存失败: " + (err.message || "未知错误"));
+      message.error(t("admin.settings.backup.msg.saveFailedDetail") + (err.message || t("admin.settings.msg.unknownError")));
     } finally {
       setBackupLoading(false);
     }
@@ -248,14 +250,22 @@ export const Setting: React.FC<SettingProps> = (props) => {
       pcColumnCount: store?.setting?.pcColumnCount || 3,
     })
     siteConfigForm.setFieldsValue(store?.siteConfig ?? {})
-  }, [store])
+    // 从后端设置数据同步语言偏好
+    if (store?.setting?.language && (store.setting.language === 'zh-CN' || store.setting.language === 'en-US')) {
+      if (store.setting.language !== language) {
+        const langName = store.setting.language === 'zh-CN' ? '中文' : 'English';
+        message.info(t('admin.settings.msg.languageSynced', { lang: langName }));
+        setLanguage(store.setting.language);
+      }
+    }
+  }, [store, setLanguage])
   const handleUpdateUser = useCallback(
     async (values: any) => {
       try {
         await fetchUpdateUser({ ...values, id: store?.user?.id });
-        message.success("修改成功!");
+        message.success(t("admin.settings.msg.updateSuccess"));
       } catch (err) {
-        message.warning("修改失败!");
+        message.warning(t("admin.settings.msg.updateFailed"));
       } finally {
         reload();
       }
@@ -271,9 +281,9 @@ export const Setting: React.FC<SettingProps> = (props) => {
           jumpTargetBlank: values.jumpTargetBlank === 1 || values.jumpTargetBlank === true,
         };
         await fetchUpdateSetting(payload);
-        message.success("修改成功!");
+        message.success(t("admin.settings.msg.updateSuccess"));
       } catch (err) {
-        message.warning("修改失败!");
+        message.warning(t("admin.settings.msg.updateFailed"));
       } finally {
         reload();
       }
@@ -284,9 +294,9 @@ export const Setting: React.FC<SettingProps> = (props) => {
     async (values: any) => {
       try {
         await fetchUpdateSiteConfig(values);
-        message.success("修改成功!");
+        message.success(t("admin.settings.msg.updateSuccess"));
       } catch (err) {
-        message.warning("修改失败!");
+        message.warning(t("admin.settings.msg.updateFailed"));
       } finally {
         reload();
       }
@@ -314,18 +324,18 @@ export const Setting: React.FC<SettingProps> = (props) => {
         // API Token 安全提示
         if (res.data.api_tokens && res.data.api_tokens.length > 0) {
           Modal.warning({
-            title: '⚠️ 包含敏感令牌信息',
+            title: t("admin.settings.msg.importTokenWarning"),
             icon: <WarningOutlined />,
-            content: '导出的配置文件中包含 API Token 的完整值，请妥善保管此文件，切勿分享给他人或在非安全环境中存储。',
+            content: t("admin.settings.msg.importTokenWarningContent"),
           });
         }
 
-        message.success(`配置已导出至 ${filename}`);
+        message.success(t("admin.settings.msg.exportSuccess").replace("{filename}", filename));
       } else {
-        message.error('导出失败');
+        message.error(t("admin.settings.msg.exportFailed"));
       }
     } catch (err) {
-      message.error('导出失败: ' + (err as any).message);
+      message.error(t("admin.settings.msg.exportFailedDetail") + (err as any).message);
     }
   }, []);
 
@@ -337,14 +347,14 @@ export const Setting: React.FC<SettingProps> = (props) => {
         const content = JSON.parse(e.target?.result as string);
         // 校验格式
         if (!content.version || !content.tools || !content.categories || !content.search_engines || !content.api_tokens || !content.settings) {
-          message.error('文件格式无效：缺少必要的字段（version、tools、categories、search_engines、api_tokens、settings）');
+          message.error(t("admin.settings.msg.importFormatInvalid"));
           return;
         }
         setImportFile(file);
         setImportPreview(content);
         setImportModalVisible(true);
       } catch {
-        message.error('文件格式无效：请上传有效的 JSON 文件');
+        message.error(t("admin.settings.msg.importJsonInvalid"));
       }
     };
     reader.readAsText(file);
@@ -367,18 +377,18 @@ export const Setting: React.FC<SettingProps> = (props) => {
       if (res?.success && res?.data) {
         const result = res.data;
         const detailLines = [
-          `分类：导入 ${result.categories_imported} 条`,
-          `工具：导入 ${result.tools_imported} 条`,
-          `搜索引擎：导入 ${result.search_engines_imported} 条`,
-          `Token：导入 ${result.api_tokens_imported} 条，跳过 ${result.api_tokens_skipped} 条`,
-          `设置：更新 ${result.settings_updated} 项`,
+          t("admin.settings.msg.importDetailCategory").replace("{count}", String(result.categories_imported)),
+          t("admin.settings.msg.importDetailTool").replace("{count}", String(result.tools_imported)),
+          t("admin.settings.msg.importDetailSearchEngine").replace("{count}", String(result.search_engines_imported)),
+          t("admin.settings.msg.importDetailToken").replace("{count}", String(result.api_tokens_imported)).replace("{skipped}", String(result.api_tokens_skipped)),
+          t("admin.settings.msg.importDetailSetting").replace("{count}", String(result.settings_updated)),
         ];
         if (result.errors && result.errors.length > 0) {
-          detailLines.push('', '⚠️ 部分操作出现错误：');
+          detailLines.push('', '⚠️ ' + t("admin.settings.msg.importPartialError"));
           result.errors.forEach((err: string) => detailLines.push(`  - ${err}`));
         }
         Modal.success({
-          title: result.success ? '✅ 导入成功' : '⚠️ 导入完成（有错误）',
+          title: result.success ? t("admin.settings.msg.importSuccess") : t("admin.settings.msg.importSuccessWithError"),
           content: (
             <div>
               {detailLines.map((line, i) => (
@@ -403,10 +413,10 @@ export const Setting: React.FC<SettingProps> = (props) => {
         }
         reload();
       } else {
-        message.error('导入失败: ' + (res?.data?.errorMessage || '未知错误'));
+        message.error(t("admin.settings.msg.importFailedDetail") + (res?.data?.errorMessage || t("admin.settings.msg.unknownError")));
       }
     } catch (err) {
-      message.error('导入失败: ' + (err as any).message);
+      message.error(t("admin.settings.msg.importFailedDetail") + (err as any).message);
     } finally {
       setImporting(false);
     }
@@ -414,39 +424,47 @@ export const Setting: React.FC<SettingProps> = (props) => {
 
   // 构建预览表格列
   const previewColumns = [
-    { title: '模块', dataIndex: 'module', key: 'module' },
-    { title: '数量', dataIndex: 'count', key: 'count' },
+    { title: t("admin.settings.importPreview.module"), dataIndex: "module", key: "module" },
+    { title: t("admin.settings.importPreview.count"), dataIndex: "count", key: "count" },
   ];
 
   const previewData = importPreview ? [
-    { key: '1', module: '工具', count: importPreview.tools?.length || 0 },
-    { key: '2', module: '分类', count: importPreview.categories?.length || 0 },
-    { key: '3', module: '搜索引擎', count: importPreview.search_engines?.length || 0 },
-    { key: '4', module: 'API Token', count: importPreview.api_tokens?.length || 0 },
-    { key: '5', module: '设置项', count: Object.keys(importPreview.settings || {}).length },
+    { key: "1", module: t("admin.settings.importPreview.tools"), count: importPreview.tools?.length || 0 },
+    { key: "2", module: t("admin.settings.importPreview.categories"), count: importPreview.categories?.length || 0 },
+    { key: "3", module: t("admin.settings.importPreview.searchEngines"), count: importPreview.search_engines?.length || 0 },
+    { key: "4", module: "API Token", count: importPreview.api_tokens?.length || 0 },
+    { key: "5", module: t("admin.settings.importPreview.settings"), count: Object.keys(importPreview.settings || {}).length },
   ] : [];
 
   // 样本数据
   const sampleColumns = [
-    { title: '名称', dataIndex: 'name', key: 'name', ellipsis: true },
-    { title: '值', dataIndex: 'value', key: 'value', ellipsis: true },
+    { title: t("admin.tools.table.name"), dataIndex: "name", key: "name", ellipsis: true },
+    { title: t("admin.settings.importPreview.value"), dataIndex: "value", key: "value", ellipsis: true },
   ];
 
   return (
     <div className="overflow-auto">
+      {/* 语言切换 */}
+      <div style={{ marginBottom: 16 }}>
+        <Space>
+          <Button size="small" type={language === 'zh-CN' ? 'primary' : 'default'} onClick={async () => { setLanguage('zh-CN'); try { await fetchUpdateLanguage('zh-CN'); } catch (e) {} }}>中文</Button>
+          <Button size="small" type={language === 'en-US' ? 'primary' : 'default'} onClick={async () => { setLanguage('en-US'); try { await fetchUpdateLanguage('en-US'); } catch (e) {} }}>English</Button>
+        </Space>
+      </div>
+
       {/* 导入导出操作区 */}
       <Card
         title={
           <span>
             <CloudDownloadOutlined style={{ marginRight: 8 }} />
-            配置导入导出
+            {t("admin.settings.importExport.title")}
           </span>
         }
         style={{ marginBottom: 32 }}
         extra={
           <span style={{ fontSize: 12, color: '#999' }}>
             <ExclamationCircleOutlined style={{ marginRight: 4 }} />
-            支持工具、分类、搜索引擎、API Token、设置的整体备份与恢复
+            {t("admin.settings.importExport.description")}
           </span>
         }
       >
@@ -458,7 +476,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
             onClick={handleExport}
             loading={loading}
           >
-            导出配置
+            {t("admin.settings.btn.export")}
           </Button>
           <Upload
             accept=".json"
@@ -472,7 +490,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
               loading={importing}
               disabled={importing}
             >
-              导入配置
+              {t("admin.settings.btn.import")}
             </Button>
           </Upload>
         </div>
@@ -480,7 +498,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
 
       {/* 导入确认 Modal */}
       <Modal
-        title="确认导入配置"
+        title={t("admin.settings.modal.importTitle")}
         open={importModalVisible}
         onOk={handleImportConfirm}
         onCancel={() => {
@@ -489,13 +507,13 @@ export const Setting: React.FC<SettingProps> = (props) => {
           setImportFile(null);
         }}
         confirmLoading={importing}
-        okText="确认导入"
-        cancelText="取消"
+        okText={t("admin.settings.modal.importConfirm")}
+        cancelText={t("admin.settings.modal.importCancel")}
         width={600}
       >
         <div style={{ marginBottom: 16 }}>
           <ExclamationCircleOutlined style={{ color: '#faad14', marginRight: 8 }} />
-          即将导入以下配置，当前数据将被替换（Token 按名称去重、设置合并更新）：
+          {t("admin.settings.modal.importDescription")}
         </div>
         <Table
           dataSource={previewData}
@@ -507,13 +525,13 @@ export const Setting: React.FC<SettingProps> = (props) => {
         {importPreview?.api_tokens?.length > 0 && (
           <div style={{ marginBottom: 16, padding: 8, background: '#fff7e6', borderRadius: 4, border: '1px solid #ffd591' }}>
             <WarningOutlined style={{ color: '#fa8c16', marginRight: 8 }} />
-            <strong>包含敏感令牌信息</strong>，请确保导出文件来源可靠。
+            <strong>{t("admin.settings.modal.importTokenAlert")}</strong>{t("admin.settings.modal.importTokenAlertContent")}
           </div>
         )}
         {/* 样本预览 */}
         {importPreview?.tools?.length > 0 && (
           <details>
-            <summary style={{ cursor: 'pointer', marginBottom: 8 }}>工具样本（前 5 条）</summary>
+            <summary style={{ cursor: 'pointer', marginBottom: 8 }}>{t("admin.settings.importPreview.toolSample")}</summary>
             <Table
               dataSource={importPreview.tools.slice(0, 5).map((t: any, i: number) => ({ key: i, name: t.name, value: t.url }))}
               columns={sampleColumns}
@@ -524,34 +542,34 @@ export const Setting: React.FC<SettingProps> = (props) => {
         )}
       </Modal>
 
-      <Card title={`修改用户信息`} style={{ marginBottom: 32 }}>
+      <Card title={t("admin.settings.user.title")} style={{ marginBottom: 32 }}>
         <Spin spinning={loading}>
           <Form onFinish={handleUpdateUser} initialValues={store?.user ?? {}} form={userForm}>
             <Form.Item
-              label="用户名"
+              label={t("admin.settings.user.username")}
               name="name"
               required
               labelCol={{ span: 4 }}
             >
-              <Input placeholder="请输入新用户名"></Input>
+              <Input placeholder={t("admin.settings.user.usernamePlaceholder")}></Input>
             </Form.Item>
             <Form.Item
-              label="密码"
+              label={t("admin.settings.user.password")}
               name="password"
               required
               labelCol={{ span: 4 }}
             >
-              <Input.Password placeholder="请输入新密码" ></Input.Password>
+              <Input.Password placeholder={t("admin.settings.user.passwordPlaceholder")} ></Input.Password>
             </Form.Item>
             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
               <Button type="primary" htmlType="submit">
-                提交
+                {t("admin.settings.btn.submit")}
               </Button>
             </Form.Item>
           </Form>
         </Spin>
       </Card>
-      <Card title={`修改网站信息`}>
+      <Card title={t("admin.settings.site.title")}>
         <Spin spinning={loading}>
           <Form
             onFinish={handleUpdateWebSite}
@@ -565,43 +583,43 @@ export const Setting: React.FC<SettingProps> = (props) => {
             form={settingForm}
           >
             <Form.Item
-              label="网站 logo"
+              label={t("admin.settings.site.favicon")}
               name="favicon"
-              tooltip="输入 logo 的 url，仅支持 png 或 svg 格式"
+              tooltip={t("admin.settings.site.faviconTooltip")}
               required
-              rules={[{ required: true, message: "请输入网站 logo 链接" }]}
+              rules={[{ required: true, message: t("admin.settings.site.faviconRequired") }]}
 
             >
-              <Input placeholder="请输入网站 logo"></Input>
+              <Input placeholder={t("admin.settings.site.faviconPlaceholder")}></Input>
             </Form.Item>
             <Form.Item
-              label="网站标题"
+              label={t("admin.settings.site.title_label")}
               name="title"
               required
-              rules={[{ required: true, message: "请输入网站 title" }]}
+              rules={[{ required: true, message: t("admin.settings.site.titleRequired") }]}
 
 
             >
-              <Input placeholder="请输入网站标题"></Input>
+              <Input placeholder={t("admin.settings.site.titlePlaceholder")}></Input>
             </Form.Item>
             <Form.Item
-              label="公信部备案"
+              label={t("admin.settings.site.govRecord")}
               name="govRecord"
             >
-              <Input placeholder="请输入网站备案信息"></Input>
+              <Input placeholder={t("admin.settings.site.govRecordPlaceholder")}></Input>
             </Form.Item>
 
 
-            <Form.Item label="默认跳转方式" name="jumpTargetBlank" rules={[{ required: true, message: "这是必填项" }]}
-              tooltip="选择点击卡片后默认的跳转方式"
+            <Form.Item label={t("admin.settings.site.jumpTarget")} name="jumpTargetBlank" rules={[{ required: true, message: t("admin.settings.site.jumpTargetRequired") }]}
+              tooltip={t("admin.settings.site.jumpTargetTooltip")}
                           >
               <Select options={[
                 {
-                  label: "原地跳转",
+                  label: t("admin.settings.site.jumpTarget.sameWindow"),
                   value: 0,
                 },
                 {
-                  label: "新标签页",
+                  label: t("admin.settings.site.jumpTarget.newTab"),
                   value: 1,
                 },
               ]}>
@@ -610,49 +628,49 @@ export const Setting: React.FC<SettingProps> = (props) => {
 
             </Form.Item>
             <Form.Item
-              label="logo 192x192"
+              label={t("admin.settings.site.logo192")}
               name="logo192"
-              rules={[{ required: true, message: "请输入 192x192 大小的 logo 链接" }]}
+              rules={[{ required: true, message: t("admin.settings.site.logo192Required") }]}
 
-              tooltip="192x192 大小的 logo，用于实现可安装的 web 应用"
+              tooltip={t("admin.settings.site.logo192Tooltip")}
 
             >
-              <Input placeholder="192x192 大小的 logo 链接"></Input>
+              <Input placeholder={t("admin.settings.site.logo192Placeholder")}></Input>
             </Form.Item>
             <Form.Item
-              label="logo 512x512"
+              label={t("admin.settings.site.logo512")}
               name="logo512"
-              rules={[{ required: true, message: "请输入 512x512 大小的 logo 链接" }]}
+              rules={[{ required: true, message: t("admin.settings.site.logo512Required") }]}
 
-              tooltip="512x512 大小的 logo，用于实现可安装的 web 应用"
+              tooltip={t("admin.settings.site.logo512Tooltip")}
 
             >
-              <Input placeholder="512x512 大小的 logo 链接"></Input>
+              <Input placeholder={t("admin.settings.site.logo512Placeholder")}></Input>
             </Form.Item>
-            <Form.Item label="隐藏管理员后台卡片" name="hideAdmin" tooltip="默认展示，开启后将在前台隐藏管理员卡片" >
+            <Form.Item label={t("admin.settings.site.hideAdmin")} name="hideAdmin" tooltip={t("admin.settings.site.hideAdminTooltip")} >
               <Switch defaultChecked={Boolean(store?.setting?.hideAdmin)} />
             </Form.Item>
-            <Form.Item label="隐藏 Github 按钮" name="hideGithub" tooltip="默认展示，开启后将在前台隐藏 Github 按钮" >
+            <Form.Item label={t("admin.settings.site.hideGithub")} name="hideGithub" tooltip={t("admin.settings.site.hideGithubTooltip")} >
               <Switch defaultChecked={Boolean(store?.setting?.hideGithub)} />
             </Form.Item>
-            <Form.Item label="隐藏跳转方式卡片" name="hideToggleJumpTarget" tooltip="默认展示，开启后将在前台隐藏跳转方式卡片" >
+            <Form.Item label={t("admin.settings.site.hideJumpTarget")} name="hideToggleJumpTarget" tooltip={t("admin.settings.site.hideJumpTargetTooltip")} >
               <Switch defaultChecked={Boolean(store?.setting?.hideToggleJumpTarget)} />
             </Form.Item>
-            <Form.Item label="显示搜索引擎" name="showSearchEngine" tooltip="开启后搜索时显示搜索引擎快捷切换按钮，关闭后仅显示搜索框" >
+            <Form.Item label={t("admin.settings.site.showSearchEngine")} name="showSearchEngine" tooltip={t("admin.settings.site.showSearchEngineTooltip")} >
               <Switch defaultChecked={store?.setting?.showSearchEngine !== false} />
             </Form.Item>
-            <Form.Item label="电脑端标签列数" name="pcColumnCount" tooltip="设置首页工具卡片在电脑端的列数（2-8），默认 3 列">
-              <InputNumber min={2} max={8} placeholder="默认 3" style={{ width: '100%' }} />
+            <Form.Item label={t("admin.settings.site.pcColumnCount")} name="pcColumnCount" tooltip={t("admin.settings.site.pcColumnCountTooltip")}>
+              <InputNumber min={2} max={8} placeholder={t("admin.settings.site.pcColumnCountPlaceholder")} style={{ width: '100%' }} />
             </Form.Item>
             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
               <Button type="primary" htmlType="submit">
-                提交
+                {t("admin.settings.btn.submit")}
               </Button>
             </Form.Item>
           </Form>
         </Spin>
       </Card>
-      <Card title={`修改网站配置`} style={{ marginTop: 32 }}>
+      <Card title={t("admin.settings.config.title")} style={{ marginTop: 32 }}>
         <Spin spinning={loading}>
           <Form
             onFinish={handleUpdateSiteConfig}
@@ -660,33 +678,33 @@ export const Setting: React.FC<SettingProps> = (props) => {
             labelCol={{ span: 6 }}
             form={siteConfigForm}
           >
-            <Form.Item label="无图模式" name="noImageMode" tooltip="开启后前台将不展示工具logo等图片">
+            <Form.Item label={t("admin.settings.config.noImageMode")} name="noImageMode" tooltip={t("admin.settings.config.noImageModeTooltip")}>
               <Switch defaultChecked={Boolean(store?.siteConfig?.noImageMode)} />
             </Form.Item>
-            <Form.Item label="精简模式" name="compactMode" tooltip="开启后卡片只显示标题和logo，如果同时开启无图模式则只显示标题">
+            <Form.Item label={t("admin.settings.config.compactMode")} name="compactMode" tooltip={t("admin.settings.config.compactModeTooltip")}>
               <Switch defaultChecked={Boolean(store?.siteConfig?.compactMode)} />
             </Form.Item>
             <Form.Item
-              label="Logo API 地址模板"
+              label={t("admin.settings.config.faviconApiTemplate")}
               name="faviconApiTemplate"
-              tooltip="使用 {domain} 占位符表示工具主域名，默认使用 https://favicon.im/{domain}"
+              tooltip={t("admin.settings.config.faviconApiTemplateTooltip")}
               rules={[
-                { required: true, message: "请输入 API 地址模板" },
+                { required: true, message: t("admin.settings.config.faviconApiTemplateRequired") },
                 {
                   validator: (_, value) => {
                     if (!value || !value.includes("{domain}")) {
-                      return Promise.reject(new Error("模板必须包含 {domain} 占位符"));
+                      return Promise.reject(new Error(t("admin.settings.config.faviconApiTemplateValidator")));
                     }
                     return Promise.resolve();
                   },
                 },
               ]}
             >
-              <Input placeholder="https://favicon.im/{domain}" />
+              <Input placeholder={t("admin.settings.config.faviconApiTemplatePlaceholder")} />
             </Form.Item>
             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
               <Button type="primary" htmlType="submit">
-                提交
+                {t("admin.settings.btn.submit")}
               </Button>
             </Form.Item>
           </Form>
@@ -698,29 +716,29 @@ export const Setting: React.FC<SettingProps> = (props) => {
         title={
           <span>
             <CloudServerOutlined style={{ marginRight: 8 }} />
-            数据备份
+            {t("admin.settings.backup.title")}
           </span>
         }
         style={{ marginTop: 32 }}
         extra={
           <span style={{ fontSize: 12, color: '#999' }}>
-            配置 WebDAV 云盘，定期自动备份数据库
+            {t("admin.settings.backup.description")}
           </span>
         }
       >
         {/* 备份状态显示 */}
         <div style={{ marginBottom: 24, padding: 16, borderRadius: 8, background: isDark ? '#222' : '#fafafa', border: isDark ? '1px solid #333' : '1px solid #f0f0f0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span style={{ fontWeight: 500, color: isDark ? 'rgba(255,255,255,0.6)' : undefined }}>最近备份状态：</span>
+            <span style={{ fontWeight: 500, color: isDark ? 'rgba(255,255,255,0.6)' : undefined }}>{t("admin.settings.backup.statusLabel")}</span>
             {backupStatus.lastBackupTime ? (
               <>
-                <span style={{ color: isDark ? 'rgba(255,255,255,0.6)' : undefined }}>时间：{backupStatus.lastBackupTime}</span>
+                <span style={{ color: isDark ? 'rgba(255,255,255,0.6)' : undefined }}>{t("admin.settings.backup.statusTime").replace("{time}", backupStatus.lastBackupTime || "")}</span>
                 <span style={{ color: backupStatus.lastBackupStatus === '成功' ? '#52c41a' : '#ff4d4f' }}>
-                  状态：{backupStatus.lastBackupStatus || '未知'}
+                  {t("admin.settings.backup.statusValue").replace("{status}", backupStatus.lastBackupStatus || t("admin.settings.backup.statusUnknown"))}
                 </span>
               </>
             ) : (
-              <span style={{ color: '#999' }}>暂无备份</span>
+              <span style={{ color: '#999' }}>{t("admin.settings.backup.statusNone")}</span>
             )}
             <Button
               size="small"
@@ -734,7 +752,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
                 } catch (e) {}
               }}
             >
-              刷新
+              {t("admin.settings.backup.btnRefresh")}
             </Button>
           </div>
         </div>
@@ -754,44 +772,44 @@ export const Setting: React.FC<SettingProps> = (props) => {
             }}
           >
             <Form.Item
-              label="WebDAV 服务地址"
+              label={t("admin.settings.backup.webdavUrl")}
               name="webdavUrl"
               required
-              rules={[{ required: true, message: "请输入 WebDAV 服务地址" }]}
-              tooltip="例如：https://dav.jianguoyun.com/dav/"
+              rules={[{ required: true, message: t("admin.settings.backup.webdavUrlRequired") }]}
+              tooltip={t("admin.settings.backup.webdavUrlTooltip")}
             >
-              <Input placeholder="https://dav.jianguoyun.com/dav/" />
+              <Input placeholder={t("admin.settings.backup.webdavUrlPlaceholder")} />
             </Form.Item>
 
             <Form.Item
-              label="用户名"
+              label={t("admin.settings.backup.username")}
               name="username"
               required
-              rules={[{ required: true, message: "请输入用户名" }]}
+              rules={[{ required: true, message: t("admin.settings.backup.usernameRequired") }]}
             >
-              <Input placeholder="请输入 WebDAV 用户名" />
+              <Input placeholder={t("admin.settings.backup.usernamePlaceholder")} />
             </Form.Item>
 
             <Form.Item
-              label="密码"
+              label={t("admin.settings.backup.password")}
               name="password"
               required
-              rules={[{ required: true, message: "请输入密码" }]}
-              tooltip="密码将加密存储，不会明文显示"
+              rules={[{ required: true, message: t("admin.settings.backup.passwordRequired") }]}
+              tooltip={t("admin.settings.backup.passwordTooltip")}
             >
-              <Input.Password placeholder="请输入 WebDAV 密码" />
+              <Input.Password placeholder={t("admin.settings.backup.passwordPlaceholder")} />
             </Form.Item>
 
             <Form.Item
-              label="备份目录"
+              label={t("admin.settings.backup.backupDir")}
               name="backupDir"
-              tooltip="WebDAV 上的备份目录路径，默认为根目录 /"
+              tooltip={t("admin.settings.backup.backupDirTooltip")}
             >
               <Input placeholder="/" />
             </Form.Item>
 
             <Form.Item
-              label="启用备份"
+              label={t("admin.settings.backup.enabled")}
               name="enabled"
               valuePropName="checked"
             >
@@ -799,24 +817,24 @@ export const Setting: React.FC<SettingProps> = (props) => {
             </Form.Item>
 
             <Form.Item
-              label="备份周期"
+              label={t("admin.settings.backup.scheduleType")}
               name="scheduleType"
               required
             >
               <Select
                 onChange={(value) => setScheduleType(value)}
                 options={[
-                  { label: "每天", value: "daily" },
-                  { label: "每周", value: "weekly" },
-                  { label: "每月", value: "monthly" },
-                  { label: "自定义（Cron）", value: "cron" },
+                  { label: t("admin.settings.backup.scheduleType.daily"), value: "daily" },
+                  { label: t("admin.settings.backup.scheduleType.weekly"), value: "weekly" },
+                  { label: t("admin.settings.backup.scheduleType.monthly"), value: "monthly" },
+                  { label: t("admin.settings.backup.scheduleType.cron"), value: "cron" },
                 ]}
               />
             </Form.Item>
 
             {scheduleType !== "cron" && (
               <Form.Item
-                label="备份时间"
+                label={t("admin.settings.backup.scheduleTime")}
                 name="scheduleTime"
                 required
               >
@@ -826,41 +844,41 @@ export const Setting: React.FC<SettingProps> = (props) => {
 
             {scheduleType === "cron" && (
               <Form.Item
-                label="Cron 表达式"
+                label={t("admin.settings.backup.cronExpr")}
                 name="cronExpr"
                 required
-                rules={[{ required: true, message: "请输入 Cron 表达式" }]}
-                tooltip="标准 Cron 表达式，如：0 2 * * * 表示每天凌晨2点"
+                rules={[{ required: true, message: t("admin.settings.backup.cronExprRequired") }]}
+                tooltip={t("admin.settings.backup.cronExprTooltip")}
               >
                 <Input placeholder="0 2 * * *" />
               </Form.Item>
             )}
 
             <Form.Item
-              label="备份保留策略"
+              label={t("admin.settings.backup.retentionType")}
               name="retentionType"
               required
             >
               <Select
                 onChange={(value) => setRetentionType(value)}
                 options={[
-                  { label: "不限制", value: "unlimited" },
-                  { label: "保留最近 N 天", value: "days" },
-                  { label: "保留最近 N 周", value: "weeks" },
-                  { label: "保留最近 N 月", value: "months" },
+                  { label: t("admin.settings.backup.retentionType.unlimited"), value: "unlimited" },
+                  { label: t("admin.settings.backup.retentionType.days"), value: "days" },
+                  { label: t("admin.settings.backup.retentionType.weeks"), value: "weeks" },
+                  { label: t("admin.settings.backup.retentionType.months"), value: "months" },
                 ]}
               />
             </Form.Item>
 
             {retentionType !== "unlimited" && (
               <Form.Item
-                label="保留时长"
+                label={t("admin.settings.backup.retentionValue")}
                 name="retentionValue"
                 required
-                rules={[{ required: true, message: "请输入保留时长" }]}
+                rules={[{ required: true, message: t("admin.settings.backup.retentionValueRequired") }]}
               >
-                <InputNumber min={1} max={999} placeholder="请输入数字" style={{ width: '100%' }} addonAfter={
-                  retentionType === "days" ? "天" : retentionType === "weeks" ? "周" : "月"
+                <InputNumber min={1} max={999} placeholder={t("admin.settings.backup.retentionValuePlaceholder")} style={{ width: '100%' }} addonAfter={
+                  retentionType === "days" ? t("admin.settings.backup.retentionUnit.days") : retentionType === "weeks" ? t("admin.settings.backup.retentionUnit.weeks") : t("admin.settings.backup.retentionUnit.months")
                 } />
               </Form.Item>
             )}
@@ -871,17 +889,17 @@ export const Setting: React.FC<SettingProps> = (props) => {
                   onClick={handleTestConnection}
                   loading={backupTesting}
                 >
-                  测试连接
+                  {t("admin.settings.backup.btnTestConnection")}
                 </Button>
                 <Button
                   type="default"
                   onClick={handleBackupNow}
                   loading={backupNowLoading}
                 >
-                  立即备份
+                  {t("admin.settings.backup.btnBackupNow")}
                 </Button>
                 <Button type="primary" htmlType="submit">
-                  保存配置
+                  {t("admin.settings.backup.btnSave")}
                 </Button>
               </div>
             </Form.Item>
@@ -894,7 +912,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
         title={
           <span>
             <RollbackOutlined style={{ marginRight: 8 }} />
-            备份文件管理
+            {t("admin.settings.backup.files.title")}
           </span>
         }
         style={{ marginTop: 32 }}
@@ -905,12 +923,12 @@ export const Setting: React.FC<SettingProps> = (props) => {
             onClick={loadBackupFiles}
             loading={backupFilesLoading}
           >
-            刷新列表
+            {t("admin.settings.backup.files.btnRefresh")}
           </Button>
         }
       >
         <div style={{ marginBottom: 16, color: isDark ? 'rgba(255,255,255,0.6)' : '#666' }}>
-          以下是从 WebDAV 云端获取的备份文件，可选择任意文件恢复数据库。恢复后请刷新页面以查看最新数据。
+          {t("admin.settings.backup.files.description")}
         </div>
         <Table
           dataSource={backupFiles}
@@ -920,23 +938,23 @@ export const Setting: React.FC<SettingProps> = (props) => {
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50'],
             defaultPageSize: 10,
-            showTotal: (total) => `共 ${total} 条`,
+            showTotal: (total) => t("admin.settings.backup.files.tableTotal").replace("{total}", String(total)),
           }}
           columns={[
             {
-              title: '文件名',
+              title: t("admin.settings.backup.files.column.name"),
               dataIndex: 'name',
               key: 'name',
               ellipsis: true,
             },
             {
-              title: '备份时间',
+              title: t("admin.settings.backup.files.column.time"),
               dataIndex: 'modTime',
               key: 'modTime',
               width: 200,
             },
             {
-              title: '大小',
+              title: t("admin.settings.backup.files.column.size"),
               dataIndex: 'size',
               key: 'size',
               width: 120,
@@ -950,7 +968,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
               },
             },
             {
-              title: '操作',
+              title: t("admin.settings.backup.files.column.action"),
               key: 'action',
               width: 120,
               render: (_: any, record: { name: string }) => (
@@ -962,13 +980,13 @@ export const Setting: React.FC<SettingProps> = (props) => {
                   disabled={restoreLoading !== null}
                   onClick={() => handleRestoreBackup(record.name)}
                 >
-                  恢复
+                  {t("admin.settings.backup.files.btnRestore")}
                 </Button>
               ),
             },
           ]}
           locale={{
-            emptyText: backupFilesLoading ? '加载中...' : '暂无备份文件（请先配置 WebDAV 并执行备份）',
+            emptyText: backupFilesLoading ? t("admin.settings.backup.files.emptyLoading") : t("admin.settings.backup.files.emptyText"),
           }}
         />
       </Card>

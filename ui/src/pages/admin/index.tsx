@@ -12,44 +12,21 @@ import {
 } from '@radix-ui/react-icons';
 import { useOnce } from '../../utils/useOnce';
 import { useGlobalTheme } from '../../utils/useGlobalTheme';
+import { useTranslation } from '../../i18n';
 import DarkSwitch from '../../components/DarkSwitch';
 
-const menuItems: MenuItem[] = [
-  {
-    key: 'tools',
-    icon: <BackpackIcon className="w-5 h-5" />,
-    label: '工具管理',
-    path: '/admin/tools'
-  },
-  {
-    key: 'categories',
-    icon: <TableIcon className="w-5 h-5" />,
-    label: '分类管理',
-    path: '/admin/categories'
-  },
-  {
-    key: 'search-engines',
-    icon: <MagnifyingGlassIcon className="w-5 h-5" />,
-    label: '搜索引擎管理',
-    path: '/admin/search-engines'
-  },
-  {
-    key: 'api-token',
-    icon: <StarFilledIcon className="w-5 h-5" />,
-    label: 'API Token',
-    path: '/admin/api-token'
-  },
-  {
-    key: 'settings',
-    icon: <GearIcon className="w-5 h-5" />,
-    label: '系统设置',
-    path: '/admin/settings'
-  }
+const getMenuItems = (t: (key: string) => string): MenuItem[] => [
+  { key: 'tools', icon: <BackpackIcon className="w-5 h-5" />, label: t('admin.tools.title'), path: '/admin/tools' },
+  { key: 'categories', icon: <TableIcon className="w-5 h-5" />, label: t('admin.catelog.title'), path: '/admin/categories' },
+  { key: 'search-engines', icon: <MagnifyingGlassIcon className="w-5 h-5" />, label: t('admin.search.title'), path: '/admin/search-engines' },
+  { key: 'api-token', icon: <StarFilledIcon className="w-5 h-5" />, label: t('admin.token.title'), path: '/admin/api-token' },
+  { key: 'settings', icon: <GearIcon className="w-5 h-5" />, label: t('admin.settings.title'), path: '/admin/settings' },
 ];
 
 export const AdminPage = () => {
-  // 全局主题监听：自动响应主题变更
   useGlobalTheme();
+  const { t } = useTranslation();
+  const menuItems = getMenuItems(t);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -70,7 +47,7 @@ export const AdminPage = () => {
     }
   }, [location]);
 
-  // 处理退出登录
+  // 处理{t('admin.header.logout')}
   const handleLogout = () => {
     localStorage.removeItem('_token');
     navigate('/');
@@ -83,7 +60,7 @@ export const AdminPage = () => {
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">VanNav 管理系统</h1>
+              <h1 className="text-xl font-semibold text-gray-900">{t('admin.header.title')}</h1>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -92,14 +69,14 @@ export const AdminPage = () => {
                 className="flex items-center px-3 py-2 text-sm text-gray-700 hover:text-gray-900"
               >
                 <HomeIcon className="w-4 h-4 mr-2" />
-                返回主页
+                {t('admin.header.home')}
               </Link>
               <button
                 onClick={handleLogout}
                 className="flex items-center px-3 py-2 text-sm text-gray-700 hover:text-gray-900"
               >
                 <ExitIcon className="w-4 h-4 mr-2" />
-                退出登录
+                {t('admin.header.logout')}
               </button>
               <DarkSwitch showGithub={false} />
             </div>

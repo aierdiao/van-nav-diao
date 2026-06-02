@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../utils/api';
 import { useGlobalTheme } from '../utils/useGlobalTheme';
+import { useTranslation } from '../i18n';
 import DarkSwitch from '../components/DarkSwitch';
 import './Login.css';
 
 const Login: React.FC = () => {
-  // 全局主题监听：自动响应主题变更
   useGlobalTheme();
+  const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -22,24 +23,24 @@ const Login: React.FC = () => {
         localStorage.setItem('_token', response.data.token);
         navigate('/admin');
       } else {
-        setErrorMsg(response.errorMessage || '登录失败');
+        setErrorMsg(response.errorMessage || t('login.error.networkError'));
       }
     } catch (error) {
-      setErrorMsg('登录失败，请检查网络连接');
+      setErrorMsg(t('login.error.networkError'));
     }
   };
 
   return (
     <div className="login-container" >
       <div className="login-box">
-        <h2>VanNav 登录</h2>
+        <h2>{t('login.title')}</h2>
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="用户名"
+              placeholder={t('login.username')}
               required
             />
           </div>
@@ -48,18 +49,18 @@ const Login: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="密码"
+              placeholder={t('login.password')}
               required
             />
           </div>
           {errorMsg && <div className="login-error">{errorMsg}</div>}
           <button type="submit" className="login-button">
-            登录
+            {t('login.submit')}
           </button>
         </form>
       </div>
       <div className="github-link">
-        <a href="https://github.com/mereith/van-nav" target="_blank" rel="noopener noreferrer">
+        <a href="https://github.com/thirsty5034/van-nav" target="_blank" rel="noopener noreferrer">
           <svg
             height="24"
             width="24"

@@ -1,11 +1,13 @@
 import "./index.css";
 import { useCallback, useRef } from "react";
+import { useTranslation } from "../../i18n";
 interface TagSelectorProps {
   tags: any;
   onTagChange: (newTag: string) => void;
   currTag: string;
 }
 const TagSelector = (props: TagSelectorProps) => {
+  const { t } = useTranslation();
   const { tags = ["all"], onTagChange, currTag } = props;
   const lastWheelTime = useRef(0);
 
@@ -40,9 +42,14 @@ const TagSelector = (props: TagSelectorProps) => {
   const renderTags = useCallback(() => {
     const originTags =  tags.map((each) => {
       // 处理空分类，显示为"未分类"
-      const displayText = each === null || each === undefined || each === "" || (typeof each === 'string' && each.trim() === "") 
-        ? "未分类" 
-        : each;
+      let displayText = each;
+      if (each === null || each === undefined || each === "" || (typeof each === 'string' && each.trim() === "")) {
+        displayText = t('home.tag.uncategorized');
+      } else if (each === '全部工具') {
+        displayText = t('home.tag.allTools');
+      } else if (each === '管理后台') {
+        displayText = t('home.tag.admin');
+      }
       
       return (
         <span
@@ -59,7 +66,7 @@ const TagSelector = (props: TagSelectorProps) => {
       );
     });
     return originTags;
-  }, [tags, onTagChange, currTag]);
+  }, [tags, onTagChange, currTag, t]);
   return (
     <div className="tag-selector span-3" onWheel={handleWheel}>
       <div className="tag-selector-wrapper">

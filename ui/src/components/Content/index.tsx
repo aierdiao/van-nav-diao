@@ -12,6 +12,29 @@ import DarkSwitch from "../DarkSwitch";
 import { isLogin } from "../../utils/check";
 import { generateSearchEngineCard } from "../../utils/serachEngine";
 import { toggleJumpTarget, syncJumpTargetFromServer } from "../../utils/setting";
+import { useTranslation } from "../../i18n";
+
+// 系统内置工具名称翻译映射（仅限前端硬编码的系统工具，不翻译用户数据）
+const systemToolTranslations: Record<string, Record<string, string>> = {
+  'zh-CN': {
+    '原地跳转': '原地跳转',
+    '新建窗口': '新建窗口',
+    '本站管理后台': '本站管理后台',
+    '管理后台': '管理后台',
+    '偏好设置': '偏好设置',
+    '点击切换跳转方式': '点击切换跳转方式',
+    '本导航站的管理后台哦': '本导航站的管理后台哦',
+  },
+  'en-US': {
+    '原地跳转': 'Same Tab',
+    '新建窗口': 'New Tab',
+    '本站管理后台': 'Admin Panel',
+    '管理后台': 'Admin',
+    '偏好设置': 'Settings',
+    '点击切换跳转方式': 'Click to toggle jump target',
+    '本导航站的管理后台哦': 'Admin panel for this navigation site',
+  },
+};
 
 const mutiSearch = (s, t) => {
   const source = (s as string).toLowerCase();
@@ -22,9 +45,16 @@ const mutiSearch = (s, t) => {
 };
 
 const Content = (props: any) => {
+  const { t, language } = useTranslation();
+
+  // 翻译系统工具名称
+  const translateSystemTool = (name: string) => {
+    const map = systemToolTranslations[language] || systemToolTranslations['zh-CN'];
+    return map[name] || name;
+  };
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(true);
-  const [currTag, setCurrTag] = useState("全部工具");
+  const [currTag, setCurrTag] = useState('全部工具');
   const [searchString, setSearchString] = useState("");
   const [val, setVal] = useState("");
   const [searchEngineCards, setSearchEngineCards] = useState<any[]>([]);
@@ -83,16 +113,16 @@ const Content = (props: any) => {
         }
       }
     } catch (e) {
-      console.log("网络请求失败，尝试从本地缓存恢复", e);
+      console.log(t('home.cache.networkError'), e);
       try {
         const cached = window.localStorage.getItem("van-nav-cache");
         if (cached) {
           const r = JSON.parse(cached);
           setData(r);
-          console.log("已从本地缓存恢复工具数据");
+          console.log(t('home.cache.restored'));
         }
       } catch (cacheErr) {
-        console.log("本地缓存恢复失败", cacheErr);
+        console.log(t('home.cache.failed'), cacheErr);
       }
     } finally {
       setLoading(false);
@@ -126,7 +156,7 @@ const Content = (props: any) => {
   const handleSetCurrTag = (tag: string) => {
     setCurrTag(tag);
     // 管理后台不记录了
-    if (tag !== "管理后台") {
+    if (tag !== '管理后台') {
       window.localStorage.setItem("tag", tag);
     }
     resetSearch(true);
@@ -136,14 +166,14 @@ const Content = (props: any) => {
     setVal("");
     setSearchString("");
     const tagInLocalStorage = window.localStorage.getItem("tag");
-    if (!notSetTag && tagInLocalStorage && tagInLocalStorage !== "" && tagInLocalStorage !== "管理后台") {
+    if (!notSetTag && tagInLocalStorage && tagInLocalStorage !== "" && tagInLocalStorage !== '管理后台') {
       setCurrTag(tagInLocalStorage);
     }
   };
 
   const handleSetSearch = (val: string) => {
     if (val !== "" && val) {
-      setCurrTag("全部工具");
+      setCurrTag('全部工具');
       setSearchString(val.trim());
     } else {
       resetSearch();
@@ -154,7 +184,7 @@ const Content = (props: any) => {
     if (data.tools) {
       const localResult = data.tools
         .filter((item: any) => {
-          if (currTag === "全部工具") {
+          if (currTag === '全部工具') {
             return true;
           }
           return item.catelog === currTag;
@@ -195,12 +225,12 @@ const Content = (props: any) => {
     return filteredData.map((item, index) => {
       return (
         <CardV2
-          title={item.name}
+          title={translateSystemTool(item.name)}
           url={item.url}
-          des={item.desc}
+          des={translateSystemTool(item.desc)}
           logo={item.logo}
           key={item.id}
-          catelog={item.catelog}
+          catelog={translateSystemTool(item.catelog)}
           index={index}
           isSearching={searchString.trim() !== ""}
           noImageMode={data?.siteConfig?.noImageMode || false}
@@ -264,7 +294,7 @@ const Content = (props: any) => {
             }}
           />
           <TagSelector
-            tags={data?.catelogs ?? ["全部工具"]}
+            tags={data?.catelogs ?? ['全部工具']}
             currTag={currTag}
             onTagChange={handleSetCurrTag}
           />

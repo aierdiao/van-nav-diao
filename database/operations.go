@@ -1,11 +1,14 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/mereith/nav/logger"
 	"github.com/mereith/nav/types"
 )
 
@@ -649,4 +652,475 @@ func IncrementDeploymentVersion() (string, error) {
 	}
 
 	return newVersion, nil
+}
+
+
+// ==================== 重构新增：用户与认证操作 ====================
+
+// GetUserByName 根据用户名查询用户
+func GetUserByName(name string) (types.User, error) {
+	var user types.User
+	err := DB.QueryRow(`SELECT id, name, password FROM nav_user WHERE name = ?`, name).Scan(&user.Id, &user.Name, &user.Password)
+	return user, err
+}
+
+// GetAllActiveApiTokens 获取所有未禁用的 API Token
+func GetAllActiveApiTokens() ([]types.Token, error) {
+	rows, err := DB.Query(`SELECT id, name, value, disabled FROM nav_api_token WHERE disabled = 0`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var results []types.Token
+	for rows.Next() {
+		var token types.Token
+		if err := rows.Scan(&token.Id, &token.Name, &token.Value, &token.Disabled); err != nil {
+			return nil, err
+		}
+		results = append(results, token)
+	}
+	return results, nil
+}
+
+// InsertApiToken 插入一条 API Token
+func InsertApiToken(token types.Token) error {
+	_, err := DB.Exec(`INSERT INTO nav_api_token (id, name, value, disabled) VALUES (?, ?, ?, ?)`,
+		token.Id, token.Name, token.Value, token.Disabled)
+	return err
+}
+
+// UpdateUserNameAndPassword 更新用户名和密码
+func UpdateUserNameAndPassword(id int, name string, hashedPassword string) error {
+	_, err := DB.Exec(`UPDATE nav_user SET name = ?, password = ? WHERE id = ?`, name, hashedPassword, id)
+	return err
+}
+
+// DisableApiToken 软删除 API Token（设为 disabled）
+func DisableApiToken(id string) error {
+	_, err := DB.Exec(`UPDATE nav_api_token SET disabled = 1 WHERE id = ?`, id)
+	return err
+}
+
+// UpdateUserPasswordById 更新指定用户的密码
+func UpdateUserPasswordById(userId int, hashedPassword string) error {
+	_, err := DB.Exec(`UPDATE nav_user SET password = ? WHERE id = ?`, hashedPassword, userId)
+	return err
+}
+
+// ResetAdminPassword 重置管理员密码（main.go 专用）
+func ResetAdminPassword(hashedPassword string) error {
+	_, err := DB.Exec(`UPDATE nav_user SET password = ? WHERE id = (SELECT id FROM nav_user ORDER BY id ASC LIMIT 1)`, hashedPassword)
+	return err
+}
+
+// ==================== 重构新增：工具 CRUD 操作 ====================
+
+// GetAllToolRows 查询所有工具（按 sort 排序）
+func GetAllToolRows() ([]types.Tool, error) {
+	rows, err := DB.Query(`SELECT id, name, url, logo, catelog, desc, sort, hide, is_alive, last_checked FROM nav_table ORDER BY sort`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var results []types.Tool
+	for rows.Next() {
+		var tool types.Tool
+		var hide, sortVal, isAlive, lastChecked interface{}
+		if err := rows.Scan(&tool.Id, &tool.Name, &tool.Url, &tool.Logo, &tool.Catelog, &tool.Desc, &sortVal, &hide, &isAlive, &lastChecked); err != nil {
+			return nil, err
+		}
+		tool.Hide = hide != nil && hide.(int64) != 0
+		if sortVal != nil {
+			tool.Sort = int(sortVal.(int64))
+		}
+		if isAlive == nil {
+			alive := true
+			tool.IsAlive = &alive
+		} else {
+			alive := isAlive.(int64) == 1
+			tool.IsAlive = &alive
+		}
+		if lastChecked != nil {
+			if t, ok := lastChecked.(time.Time); ok {
+				tool.LastChecked = t.Format("2006-01-02 15:04:05")
+			}
+		}
+		results = append(results, tool)
+	}
+	return results, nil
+}
+
+// InsertToolRow 插入一条工具记录，返回新 ID
+func InsertToolRow(data types.AddToolDto) (int64, error) {
+	tx, err := DB.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+	result, err := tx.Exec(`INSERT INTO nav_table (name, url, logo, catelog, desc, sort, hide) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide)
+	if err != nil {
+		return 0, err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return id, tx.Commit()
+}
+
+// UpdateToolRow 全字段更新工具
+func UpdateToolRow(data types.UpdateToolDto) error {
+	_, err := DB.Exec(`UPDATE nav_table SET name = ?, url = ?, logo = ?, catelog = ?, desc = ?, sort = ?, hide = ? WHERE id = ?`,
+		data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide, data.Id)
+	return err
+}
+
+// DeleteToolWithImage 删除工具并清理关联图片缓存
+func DeleteToolWithImage(id string) error {
+	_, err := DB.Exec(`DELETE FROM nav_table WHERE id = ?`, id)
+	if err != nil {
+		return err
+	}
+	numberId, convErr := strconv.Atoi(id)
+	if convErr != nil {
+		return nil
+	}
+	var logo string
+	err = DB.QueryRow(`SELECT logo FROM nav_table WHERE id = ?`, numberId).Scan(&logo)
+	if err != nil {
+		return nil // 工具已删除，图片查询失败非致命
+	}
+	if logo != "" {
+		urlEncoded := url.QueryEscape(logo)
+		DB.Exec(`DELETE FROM nav_img WHERE url = ?`, urlEncoded)
+	}
+	return nil
+}
+
+// GetToolLogoUrl 获取工具的 logo URL
+func GetToolLogoUrl(id int) (string, error) {
+	var logo string
+	err := DB.QueryRow(`SELECT logo FROM nav_table WHERE id = ?`, id).Scan(&logo)
+	return logo, err
+}
+
+// UpdateToolLogoUrl 更新工具的 logo URL
+func UpdateToolLogoUrl(id int64, logo string) error {
+	_, err := DB.Exec(`UPDATE nav_table SET logo = ? WHERE id = ?`, logo, id)
+	return err
+}
+
+// UpdateToolSortBatch 批量更新工具排序
+func UpdateToolSortBatch(updates []types.UpdateToolsSortDto) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	stmt, err := tx.Prepare(`UPDATE nav_table SET sort = ? WHERE id = ?`)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	defer stmt.Close()
+	for _, u := range updates {
+		if _, err := stmt.Exec(u.Sort, u.Id); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+// GetToolMaxSort 获取工具表最大排序值
+func GetToolMaxSort() (int, error) {
+	var maxSort int
+	err := DB.QueryRow(`SELECT COALESCE(MAX(sort), 0) FROM nav_table`).Scan(&maxSort)
+	return maxSort, err
+}
+
+// UpdateToolDescription 仅更新工具描述
+func UpdateToolDescription(id int, desc string) error {
+	_, err := DB.Exec(`UPDATE nav_table SET desc = ? WHERE id = ?`, desc, id)
+	return err
+}
+
+// ==================== 重构新增：分类 CRUD 操作 ====================
+
+// GetCatelogNameById 根据 ID 查询分类名称
+func GetCatelogNameById(id int) (string, error) {
+	var name string
+	err := DB.QueryRow(`SELECT name FROM nav_catelog WHERE id = ?`, id).Scan(&name)
+	return name, err
+}
+
+// UpdateCatelogWithTx 在事务内更新分类并联动更新工具表的分类名
+func UpdateCatelogWithTx(id int, oldName, newName string, sort int, hide bool) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+	if _, err = tx.Exec(`UPDATE nav_catelog SET name = ?, sort = ?, hide = ? WHERE id = ?`, newName, sort, hide, id); err != nil {
+		return err
+	}
+	if oldName != newName {
+		if _, err = tx.Exec(`UPDATE nav_table SET catelog = ? WHERE catelog = ?`, newName, oldName); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+// InsertNewCatelog 插入新分类（先查重）
+func InsertNewCatelog(name string, sort int, hide bool) error {
+	if name == "" || strings.TrimSpace(name) == "" {
+		return nil
+	}
+	var count int
+	if err := DB.QueryRow(`SELECT COUNT(*) FROM nav_catelog WHERE name = ?`, name).Scan(&count); err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil // 已存在，跳过
+	}
+	_, err := DB.Exec(`INSERT INTO nav_catelog (name, sort, hide) VALUES (?, ?, ?)`, name, sort, hide)
+	return err
+}
+
+// DeleteCatelogById 删除指定分类
+func DeleteCatelogById(id string) error {
+	_, err := DB.Exec(`DELETE FROM nav_catelog WHERE id = ?`, id)
+	return err
+}
+
+// ==================== 重构新增：设置操作 ====================
+
+// GetSettingRow 查询设置行（含 NULL 安全转换）
+func GetSettingRow() (types.Setting, error) {
+	var s types.Setting
+	var hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount interface{}
+	var deploymentVersion, language string
+	err := DB.QueryRow(`SELECT id, favicon, title, govRecord, logo192, logo512, hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount, COALESCE(deployment_version,''), COALESCE(language,'zh-CN') FROM nav_setting ORDER BY id ASC LIMIT 1`).Scan(
+		&s.Id, &s.Favicon, &s.Title, &s.GovRecord, &s.Logo192, &s.Logo512,
+		&hideAdmin, &hideGithub, &hideToggleJumpTarget, &jumpTargetBlank,
+		&showSearchEngine, &pcColumnCount, &deploymentVersion, &language,
+	)
+	if err != nil {
+		return types.Setting{
+			Id: 1, Favicon: "favicon.ico", Title: "Van Nav", Logo192: "logo192.png", Logo512: "logo512.png",
+			JumpTargetBlank: true, ShowSearchEngine: true, PcColumnCount: 3,
+		}, err
+	}
+	s.HideAdmin = hideAdmin != nil && hideAdmin.(int64) != 0
+	s.HideGithub = hideGithub != nil && hideGithub.(int64) != 0
+	s.HideToggleJumpTarget = hideToggleJumpTarget != nil && hideToggleJumpTarget.(int64) != 0
+	s.JumpTargetBlank = jumpTargetBlank == nil || jumpTargetBlank.(int64) != 0
+	s.ShowSearchEngine = showSearchEngine == nil || showSearchEngine.(int64) != 0
+	if pcColumnCount != nil {
+		s.PcColumnCount = int(pcColumnCount.(int64))
+	} else {
+		s.PcColumnCount = 3
+	}
+	s.DeploymentVersion = deploymentVersion
+	s.Language = language
+	return s, nil
+}
+
+// UpdateSettingRow 更新设置行
+func UpdateSettingRow(data types.Setting) error {
+	lang := data.Language
+	if lang != "zh-CN" && lang != "en-US" {
+		lang = "zh-CN"
+	}
+	_, err := DB.Exec(`UPDATE nav_setting SET favicon=?, title=?, govRecord=?, logo192=?, logo512=?, hideAdmin=?, hideGithub=?, hideToggleJumpTarget=?, jumpTargetBlank=?, showSearchEngine=?, pcColumnCount=?, language=? WHERE id=(SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`,
+		data.Favicon, data.Title, data.GovRecord, data.Logo192, data.Logo512,
+		data.HideAdmin, data.HideGithub, data.HideToggleJumpTarget, data.JumpTargetBlank,
+		data.ShowSearchEngine, data.PcColumnCount, lang)
+	return err
+}
+
+// UpdateSettingLanguage 仅更新语言设置
+func UpdateSettingLanguage(language string) error {
+	_, err := DB.Exec(`UPDATE nav_setting SET language = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`, language)
+	return err
+}
+
+// SyncDeploymentVersion 启动时同步部署版本号
+func SyncDeploymentVersion(version string) {
+	var dbVersion string
+	err := DB.QueryRow(`SELECT deployment_version FROM nav_setting WHERE id = 1`).Scan(&dbVersion)
+	if err != nil || dbVersion == "" {
+		if _, err := DB.Exec(`UPDATE nav_setting SET deployment_version = ? WHERE id = 1`, version); err != nil {
+			logger.LogError("同步部署版本号失败: %s", err)
+		} else {
+			logger.LogInfo("部署版本号已初始化: %s", version)
+		}
+		return
+	}
+	if dbVersion != version {
+		if _, err := DB.Exec(`UPDATE nav_setting SET deployment_version = ? WHERE id = 1`, version); err != nil {
+			logger.LogError("更新部署版本号失败: %s", err)
+		} else {
+			logger.LogInfo("部署版本号已更新: %s → %s", dbVersion, version)
+		}
+	}
+}
+
+// ==================== 重构新增：站点配置操作 ====================
+
+// GetSiteConfigRow 查询站点配置行（含 NULL 安全转换）
+func GetSiteConfigRow() (types.SiteConfig, error) {
+	var cfg types.SiteConfig
+	var noImageMode, compactMode, faviconApiEnabled interface{}
+	var faviconApiTemplate interface{}
+	err := DB.QueryRow(`SELECT id, noImageMode, compactMode, faviconApiEnabled, COALESCE(faviconApiTemplate, 'https://favicon.im/{domain}') FROM nav_site_config ORDER BY id ASC LIMIT 1`).Scan(
+		&cfg.Id, &noImageMode, &compactMode, &faviconApiEnabled, &faviconApiTemplate,
+	)
+	if err != nil {
+		return types.SiteConfig{Id: 1, FaviconApiEnabled: true, FaviconApiTemplate: "https://favicon.im/{domain}"}, err
+	}
+	cfg.NoImageMode = noImageMode != nil && noImageMode.(int64) != 0
+	cfg.CompactMode = compactMode != nil && compactMode.(int64) != 0
+	cfg.FaviconApiEnabled = faviconApiEnabled != nil && faviconApiEnabled.(int64) != 0
+	if faviconApiTemplate != nil {
+		cfg.FaviconApiTemplate = faviconApiTemplate.(string)
+	} else {
+		cfg.FaviconApiTemplate = "https://favicon.im/{domain}"
+	}
+	return cfg, nil
+}
+
+// UpdateSiteConfigRow 更新站点配置行
+func UpdateSiteConfigRow(data types.SiteConfig) error {
+	_, err := DB.Exec(`UPDATE nav_site_config SET noImageMode=?, compactMode=?, faviconApiEnabled=?, faviconApiTemplate=? WHERE id=(SELECT id FROM nav_site_config ORDER BY id ASC LIMIT 1)`,
+		data.NoImageMode, data.CompactMode, data.FaviconApiEnabled, data.FaviconApiTemplate)
+	return err
+}
+
+// ==================== 重构新增：图片缓存操作 ====================
+
+// GetImageByUrl 根据 URL 查询图片缓存
+func GetImageByUrl(urlEncoded string) (types.Img, bool, error) {
+	var img types.Img
+	err := DB.QueryRow(`SELECT id, url, value FROM nav_img WHERE url = ?`, urlEncoded).Scan(&img.Id, &img.Url, &img.Value)
+	if err != nil {
+		return types.Img{}, false, nil
+	}
+	return img, true, nil
+}
+
+// InsertImage 插入图片缓存（仅当不存在时）
+func InsertImage(urlEncoded, base64Value string) error {
+	var count int
+	if err := DB.QueryRow(`SELECT COUNT(*) FROM nav_img WHERE url = ?`, urlEncoded).Scan(&count); err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+	_, err := DB.Exec(`INSERT INTO nav_img (url, value) VALUES (?, ?)`, urlEncoded, base64Value)
+	return err
+}
+
+// DeleteImageByUrl 删除指定 URL 的图片缓存
+func DeleteImageByUrl(urlEncoded string) error {
+	_, err := DB.Exec(`DELETE FROM nav_img WHERE url = ?`, urlEncoded)
+	return err
+}
+
+// ==================== 重构新增：备份配置操作 ====================
+
+// GetEncryptionKeyFromDB 从数据库获取加密密钥
+func GetEncryptionKeyFromDB() (string, error) {
+	var key string
+	err := DB.QueryRow(`SELECT encryption_key FROM nav_backup_config ORDER BY id ASC LIMIT 1`).Scan(&key)
+	if err != nil {
+		return "", nil
+	}
+	return key, nil
+}
+
+// SaveEncryptionKeyToDB 保存加密密钥到数据库
+func SaveEncryptionKeyToDB(key string) error {
+	var count int
+	if err := DB.QueryRow("SELECT COUNT(*) FROM nav_backup_config;").Scan(&count); err != nil {
+		return err
+	}
+	if count == 0 {
+		_, err := DB.Exec(`INSERT INTO nav_backup_config (encryption_key, created_at, updated_at) VALUES (?, datetime('now'), datetime('now'))`, key)
+		return err
+	}
+	_, err := DB.Exec(`UPDATE nav_backup_config SET encryption_key = ?, updated_at = datetime('now') WHERE id = (SELECT id FROM nav_backup_config ORDER BY id ASC LIMIT 1)`, key)
+	return err
+}
+
+// GetBackupConfigRow 查询备份配置行
+func GetBackupConfigRow() (*types.BackupConfig, error) {
+	var c types.BackupConfig
+	err := DB.QueryRow(`SELECT id, COALESCE(webdav_url,''), COALESCE(username,''), COALESCE(password,''), COALESCE(backup_dir,''), COALESCE(schedule_type,''), COALESCE(schedule_time,''), COALESCE(cron_expr,''), COALESCE(retention_type,''), COALESCE(retention_value,0), COALESCE(last_backup_time,''), COALESCE(last_backup_status,''), COALESCE(enabled,0), COALESCE(created_at,''), COALESCE(updated_at,'') FROM nav_backup_config ORDER BY id ASC LIMIT 1`).Scan(
+		&c.ID, &c.WebDAVURL, &c.Username, &c.Password, &c.BackupDir,
+		&c.ScheduleType, &c.ScheduleTime, &c.CronExpr, &c.RetentionType,
+		&c.RetentionValue, &c.LastBackupTime, &c.LastBackupStatus,
+		&c.Enabled, &c.CreatedAt, &c.UpdatedAt,
+	)
+	if err != nil {
+		return &types.BackupConfig{}, nil
+	}
+	return &c, nil
+}
+
+// UpsertBackupConfig 插入或更新备份配置
+func UpsertBackupConfig(config *types.BackupConfig, encryptedPassword string) error {
+	var count int
+	if err := DB.QueryRow("SELECT COUNT(*) FROM nav_backup_config;").Scan(&count); err != nil {
+		return err
+	}
+	if count == 0 {
+		_, err := DB.Exec(`INSERT INTO nav_backup_config (webdav_url, username, password, backup_dir, schedule_type, schedule_time, cron_expr, retention_type, retention_value, enabled, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`,
+			config.WebDAVURL, config.Username, encryptedPassword, config.BackupDir,
+			config.ScheduleType, config.ScheduleTime, config.CronExpr,
+			config.RetentionType, config.RetentionValue, config.Enabled)
+		return err
+	}
+	_, err := DB.Exec(`UPDATE nav_backup_config SET webdav_url=?, username=?, password=?, backup_dir=?, schedule_type=?, schedule_time=?, cron_expr=?, retention_type=?, retention_value=?, enabled=?, updated_at=datetime('now') WHERE id=(SELECT id FROM nav_backup_config ORDER BY id ASC LIMIT 1)`,
+		config.WebDAVURL, config.Username, encryptedPassword, config.BackupDir,
+		config.ScheduleType, config.ScheduleTime, config.CronExpr,
+		config.RetentionType, config.RetentionValue, config.Enabled)
+	return err
+}
+
+// UpdateBackupStatus 更新备份状态
+func UpdateBackupStatus(backupTime, status string) error {
+	_, err := DB.Exec(`UPDATE nav_backup_config SET last_backup_time = ?, last_backup_status = ? WHERE id = (SELECT id FROM nav_backup_config ORDER BY id ASC LIMIT 1)`, backupTime, status)
+	return err
+}
+
+// CheckpointWAL 执行 WAL checkpoint
+func CheckpointWAL() error {
+	_, err := DB.Exec("PRAGMA wal_checkpoint(TRUNCATE)")
+	return err
+}
+
+// CloseDB 关闭数据库连接
+func CloseDB() error {
+	return DB.Close()
+}
+
+// ReopenDB 重新打开数据库连接（备份恢复后使用）
+func ReopenDB(dbPath string) error {
+	newDB, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return err
+	}
+	DB = newDB
+	return nil
 }

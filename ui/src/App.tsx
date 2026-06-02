@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { App as AntApp } from 'antd';
 import { Spin } from 'antd';
 import { decodeTheme, initTheme, broadcastThemeChange } from './utils/theme';
+import { I18nProvider } from './i18n';
 import './App.css';
 
 // 使用 React.lazy 懒加载组件
@@ -116,13 +117,14 @@ const LoadingFallback = () => {
       backgroundColor: isDarkMode ? '#121212' : '#ffffff',
       color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : '#272e3b',
     }}>
-      <Spin size="large" tip="加载中..." />
+      <Spin size="large" tip="Loading..." />
     </div>
   );
 };
 
 function App() {
   return (
+    <I18nProvider>
     <AntApp>
       <Router>
         <Suspense fallback={<LoadingFallback />}>
@@ -143,6 +145,7 @@ function App() {
         </Suspense>
       </Router>
     </AntApp>
+    </I18nProvider>
   );
 }
 

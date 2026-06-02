@@ -60,6 +60,9 @@ func InitDB() {
 	if !columnExists("nav_setting", "deployment_version") {
 		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN deployment_version TEXT DEFAULT '';`)
 	}
+	if !columnExists("nav_setting", "language") {
+		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN language TEXT DEFAULT 'zh-CN';`)
+	}
 
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_table (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, url TEXT, logo TEXT, catelog TEXT, desc TEXT);`
 	_, err = DB.Exec(sql_create_table)
