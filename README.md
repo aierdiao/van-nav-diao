@@ -119,6 +119,17 @@ docker pull ghcr.io/thirsty5034/van-nav:latest
 
 支持 `linux/amd64`、`linux/arm64`、`linux/arm`、`darwin/amd64`、`darwin/arm64`。
 
+#### 中英文国际化（i18n）
+
+上游无此功能。本项目实现了完整的前后端中英文双语支持：
+
+- 设置页面语言切换器，一键切换中文/英文界面
+- 覆盖 462 个翻译 key（登录页、首页、管理后台全部模块），中英翻译完全对齐
+- 语言偏好 localStorage 持久化 + 服务器同步，支持无痕模式降级到浏览器语言
+- 独立 `PUT /api/admin/setting/language` API，仅更新语言字段不覆盖其他配置
+- 严格区分系统文本（翻译）与用户自定义数据（不翻译），搜索引擎卡片通过独立 `t()` 函数在非 React 上下文中翻译
+- `nav_setting` 表新增 `language` 字段，启动时自动迁移
+
 ### 安全改进
 
 | 改进项 | 上游 | 本项目 |
@@ -144,8 +155,9 @@ docker pull ghcr.io/thirsty5034/van-nav:latest
 | CI 工具链 | Node.js 较旧版本 | Node.js 22 + pnpm 11.4.0 + Go 1.23 |
 | Docker 构建 | 单阶段 | 多阶段构建（前端 + 后端 + 运行时分离） |
 | 发版流程 | 手动发布 | GoReleaser 自动交叉编译 6 平台 + 结构化 Release Notes |
-| 分层架构 | handler 直接调用 database（10 处） | 全部通过 Service 层中转，handler 包零 database 引用 |
-| 架构断路器 | 无 | `assert_architecture.sh` 编译期扫描，阻止分层违规回归 |
+| 分层架构 | handler 直接调用 database（10 处） | service 层 42 处 + main.go 4 处越级 DB 操作全部消除，30 个 `database/operations.go` 封装函数，handler/main/service 三层零 `database.DB` 引用 |
+| 错误处理统一 | `utils.CheckErr()` 静默吞错 | service 层函数签名统一返回 `(T, error)`，handler 层完整 error 响应 |
+| 架构断路器 | 无 | `assert_architecture.sh` 编译期三重扫描（handler + main + service），阻止分层违规回归 |
 
 ## 使用技巧/快捷键
 
@@ -425,6 +437,17 @@ Upstream has no `docker-compose.yml`. This project provides an out-of-the-box Co
 
 Upstream images are hosted on Docker Hub. This project uses GitHub Container Registry with multi-architecture support: `linux/amd64`, `linux/arm64`, `linux/arm`, `darwin/amd64`, `darwin/arm64`.
 
+#### Chinese/English Internationalization (i18n)
+
+Not available upstream. This project implements full bilingual Chinese/English support:
+
+- Language switcher in admin settings, one-click toggle between Chinese and English
+- 462 translation keys (login page, homepage, all admin modules), Chinese and English fully aligned
+- Language preference persisted via localStorage + server sync, incognito mode falls back to browser language
+- Dedicated `PUT /api/admin/setting/language` API that only updates the language field
+- Strict boundary: system text is translated, user-defined data is not; search engine cards translated via standalone `t()` function in non-React context
+- `nav_setting` table gains `language` column, auto-migrated on startup
+
 #### Security Improvements
 
 | Improvement | Upstream | This Project |
@@ -450,8 +473,9 @@ Upstream images are hosted on Docker Hub. This project uses GitHub Container Reg
 | CI Toolchain | Older Node.js version | Node.js 22 + pnpm 11.4.0 + Go 1.23 |
 | Docker Build | Single-stage | Multi-stage build (frontend + backend + runtime separated) |
 | Release Process | Manual release | GoReleaser auto cross-compiles for 6 platforms + structured Release Notes |
-| Layered Architecture | Handler directly calls database (10 occurrences) | All routed through Service layer, handler package has zero database imports |
-| Architecture Circuit Breaker | None | `assert_architecture.sh` compile-time scan to prevent layering violation regressions |
+| Layered Architecture | Handler directly calls database (10 occurrences) | 42 violations in service layer + 4 in main.go fully eliminated; 30 `database/operations.go` wrapper functions; handler/main/service layers have zero `database.DB` references |
+| Error Handling | `utils.CheckErr()` silently swallows errors | Service layer functions return `(T, error)`, handler layer produces explicit error responses |
+| Architecture Circuit Breaker | None | `assert_architecture.sh` compile-time triple scan (handler + main + service) to prevent layering violation regressions |
 
 ### Tips & Shortcuts
 
