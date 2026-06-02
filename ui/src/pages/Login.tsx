@@ -75,7 +75,9 @@ const Login: React.FC = () => {
           <span>VanNav</span>
         </a>
       </div>
-      <DarkSwitch showGithub={true} />
+      <div className="floating-actions">
+        <DarkSwitch showGithub={true} />
+      </div>
     </div>
   );
 };
