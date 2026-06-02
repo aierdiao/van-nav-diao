@@ -78,40 +78,12 @@ func parseEncryptionKey(key string) ([]byte, error) {
 
 // getEncryptionKeyFromDB 从数据库获取加密密钥
 func getEncryptionKeyFromDB() (string, error) {
-	var key string
-	err := database.DB.QueryRow(
-		`SELECT encryption_key FROM nav_backup_config ORDER BY id ASC LIMIT 1;`,
-	).Scan(&key)
-	if err != nil {
-		// 表为空或字段不存在
-		return "", nil
-	}
-	return key, nil
+	return database.GetEncryptionKeyFromDB()
 }
 
 // saveEncryptionKeyToDB 保存加密密钥到数据库
 func saveEncryptionKeyToDB(key string) error {
-	// 检查是否已有配置记录
-	var count int
-	err := database.DB.QueryRow("SELECT COUNT(*) FROM nav_backup_config;").Scan(&count)
-	if err != nil {
-		return err
-	}
-
-	if count == 0 {
-		// 插入新记录
-		_, err = database.DB.Exec(
-			`INSERT INTO nav_backup_config (encryption_key, created_at, updated_at) VALUES (?, datetime('now'), datetime('now'));`,
-			key,
-		)
-	} else {
-		// 更新已有记录
-		_, err = database.DB.Exec(
-			`UPDATE nav_backup_config SET encryption_key = ?, updated_at = datetime('now') WHERE id = (SELECT id FROM nav_backup_config ORDER BY id ASC LIMIT 1);`,
-			key,
-		)
-	}
-	return err
+	return database.SaveEncryptionKeyToDB(key)
 }
 
 // encryptPassword 使用 AES-256-GCM 加密密码
@@ -178,42 +150,15 @@ func decryptPassword(ciphertext string) (string, error) {
 
 // GetBackupConfig 从数据库读取备份配置
 func GetBackupConfig() (*types.BackupConfig, error) {
-	sqlStr := `SELECT id, webdav_url, username, password, backup_dir, schedule_type, schedule_time, cron_expr, retention_type, retention_value, COALESCE(last_backup_time, ''), COALESCE(last_backup_status, ''), enabled, created_at, updated_at
-		FROM nav_backup_config ORDER BY id ASC LIMIT 1;`
-
-	var config types.BackupConfig
-	var enabled int
-	var passwordEncrypted string
-
-	row := database.DB.QueryRow(sqlStr)
-	err := row.Scan(
-		&config.ID, &config.WebDAVURL, &config.Username, &passwordEncrypted,
-		&config.BackupDir, &config.ScheduleType, &config.ScheduleTime,
-		&config.CronExpr, &config.RetentionType, &config.RetentionValue,
-		&config.LastBackupTime, &config.LastBackupStatus,
-		&enabled, &config.CreatedAt, &config.UpdatedAt,
-	)
+	config, err := database.GetBackupConfigRow()
 	if err != nil {
-		// 如果没有记录，返回默认配置
 		return &types.BackupConfig{
-			WebDAVURL:      "",
-			Username:       "",
-			Password:       "",
-			BackupDir:      "/",
-			ScheduleType:   "daily",
-			ScheduleTime:   "02:00",
-			CronExpr:       "",
-			RetentionType:  "unlimited",
-			RetentionValue: 0,
-			Enabled:        true,
+			BackupDir: "/", ScheduleType: "daily", ScheduleTime: "02:00",
+			RetentionType: "unlimited", Enabled: true,
 		}, nil
 	}
-
-	config.Enabled = enabled == 1
-
-	// 解密密码
-	if passwordEncrypted != "" {
-		decrypted, err := decryptPassword(passwordEncrypted)
+	if config.Password != "" {
+		decrypted, err := decryptPassword(config.Password)
 		if err != nil {
 			logger.LogError("解密备份密码失败: %s", err)
 			config.Password = ""
@@ -221,86 +166,23 @@ func GetBackupConfig() (*types.BackupConfig, error) {
 			config.Password = decrypted
 		}
 	}
-
-	return &config, nil
+	return config, nil
 }
 
 // getBackupConfigFromDB 从数据库读取备份配置（密码为密文，不用于直接连接）
 func getBackupConfigFromDB() (*types.BackupConfig, error) {
-	sqlStr := `SELECT id, webdav_url, username, password, backup_dir, schedule_type, schedule_time, cron_expr, retention_type, retention_value, COALESCE(last_backup_time, ''), COALESCE(last_backup_status, ''), enabled, created_at, updated_at
-		FROM nav_backup_config ORDER BY id ASC LIMIT 1;`
-
-	var config types.BackupConfig
-	var enabled int
-	var passwordEncrypted string
-
-	row := database.DB.QueryRow(sqlStr)
-	err := row.Scan(
-		&config.ID, &config.WebDAVURL, &config.Username, &passwordEncrypted,
-		&config.BackupDir, &config.ScheduleType, &config.ScheduleTime,
-		&config.CronExpr, &config.RetentionType, &config.RetentionValue,
-		&config.LastBackupTime, &config.LastBackupStatus,
-		&enabled, &config.CreatedAt, &config.UpdatedAt,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	config.Enabled = enabled == 1
-	config.Password = passwordEncrypted // 保持密文
-	return &config, nil
+	return database.GetBackupConfigRow()
 }
 
 // SaveBackupConfig 保存备份配置到数据库
 func SaveBackupConfig(config *types.BackupConfig) error {
-	// 加密密码
 	encryptedPassword, err := encryptPassword(config.Password)
 	if err != nil {
 		return fmt.Errorf("加密密码失败: %w", err)
 	}
-
-	// 检查是否已有配置记录
-	var count int
-	err = database.DB.QueryRow("SELECT COUNT(*) FROM nav_backup_config;").Scan(&count)
-	if err != nil {
-		return fmt.Errorf("查询备份配置失败: %w", err)
-	}
-
-	enabledInt := 0
-	if config.Enabled {
-		enabledInt = 1
-	}
-
-	if count == 0 {
-		// 插入新记录
-		sqlStr := `INSERT INTO nav_backup_config (webdav_url, username, password, backup_dir, schedule_type, schedule_time, cron_expr, retention_type, retention_value, enabled, created_at, updated_at)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'));`
-		_, err = database.DB.Exec(sqlStr,
-			config.WebDAVURL, config.Username, encryptedPassword,
-			config.BackupDir, config.ScheduleType, config.ScheduleTime,
-			config.CronExpr, config.RetentionType, config.RetentionValue,
-			enabledInt,
-		)
-	} else {
-		// 更新已有记录
-		sqlStr := `UPDATE nav_backup_config SET
-			webdav_url = ?, username = ?, password = ?, backup_dir = ?,
-			schedule_type = ?, schedule_time = ?, cron_expr = ?,
-			retention_type = ?, retention_value = ?, enabled = ?,
-			updated_at = datetime('now')
-			WHERE id = (SELECT id FROM nav_backup_config ORDER BY id ASC LIMIT 1);`
-		_, err = database.DB.Exec(sqlStr,
-			config.WebDAVURL, config.Username, encryptedPassword,
-			config.BackupDir, config.ScheduleType, config.ScheduleTime,
-			config.CronExpr, config.RetentionType, config.RetentionValue,
-			enabledInt,
-		)
-	}
-
-	if err != nil {
+	if err := database.UpsertBackupConfig(config, encryptedPassword); err != nil {
 		return fmt.Errorf("保存备份配置失败: %w", err)
 	}
-
 	return nil
 }
 
@@ -383,7 +265,7 @@ func ExecuteBackup() error {
 	_ = client.MkdirAll(strings.TrimSuffix(backupDir, "/"), 0755)
 
 	// 执行 WAL checkpoint 保证数据一致性
-	_, err = database.DB.Exec("PRAGMA wal_checkpoint(TRUNCATE);")
+	err = database.CheckpointWAL()
 	if err != nil {
 		logger.LogError("WAL checkpoint 失败: %s", err)
 	}
@@ -449,10 +331,7 @@ func ExecuteBackup() error {
 
 // updateBackupStatus 更新备份状态到数据库
 func updateBackupStatus(backupTime, status string) {
-	sqlStr := `UPDATE nav_backup_config SET last_backup_time = ?, last_backup_status = ?, updated_at = datetime('now')
-		WHERE id = (SELECT id FROM nav_backup_config ORDER BY id ASC LIMIT 1);`
-	_, err := database.DB.Exec(sqlStr, backupTime, status)
-	if err != nil {
+	if err := database.UpdateBackupStatus(backupTime, status); err != nil {
 		logger.LogError("更新备份状态失败: %s", err)
 	}
 }
@@ -709,7 +588,7 @@ func RestoreFromBackup(filename string) error {
 
 	// 关闭当前数据库连接
 	if database.DB != nil {
-		database.DB.Close()
+		database.CloseDB()
 		database.DB = nil
 	}
 

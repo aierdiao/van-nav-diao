@@ -20,7 +20,11 @@ import (
 )
 
 func ExportToolsHandler(c *gin.Context) {
-	tools := service.GetAllTool()
+	tools, err := service.GetAllTool()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "导出工具成功",
@@ -178,9 +182,17 @@ func UpdateSiteConfigHandler(c *gin.Context) {
 }
 
 func GetAllHandler(c *gin.Context) {
-	tools := service.GetAllTool()
+	tools, err := service.GetAllTool()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
 	// 获取全部数据
-	catelogs := service.GetAllCatelog()
+	catelogs, err := service.GetAllCatelog()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
 	isLogin := utils.IsLogin(c)
 	if !isLogin {
 		// 过滤掉隐藏工具
@@ -190,8 +202,16 @@ func GetAllHandler(c *gin.Context) {
 		// 过滤掉隐藏分类
 		catelogs = utils.FilterHideCates(catelogs)
 	}
-	setting := service.GetSetting()
-	siteConfig := service.GetSiteConfig()
+	setting, err := service.GetSetting()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
+	siteConfig, err := service.GetSiteConfig()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"data": gin.H{
@@ -212,7 +232,11 @@ func GetLogoImgHandler(c *gin.Context) {
 		})
 		return
 	}
-	img := service.GetImgFromDB(url)
+	img, err := service.GetImgFromDB(url)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
 	if img.Value == "" {
 		c.JSON(http.StatusNotFound, gin.H{
 			"success":      false,
@@ -249,11 +273,31 @@ func GetLogoImgHandler(c *gin.Context) {
 
 func GetAdminAllDataHandler(c *gin.Context) {
 	// 管理员获取全部数据，还有个用户名。
-	tools := service.GetAllTool()
-	catelogs := service.GetAllCatelog()
-	setting := service.GetSetting()
-	siteConfig := service.GetSiteConfig()
-	tokens := service.GetApiTokens()
+	tools, err := service.GetAllTool()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
+	catelogs, err := service.GetAllCatelog()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
+	setting, err := service.GetSetting()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
+	siteConfig, err := service.GetSiteConfig()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
+	tokens, err := service.GetApiTokens()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
 	userId, ok := c.Get("uid")
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -288,7 +332,11 @@ func LoginHandler(c *gin.Context) {
 		})
 		return
 	}
-	user := service.GetUser(data.Name)
+	user, err := service.GetUser(data.Name)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
 	if user.Name == "" {
 		c.JSON(200, gin.H{
 			"success":      false,
@@ -503,7 +551,11 @@ func UpdateCatelogHandler(c *gin.Context) {
 
 func ManifestHandler(c *gin.Context) {
 
-	setting := service.GetSetting()
+	setting, err := service.GetSetting()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
 	title := setting.Title
 
 	var icons = []gin.H{}
@@ -781,7 +833,11 @@ func GetFaviconFromApiHandler(c *gin.Context) {
 	}
 
 	// 获取站点配置
-	siteConfig := service.GetSiteConfig()
+	siteConfig, err := service.GetSiteConfig()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
 
 	// 获取 API 地址模板，始终可用
 	apiTemplate := siteConfig.FaviconApiTemplate
@@ -1276,7 +1332,11 @@ func UpdateLanguageHandler(c *gin.Context) {
 
 // GetDeploymentVersionHandler 获取当前部署版本号
 func GetDeploymentVersionHandler(c *gin.Context) {
-	version := service.GetDeploymentVersion()
+	version, err := service.GetDeploymentVersion()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"data": gin.H{
