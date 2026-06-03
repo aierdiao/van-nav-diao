@@ -43,6 +43,14 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean --release-notes=RELEASE_NOTES.md
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Inject Release Notes
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release edit "$TAG" --notes-file RELEASE_NOTES.md
+          echo "✅ Release Notes 已注入 $TAG"
