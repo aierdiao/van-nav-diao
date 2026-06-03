@@ -61,8 +61,14 @@ func GetImgBase64FromUrl(url string) string {
 	}
 	defer res.Body.Close()
 
-	// 读取获取的[]byte数据
-	data, _ := io.ReadAll(res.Body)
+	// 读取获取的[]byte数据（限制 5MB 防止 OOM）
+	const maxImageSize = 5 * 1024 * 1024
+	limitedReader := io.LimitReader(res.Body, maxImageSize+1)
+	data, err := io.ReadAll(limitedReader)
+	if err != nil || len(data) > maxImageSize {
+		logger.LogError("图片过大或读取失败: %s", url)
+		return ""
+	}
 
 	imageBase64 := base64.StdEncoding.EncodeToString(data)
 	return imageBase64

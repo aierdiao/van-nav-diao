@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"path/filepath"
+	"time"
 
 	_ "modernc.org/sqlite"
 
@@ -27,9 +28,18 @@ func InitDB() {
 	utils.PathExistsOrCreate("./data")
 	dir := "./data"
 	dbPath := filepath.Join(dir, "nav.db")
-	dbPath = dbPath + "?_journal=WAL&_timeout=5000&_busy_timeout=5000&_txlock=immediate"
+	dbPath = dbPath + "?_journal=WAL&_timeout=5000&_busy_timeout=5000&_txlock=immediate&_synchronous=NORMAL"
 	DB, err = sql.Open("sqlite", dbPath)
 	utils.CheckErr(err)
+
+	// 连接池配置：WAL 模式下支持读写并发，适当放大连接数
+	DB.SetMaxOpenConns(10)
+	DB.SetMaxIdleConns(10)
+	DB.SetConnMaxLifetime(0) // 永不过期，SQLite 文件锁自管理
+	DB.SetConnMaxIdleTime(5 * time.Minute)
+
+	// WAL 模式下设置同步级别为 NORMAL，兼顾性能与安全
+	DB.Exec("PRAGMA synchronous = NORMAL")
 
 	sql_create_table := `CREATE TABLE IF NOT EXISTS nav_user (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, password TEXT);`
 	_, err = DB.Exec(sql_create_table)
@@ -198,6 +208,15 @@ func InitDB() {
 		utils.CheckErr(err)
 	}
 	rows.Close()
+	// 性能优化：创建索引加速高频查询
+	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_img_url ON nav_img(url)`)
+	DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_img_url_unique ON nav_img(url)`)
+	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_token_value_disabled ON nav_api_token(value, disabled)`)
+	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_user_name ON nav_user(name)`)
+	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_table_catelog ON nav_table(catelog)`)
+	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_table_alive ON nav_table(is_alive)`)
+	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_table_sort ON nav_table(sort)`)
+
 	logger.LogInfo("数据库初始化成功💗")
 
 	cleanupEmptyCategories()

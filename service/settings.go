@@ -19,11 +19,19 @@ func GetSetting() (types.Setting, error) {
 }
 
 func UpdateSetting(data types.Setting) error {
-	return database.UpdateSettingRow(data)
+	err := database.UpdateSettingRow(data)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }
 
 func UpdateLanguage(language string) error {
-	return database.UpdateSettingLanguage(language)
+	err := database.UpdateSettingLanguage(language)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }
 
 // SyncDeploymentVersion 启动时同步部署版本号到数据库

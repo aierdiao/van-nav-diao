@@ -23,6 +23,22 @@ type LinkCheckResult struct {
 }
 
 // CheckAllLinks 并发检测所有链接，更新 DB 中的 is_alive，并返回结果
+// linkCheckClient 复用 HTTP 客户端（连接池 + TLS 缓存）
+var linkCheckClient = &http.Client{
+	Timeout: 5 * time.Second,
+	Transport: &http.Transport{
+		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+		MaxIdleConns:        20,
+		MaxIdleConnsPerHost: 10,
+	},
+	CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 5 {
+			return fmt.Errorf("too many redirects")
+		}
+		return nil
+	},
+}
+
 func CheckAllLinks() ([]LinkCheckResult, int, int) {
 	tools, err := database.GetAllToolsForCheck()
 	if err != nil {
@@ -43,20 +59,7 @@ func CheckAllLinks() ([]LinkCheckResult, int, int) {
 	sem := make(chan struct{}, concurrency)
 	var wg sync.WaitGroup
 
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-		Transport: &http.Transport{
-			TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
-			MaxIdleConns:        concurrency,
-			MaxIdleConnsPerHost: concurrency,
-		},
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= 5 {
-				return fmt.Errorf("too many redirects")
-			}
-			return nil
-		},
-	}
+	client := linkCheckClient
 
 	for i, tool := range tools {
 		wg.Add(1)
@@ -70,7 +73,6 @@ func CheckAllLinks() ([]LinkCheckResult, int, int) {
 			// 只处理 http/https 协议
 			if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
 				res.Alive = true
-				database.UpdateLinkHealth(id, true)
 				results[idx] = res
 				return
 			}
@@ -79,7 +81,6 @@ func CheckAllLinks() ([]LinkCheckResult, int, int) {
 			if err != nil {
 				res.Error = "构建请求失败"
 				res.Alive = false
-				database.UpdateLinkHealth(id, false)
 				results[idx] = res
 				return
 			}
@@ -108,7 +109,6 @@ func CheckAllLinks() ([]LinkCheckResult, int, int) {
 				respGet.Body.Close()
 				res.StatusCode = respGet.StatusCode
 				res.Alive = respGet.StatusCode >= 200 && respGet.StatusCode < 400
-				database.UpdateLinkHealth(id, res.Alive)
 				results[idx] = res
 				return
 			}
@@ -116,12 +116,20 @@ func CheckAllLinks() ([]LinkCheckResult, int, int) {
 
 			res.StatusCode = resp.StatusCode
 			res.Alive = resp.StatusCode >= 200 && resp.StatusCode < 400
-			database.UpdateLinkHealth(id, res.Alive)
 			results[idx] = res
 		}(i, tool.Id, tool.Url, tool.Title)
 	}
 
 	wg.Wait()
+
+	// 批量更新数据库（一次事务，而非 N 次独立 UPDATE）
+	batchUpdates := make([]struct{ Id int; Alive bool }, 0, len(results))
+	for _, r := range results {
+		batchUpdates = append(batchUpdates, struct{ Id int; Alive bool }{Id: r.Id, Alive: r.Alive})
+	}
+	if err := database.BatchUpdateLinkHealth(batchUpdates); err != nil {
+		logger.LogError("批量更新链接健康状态失败: %s", err)
+	}
 
 	var aliveCount, deadCount int
 	for _, r := range results {

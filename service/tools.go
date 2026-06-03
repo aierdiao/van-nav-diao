@@ -62,6 +62,7 @@ func ImportTools(data []types.Tool) ImportToolsResult {
 		}
 	}()
 
+	InvalidateAllDataCache()
 	return ImportToolsResult{Imported: imported, Skipped: skipped, Categories: catelogs}
 }
 
@@ -70,6 +71,7 @@ func UpdateTool(data types.UpdateToolDto) error {
 	if err != nil {
 		return err
 	}
+	InvalidateAllDataCache()
 	if data.Logo != "" {
 		go UpdateImg(data.Logo)
 	}
@@ -85,7 +87,7 @@ func AddTool(data types.AddToolDto) (int64, error) {
 		return 0, err
 	}
 	logger.LogInfo("新增工具: %s", data.Name)
-
+	InvalidateAllDataCache()
 	if data.Logo != "" {
 		go UpdateImg(data.Logo)
 	}
@@ -105,12 +107,17 @@ func UpdateToolIcon(id int64, logo string) error {
 	if err != nil {
 		return err
 	}
+	InvalidateAllDataCache()
 	UpdateImg(logo)
 	return nil
 }
 
 func UpdateToolsSort(updates []types.UpdateToolsSortDto) error {
-	return database.UpdateToolSortBatch(updates)
+	err := database.UpdateToolSortBatch(updates)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }
 
 func GetMaxSort() (int, error) {
@@ -118,9 +125,17 @@ func GetMaxSort() (int, error) {
 }
 
 func DeleteTool(id string) error {
-	return database.DeleteToolWithImage(id)
+	err := database.DeleteToolWithImage(id)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }
 
 func UpdateToolDesc(id int, desc string) error {
-	return database.UpdateToolDescription(id, desc)
+	err := database.UpdateToolDescription(id, desc)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }

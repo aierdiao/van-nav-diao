@@ -10,5 +10,9 @@ func GetSiteConfig() (types.SiteConfig, error) {
 }
 
 func UpdateSiteConfig(data types.SiteConfig) error {
-	return database.UpdateSiteConfigRow(data)
+	err := database.UpdateSiteConfigRow(data)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }

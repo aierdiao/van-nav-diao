@@ -6,24 +6,56 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mereith/nav/logger"
 	"github.com/mereith/nav/types"
 )
 
-func HasApiToken(token string) bool {
-	sql := `SELECT value FROM nav_api_token WHERE value = ? and disabled = 0`
-	rows, err := DB.Query(sql, token)
-	if err != nil {
-		return false
-	}
-	defer rows.Close()
+// ==================== API Token 内存缓存 ====================
 
-	for rows.Next() {
-		return true
+var (
+	apiTokenCache    sync.Map   // map[string]bool — 已启用的 token value 集合
+	apiTokenLoaded   bool       // 缓存是否已加载
+	apiTokenCacheMu  sync.Mutex // 保护加载/失效操作
+)
+
+// loadApiTokenCache 从数据库全量加载已启用的 Token 到内存
+func loadApiTokenCache() {
+	apiTokenCacheMu.Lock()
+	defer apiTokenCacheMu.Unlock()
+	// double-check: 可能另一个 goroutine 已经加载完毕
+	if apiTokenLoaded {
+		return
 	}
-	return false
+	tokens, err := GetAllActiveApiTokens()
+	if err != nil {
+		logger.LogError("加载 Token 缓存失败: %v", err)
+		return
+	}
+	// 清空旧缓存
+	apiTokenCache = sync.Map{}
+	for _, t := range tokens {
+		apiTokenCache.Store(t.Value, true)
+	}
+	apiTokenLoaded = true
+}
+
+// InvalidateApiTokenCache 使 Token 缓存失效（在增删 Token 后调用）
+func InvalidateApiTokenCache() {
+	apiTokenCacheMu.Lock()
+	defer apiTokenCacheMu.Unlock()
+	apiTokenLoaded = false
+	apiTokenCache = sync.Map{}
+}
+
+func HasApiToken(token string) bool {
+	if !apiTokenLoaded {
+		loadApiTokenCache()
+	}
+	_, ok := apiTokenCache.Load(token)
+	return ok
 }
 
 // ==================== 搜索引擎相关操作 ====================
@@ -586,6 +618,33 @@ func UpdateLinkHealth(id int, alive bool) error {
 	return err
 }
 
+// BatchUpdateLinkHealth 批量更新链接健康状态（单次事务，替代 N 次独立 UPDATE）
+func BatchUpdateLinkHealth(updates []struct{ Id int; Alive bool }) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(`UPDATE nav_table SET is_alive = ?, last_checked = ? WHERE id = ?`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	now := time.Now().Format("2006-01-02 15:04:05")
+	for _, u := range updates {
+		aliveInt := 0
+		if u.Alive {
+			aliveInt = 1
+		}
+		if _, err := stmt.Exec(aliveInt, now, u.Id); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
 // OrganizeDeadLinks 将失效链接的 sort 值设为最大值，使其排在末尾
 func OrganizeDeadLinks() (int, error) {
 	var maxSort int
@@ -686,6 +745,9 @@ func GetAllActiveApiTokens() ([]types.Token, error) {
 func InsertApiToken(token types.Token) error {
 	_, err := DB.Exec(`INSERT INTO nav_api_token (id, name, value, disabled) VALUES (?, ?, ?, ?)`,
 		token.Id, token.Name, token.Value, token.Disabled)
+	if err == nil {
+		InvalidateApiTokenCache()
+	}
 	return err
 }
 
@@ -698,6 +760,9 @@ func UpdateUserNameAndPassword(id int, name string, hashedPassword string) error
 // DisableApiToken 软删除 API Token（设为 disabled）
 func DisableApiToken(id string) error {
 	_, err := DB.Exec(`UPDATE nav_api_token SET disabled = 1 WHERE id = ?`, id)
+	if err == nil {
+		InvalidateApiTokenCache()
+	}
 	return err
 }
 
@@ -782,18 +847,19 @@ func UpdateToolRow(data types.UpdateToolDto) error {
 
 // DeleteToolWithImage 删除工具并清理关联图片缓存
 func DeleteToolWithImage(id string) error {
-	_, err := DB.Exec(`DELETE FROM nav_table WHERE id = ?`, id)
-	if err != nil {
-		return err
-	}
 	numberId, convErr := strconv.Atoi(id)
 	if convErr != nil {
-		return nil
+		return convErr
 	}
+	// 先查询 logo（在删除之前），再删除工具，最后清理图片缓存
 	var logo string
-	err = DB.QueryRow(`SELECT logo FROM nav_table WHERE id = ?`, numberId).Scan(&logo)
+	err := DB.QueryRow(`SELECT logo FROM nav_table WHERE id = ?`, numberId).Scan(&logo)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+	_, err = DB.Exec(`DELETE FROM nav_table WHERE id = ?`, id)
 	if err != nil {
-		return nil // 工具已删除，图片查询失败非致命
+		return err
 	}
 	if logo != "" {
 		urlEncoded := url.QueryEscape(logo)
@@ -1020,14 +1086,8 @@ func GetImageByUrl(urlEncoded string) (types.Img, bool, error) {
 
 // InsertImage 插入图片缓存（仅当不存在时）
 func InsertImage(urlEncoded, base64Value string) error {
-	var count int
-	if err := DB.QueryRow(`SELECT COUNT(*) FROM nav_img WHERE url = ?`, urlEncoded).Scan(&count); err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
-	_, err := DB.Exec(`INSERT INTO nav_img (url, value) VALUES (?, ?)`, urlEncoded, base64Value)
+	// 利用唯一索引 idx_img_url_unique，INSERT OR IGNORE 原子完成去重插入
+	_, err := DB.Exec(`INSERT OR IGNORE INTO nav_img (url, value) VALUES (?, ?)`, urlEncoded, base64Value)
 	return err
 }
 

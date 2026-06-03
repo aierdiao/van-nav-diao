@@ -134,6 +134,7 @@ func ImportFullConfig(req types.ImportConfigRequest) types.ImportConfigResponse 
 		result.Message = "全部导入成功"
 	}
 
+	InvalidateAllDataCache()
 	return result
 }
 
@@ -146,6 +147,7 @@ func OrganizeDeadLinks() (int, []types.Tool, []types.Catelog, types.Setting, typ
 	if err != nil {
 		return 0, nil, nil, types.Setting{}, types.SiteConfig{}, err
 	}
+	InvalidateAllDataCache()
 
 	tools, err := GetAllTool()
 	if err != nil {

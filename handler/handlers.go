@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mereith/nav/logger"
@@ -17,6 +18,16 @@ import (
 	"github.com/mereith/nav/types"
 	"github.com/mereith/nav/utils"
 	"golang.org/x/text/encoding/simplifiedchinese"
+)
+
+// 预编译正则表达式（避免请求热路径上重复编译）
+var (
+	reTitle            = regexp.MustCompile(`(?i)<title[^>]*>([^<]+)</title>`)
+	reCharset          = regexp.MustCompile(`(?i)charset=([^\s;]+)`)
+	reMetaCharset      = regexp.MustCompile(`(?i)<meta[^>]+charset=["']?([^\s"'>]+)`)
+	reMetaCharsetHTTP  = regexp.MustCompile(`(?i)<meta[^>]+http-equiv=["']?Content-Type["']?[^>]+content=["']?[^"]*charset=([^\s"'>]+)`)
+	reMetaNameFirst    = regexp.MustCompile(`(?i)<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']`)
+	reMetaContentFirst = regexp.MustCompile(`(?i)<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']`)
 )
 
 func ExportToolsHandler(c *gin.Context) {
@@ -182,17 +193,14 @@ func UpdateSiteConfigHandler(c *gin.Context) {
 }
 
 func GetAllHandler(c *gin.Context) {
-	tools, err := service.GetAllTool()
+	// 使用带 TTL 缓存的全量数据获取，降低 DB 查询频率
+	cached, err := service.GetAllDataCached()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
 		return
 	}
-	// 获取全部数据
-	catelogs, err := service.GetAllCatelog()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
-		return
-	}
+	tools := cached.Tools
+	catelogs := cached.Catelogs
 	isLogin := utils.IsLogin(c)
 	if !isLogin {
 		// 过滤掉隐藏工具
@@ -202,23 +210,13 @@ func GetAllHandler(c *gin.Context) {
 		// 过滤掉隐藏分类
 		catelogs = utils.FilterHideCates(catelogs)
 	}
-	setting, err := service.GetSetting()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
-		return
-	}
-	siteConfig, err := service.GetSiteConfig()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
-		return
-	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"data": gin.H{
 			"tools":      tools,
 			"catelogs":   catelogs,
-			"setting":    setting,
-			"siteConfig": siteConfig,
+			"setting":    cached.Setting,
+			"siteConfig": cached.SiteConfig,
 		},
 	})
 }
@@ -1030,17 +1028,23 @@ func FetchPageInfoHandler(c *gin.Context) {
 
 // extractMetaContent 从 HTML 中提取 meta 标签内容
 func extractMetaContent(html, name string) string {
-	// 匹配 <meta name="description" content="..."> 或 <meta content="..." name="description">
-	patterns := []string{
-		fmt.Sprintf(`<meta[^>]+name=["']%s["'][^>]+content=["']([^"']+)["']`, name),
-		fmt.Sprintf(`<meta[^>]+content=["']([^"']+)["'][^>]+name=["']%s["']`, name),
+	// 优先使用预编译正则（覆盖 description 这个 99% 调用场景）
+	if name == "description" {
+		if m := reMetaNameFirst.FindStringSubmatch(html); len(m) > 1 && strings.TrimSpace(m[1]) != "" {
+			return strings.TrimSpace(m[1])
+		}
+		if m := reMetaContentFirst.FindStringSubmatch(html); len(m) > 1 && strings.TrimSpace(m[1]) != "" {
+			return strings.TrimSpace(m[1])
+		}
+		return ""
 	}
-
-	for _, pattern := range patterns {
-		re := regexp.MustCompile(`(?i)` + pattern)
-		matches := re.FindStringSubmatch(html)
-		if len(matches) > 1 && strings.TrimSpace(matches[1]) != "" {
-			return strings.TrimSpace(matches[1])
+	// 其他 name 动态编译（极少触发）
+	p1 := fmt.Sprintf(`<meta[^>]+name=["']%s["'][^>]+content=["']([^"']+)["']`, name)
+	p2 := fmt.Sprintf(`<meta[^>]+content=["']([^"']+)["'][^>]+name=["']%s["']`, name)
+	for _, p := range []string{p1, p2} {
+		re := regexp.MustCompile("(?i)" + p)
+		if m := re.FindStringSubmatch(html); len(m) > 1 && strings.TrimSpace(m[1]) != "" {
+			return strings.TrimSpace(m[1])
 		}
 	}
 	return ""
@@ -1048,8 +1052,7 @@ func extractMetaContent(html, name string) string {
 
 // extractTitle 从 HTML 中提取 title 标签内容
 func extractTitle(html string) string {
-	re := regexp.MustCompile(`(?i)<title[^>]*>([^<]+)</title>`)
-	matches := re.FindStringSubmatch(html)
+	matches := reTitle.FindStringSubmatch(html)
 	if len(matches) > 1 {
 		return strings.TrimSpace(matches[1])
 	}
@@ -1101,21 +1104,12 @@ func decodeHTMLBody(body []byte, contentType string) string {
 
 // validUTF8 检查是否为有效的 UTF-8 编码
 func validUTF8(data []byte) bool {
-	for i := 0; i < len(data); {
-		if data[i] < 0x80 {
-			i++
-			continue
-		}
-		// 简单的 UTF-8 验证
-		return false
-	}
-	return true
+	return utf8.Valid(data)
 }
 
 // extractCharsetFromContentType 从 Content-Type header 提取 charset
 func extractCharsetFromContentType(contentType string) string {
-	re := regexp.MustCompile(`(?i)charset=([^\s;]+)`)
-	matches := re.FindStringSubmatch(contentType)
+	matches := reCharset.FindStringSubmatch(contentType)
 	if len(matches) > 1 {
 		return matches[1]
 	}
@@ -1124,20 +1118,14 @@ func extractCharsetFromContentType(contentType string) string {
 
 // extractCharsetFromMeta 从 HTML meta 标签提取编码
 func extractCharsetFromMeta(html string) string {
-	// 匹配 <meta charset="utf-8">
-	re := regexp.MustCompile(`(?i)<meta[^>]+charset=["']?([^\s"'>]+)`)
-	matches := re.FindStringSubmatch(html)
+	matches := reMetaCharset.FindStringSubmatch(html)
 	if len(matches) > 1 {
 		return matches[1]
 	}
-
-	// 匹配 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	re = regexp.MustCompile(`(?i)<meta[^>]+http-equiv=["']?Content-Type["']?[^>]+content=["']?[^"']*charset=([^\s"'>]+)`)
-	matches = re.FindStringSubmatch(html)
+	matches = reMetaCharsetHTTP.FindStringSubmatch(html)
 	if len(matches) > 1 {
 		return matches[1]
 	}
-
 	return ""
 }
 

@@ -10,11 +10,19 @@ func UpdateCatelog(data types.UpdateCatelogDto) error {
 	if err != nil {
 		return err
 	}
-	return database.UpdateCatelogWithTx(data.Id, oldName, data.Name, data.Sort, data.Hide)
+	err = database.UpdateCatelogWithTx(data.Id, oldName, data.Name, data.Sort, data.Hide)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }
 
 func AddCatelog(data types.AddCatelogDto) error {
-	return database.InsertNewCatelog(data.Name, data.Sort, data.Hide)
+	err := database.InsertNewCatelog(data.Name, data.Sort, data.Hide)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }
 
 func GetAllCatelog() ([]types.Catelog, error) {
@@ -22,5 +30,9 @@ func GetAllCatelog() ([]types.Catelog, error) {
 }
 
 func DeleteCatelog(id string) error {
-	return database.DeleteCatelogById(id)
+	err := database.DeleteCatelogById(id)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }

@@ -18,6 +18,7 @@ func AddSearchEngine(engine types.SearchEngine) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	InvalidateAllDataCache()
 	// 更新图片缓存
 	if engine.Logo != "" {
 		go UpdateImg(engine.Logo)
@@ -30,6 +31,7 @@ func UpdateSearchEngine(engine types.SearchEngine) error {
 	if err != nil {
 		return err
 	}
+	InvalidateAllDataCache()
 	// 更新图片缓存
 	if engine.Logo != "" {
 		go UpdateImg(engine.Logo)
@@ -38,19 +40,31 @@ func UpdateSearchEngine(engine types.SearchEngine) error {
 }
 
 func DeleteSearchEngine(id int) error {
-	return database.DeleteSearchEngine(id)
+	err := database.DeleteSearchEngine(id)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }
 
 func UpdateSearchEngineSort(sortData []struct {
 	Id   int `json:"id"`
 	Sort int `json:"sort"`
 }) error {
-	return database.UpdateSearchEngineSort(sortData)
+	err := database.UpdateSearchEngineSort(sortData)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }
 
 func UpdateCatelogSort(sortData []struct {
 	Id   int `json:"id"`
 	Sort int `json:"sort"`
 }) error {
-	return database.UpdateCatelogSort(sortData)
+	err := database.UpdateCatelogSort(sortData)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
 }

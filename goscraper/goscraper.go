@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/charset"
@@ -17,6 +18,17 @@ import (
 var (
 	EscapedFragment string = "_escaped_fragment_="
 	fragmentRegexp         = regexp.MustCompile("#!(.*)")
+
+	// 共享 HTTP 客户端（复用 TCP/TLS 连接，批量抓取时显著降低延迟）
+	scraperClient = &http.Client{
+		Timeout: 15 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+			MaxIdleConns:        50,
+			MaxIdleConnsPerHost: 5,
+			IdleConnTimeout:     90 * time.Second,
+		},
+	}
 )
 
 type Scraper struct {
@@ -125,13 +137,7 @@ func (scraper *Scraper) getDocument() (*Document, error) {
 	req.Header.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36")
 	req.Header.Add("Host", scraper.Url.Host)
 
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
-	}
-
-	resp, err := client.Do(req)
+	resp, err := scraperClient.Do(req)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
