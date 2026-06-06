@@ -26,6 +26,12 @@ body.dark-mode .github-link-box svg {
 body.dark-mode .github-link-box svg:hover {
   fill: #f1f1f1;
 }
+body.dark-mode .admin-link-box svg {
+  fill: white;
+}
+body.dark-mode .admin-link-box svg:hover {
+  fill: #f1f1f1;
+}
 body.dark-mode .theme-switch-box svg {
   fill: white;
 }

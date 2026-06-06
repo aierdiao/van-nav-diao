@@ -580,6 +580,7 @@ const zhCN: Record<string, string> = {
   "home.searchEngine.category": "搜索",
   "home.searchEngine.desc": "在 {name} 中搜索 「{query}」",
   "home.searchEngine.name": "使用 {name} 搜索",
+  "home.admin.button": "管理后台",
 };
 
 export default zhCN;

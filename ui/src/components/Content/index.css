@@ -23,6 +23,10 @@
     width: 22px;
     height: 22px;
   }
+  .admin-link-box svg {
+    width: 22px;
+    height: 22px;
+  }
   .theme-switch-box svg {
     width: 24px;
     height: 24px;
@@ -154,6 +158,10 @@
     width: 27px;
     height: 27px;
   }
+  .admin-link-box svg {
+    width: 27px;
+    height: 27px;
+  }
   .theme-switch-box svg {
     width: 30px;
     height: 30px;
@@ -281,6 +289,10 @@
     padding-top: 60px;
   }
   .github-link-box svg {
+    width: 27px;
+    height: 27px;
+  }
+  .admin-link-box svg {
     width: 27px;
     height: 27px;
   }
@@ -419,6 +431,10 @@
     padding-top: 80px;
   }
   .github-link-box svg {
+    width: 35px;
+    height: 35px;
+  }
+  .admin-link-box svg {
     width: 35px;
     height: 35px;
   }

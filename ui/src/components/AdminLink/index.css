@@ -1,0 +1,11 @@
+.admin-link-box {
+  cursor: pointer;
+}
+.admin-link-box svg {
+  fill: #3d3d3d;
+  transition: all 0.3s;
+}
+
+.admin-link-box svg:hover {
+  fill: #121212;
+}

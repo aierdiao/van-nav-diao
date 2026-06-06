@@ -8,6 +8,7 @@ import { FetchList } from "../../utils/api";
 import TagSelector from "../TagSelector";
 import pinyin from "pinyin-match";
 import GithubLink from "../GithubLink";
+import AdminLink from "../AdminLink";
 import DarkSwitch from "../DarkSwitch";
 import { isLogin } from "../../utils/check";
 import { generateSearchEngineCard } from "../../utils/serachEngine";
@@ -71,6 +72,11 @@ const Content = (props: any) => {
 
   const showGithub = useMemo(() => {
     const hide = data?.setting?.hideGithub === true
+    return !hide;
+  }, [data])
+
+  const showAdmin = useMemo(() => {
+    const hide = data?.setting?.hideAdmin === true;
     return !hide;
   }, [data])
 
@@ -309,6 +315,7 @@ const Content = (props: any) => {
         <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer">{data?.setting?.govRecord ?? ""}</a>
       </div>
       <div className="floating-actions">
+        {showAdmin && <AdminLink jumpTargetBlank={data?.setting?.jumpTargetBlank} />}
         {showGithub && <GithubLink />}
         <DarkSwitch showGithub={showGithub} />
       </div>

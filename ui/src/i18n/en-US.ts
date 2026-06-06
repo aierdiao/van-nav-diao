@@ -462,6 +462,7 @@ const enUS: Record<string, string> = {
   "home.searchEngine.category": "Search",
   "home.searchEngine.desc": "Search 「{query}」 in {name}",
   "home.searchEngine.name": "Search with {name}",
+  "home.admin.button": "Admin Panel",
 };
 
 export default enUS;
