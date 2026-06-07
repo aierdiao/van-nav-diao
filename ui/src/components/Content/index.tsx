@@ -6,7 +6,6 @@ import { Helmet } from "react-helmet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FetchList } from "../../utils/api";
 import TagSelector from "../TagSelector";
-import pinyin from "pinyin-match";
 import GithubLink from "../GithubLink";
 import AdminLink from "../AdminLink";
 import DarkSwitch from "../DarkSwitch";
@@ -37,14 +36,6 @@ const systemToolTranslations: Record<string, Record<string, string>> = {
     '点击切换跳转方式': 'Click to toggle jump target',
     '本导航站的管理后台哦': 'Admin panel for this navigation site',
   },
-};
-
-const mutiSearch = (s, t) => {
-  const source = (s as string).toLowerCase();
-  const target = t.toLowerCase();
-  const rawInclude = source.includes(target);
-  const pinYinInlcude = Boolean(pinyin.match(source, target));
-  return rawInclude || pinYinInlcude;
 };
 
 const Content = (props: any) => {
@@ -189,48 +180,46 @@ const Content = (props: any) => {
   }
 
   const filteredData = useMemo(() => {
-    if (data.tools) {
-      const localResult = data.tools
-        .filter((item: any) => {
-          if (currTag === '全部工具') {
-            return true;
-          }
-          return item.catelog === currTag;
-        })
-        .filter((item: any) => {
-          if (searchString === "") {
-            return true;
-          }
-          return (
-            mutiSearch(item.name, searchString) ||
-            mutiSearch(item.desc, searchString) ||
-            mutiSearch(item.url, searchString)
-          );
-        });
+    if (!data.tools) return [...searchEngineCards];
 
-      const sortByClicks = data?.siteConfig?.sortByClicks;
+    // 1. 分类过滤（零拼音开销）
+    const categoryFiltered = data.tools.filter((item: any) =>
+      currTag === '全部工具' || item.catelog === currTag
+    );
 
-      // 分支 1: 搜索中 + 智能排序开启 → 相关性主排序，点击分破局
-      if (searchString !== '' && sortByClicks) {
-        localResult.sort((a: any, b: any) => {
-          const relA = getSearchRelevanceScore(a, searchString);
-          const relB = getSearchRelevanceScore(b, searchString);
-          if (relA !== relB) return relB - relA;
-          return getTotalScore(b.id, b.created_at) - getTotalScore(a.id, a.created_at);
+    const sortByClicks = data?.siteConfig?.sortByClicks;
+
+    // 2. 搜索状态：Schwartzian Transform 一体化链路
+    if (searchString !== '') {
+      // O(N)：一次 map 完成拼音匹配 + 得分缓存，严格 N 次 getSearchRelevanceScore 调用
+      const scoredList = categoryFiltered
+        .map((item: any) => ({ item, relevanceScore: getSearchRelevanceScore(item, searchString) }))
+        .filter((node: any) => node.relevanceScore > 0);
+
+      // O(N log N)：纯数字标量比对，零拼音开销
+      if (sortByClicks) {
+        scoredList.sort((a: any, b: any) => {
+          if (a.relevanceScore !== b.relevanceScore) {
+            return b.relevanceScore - a.relevanceScore;
+          }
+          return getTotalScore(b.item.id, b.item.created_at) - getTotalScore(a.item.id, a.item.created_at);
         });
       }
-      // 分支 2: 非搜索 + 全部工具 + 智能排序开启 → 按综合得分
-      else if (searchString === '' && currTag === '全部工具' && sortByClicks) {
-        localResult.sort((a: any, b: any) =>
-          getTotalScore(b.id, b.created_at) - getTotalScore(a.id, a.created_at)
-        );
-      }
-      // 分支 3: 其他 → 保持后端原始排序
 
-      return [...localResult, ...searchEngineCards]
-    } else {
-      return [...searchEngineCards];
+      // 还原为原生数据结构供渲染
+      return [...scoredList.map((node: any) => node.item), ...searchEngineCards];
     }
+
+    // 3. 非搜索 + 全部工具 + 智能排序开启 → 按综合得分
+    if (currTag === '全部工具' && sortByClicks) {
+      const sorted = [...categoryFiltered].sort((a: any, b: any) =>
+        getTotalScore(b.id, b.created_at) - getTotalScore(a.id, a.created_at)
+      );
+      return [...sorted, ...searchEngineCards];
+    }
+
+    // 4. 其他 → 保持后端原始排序
+    return [...categoryFiltered, ...searchEngineCards];
   }, [data, currTag, searchString, searchEngineCards]);
 
   useEffect(() => {
