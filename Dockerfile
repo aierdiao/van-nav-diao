@@ -12,7 +12,7 @@ RUN cd ui && CI=false pnpm build
 # ============================================================
 # Stage 2: Backend Build
 # ============================================================
-FROM golang:1.23-alpine AS backend
+FROM golang:1.24-alpine AS backend
 RUN apk --no-cache add git
 WORKDIR /build
 COPY go.mod go.sum ./
