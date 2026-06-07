@@ -1,3 +1,32 @@
+## [v2.3.1] - 2026-06-07
+
+### Changed
+
+- **前端渲染性能全面优化**：INP（交互到下次渲染延迟）从 235ms 降至 16ms 以内。搜索输入增加 300ms 防抖，消除每次按键触发的全量拼音匹配重算；点击排序改为批量读取 localStorage（排序阶段从 ~9000 次 JSON.parse 降为 1 次）；卡片列表改为懒加载分批渲染（首屏 20 张 + 200ms 滚动节流），DOM 节点数从 ~5000 降至 ~600
+- **CardV2 组件精简**：移除冗余的图片加载状态机（3 个 useState + 3 个 useMemo + 1 个 setTimeout），改用浏览器原生 `loading="lazy"` + `decoding="async"`，配合 `React.memo` 避免无效重渲染
+- **强制同步布局消除**：窗口尺寸监听从 `resize` + `window.innerWidth` 改为 `matchMedia` 媒体查询，仅在跨越断点时触发回调，零 layout 读取
+- **暗色模式轮询优化**：DarkSwitch 从 10 秒 `setInterval` 改为 `matchMedia` 系统主题变化事件监听 + 5 分钟时间检查
+
+### Fixed
+
+- **静态资源缓存策略缺失**：`serve.go` 中 `http.FileServer` 裸直出未注入任何 `Cache-Control` 头。现根据资源类型差异化注入：`/static/js/` 和 `/static/css/` 注入 `immutable` 1 年强缓存；`.png` `.ico` `.webp` `.svg` 注入 30 天强缓存；其他静态文件 1 天强缓存
+- **SPA 回退 index.html 协商缓存失效**：原代码使用 `time.Now()` 作为 `http.ServeContent` 的 modtime，导致 `If-Modified-Since` 304 协商永远失败。现改为编译时注入的固定 `buildTime`，激活标准协商链路
+- **SearchBar useEffect 缺失依赖数组**：事件监听器在每次渲染时重复注册/注销，现已修复为仅挂载时注册一次
+
+### 风险提示
+
+本项目代码包含部分由 AI 自动生成与修改的逻辑。为确保数据资产安全，请在升级前务必对底层物理数据库（data/nav.db）进行完整备份，并自行评估导入风险。
+
+---
+
+## 升级注意事项
+
+1. 本次更新无数据库 schema 变更，升级后自动兼容
+2. 静态资源缓存策略变更：带哈希的 JS/CSS 文件首次加载后将被浏览器强缓存 1 年，如需强制刷新请使用 Ctrl+Shift+R
+3. `index.html` 的 `Last-Modified` 不再是实时时间，而是编译时固定时间戳，304 协商链路恢复正常
+
+---
+
 ## [v2.3.0] - 2026-06-07
 
 ### Added
