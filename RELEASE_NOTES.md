@@ -1,17 +1,11 @@
-## [v2.3.1] - 2026-06-07
-
-### Changed
-
-- **前端渲染性能全面优化**：INP（交互到下次渲染延迟）从 235ms 降至 16ms 以内。搜索输入增加 300ms 防抖，消除每次按键触发的全量拼音匹配重算；点击排序改为批量读取 localStorage（排序阶段从 ~9000 次 JSON.parse 降为 1 次）；卡片列表改为懒加载分批渲染（首屏 20 张 + 200ms 滚动节流），DOM 节点数从 ~5000 降至 ~600
-- **CardV2 组件精简**：移除冗余的图片加载状态机（3 个 useState + 3 个 useMemo + 1 个 setTimeout），改用浏览器原生 `loading="lazy"` + `decoding="async"`，配合 `React.memo` 避免无效重渲染
-- **强制同步布局消除**：窗口尺寸监听从 `resize` + `window.innerWidth` 改为 `matchMedia` 媒体查询，仅在跨越断点时触发回调，零 layout 读取
-- **暗色模式轮询优化**：DarkSwitch 从 10 秒 `setInterval` 改为 `matchMedia` 系统主题变化事件监听 + 5 分钟时间检查
+## [v2.3.2] - 2026-06-07
 
 ### Fixed
 
-- **静态资源缓存策略缺失**：`serve.go` 中 `http.FileServer` 裸直出未注入任何 `Cache-Control` 头。现根据资源类型差异化注入：`/static/js/` 和 `/static/css/` 注入 `immutable` 1 年强缓存；`.png` `.ico` `.webp` `.svg` 注入 30 天强缓存；其他静态文件 1 天强缓存
-- **SPA 回退 index.html 协商缓存失效**：原代码使用 `time.Now()` 作为 `http.ServeContent` 的 modtime，导致 `If-Modified-Since` 304 协商永远失败。现改为编译时注入的固定 `buildTime`，激活标准协商链路
-- **SearchBar useEffect 缺失依赖数组**：事件监听器在每次渲染时重复注册/注销，现已修复为仅挂载时注册一次
+- **管理后台删除全部工具后页面不刷新**：`GetAllToolRows` 和 `GetAllCatelogs` 在数据库无记录时返回 nil slice，JSON 序列化为 `null`，导致前端 `store?.tools` 判断为 false 跳过数据更新。修复为空结果返回 `[]`，并增加前端 `Array.isArray()` 防御性判断
+- **批量删除确认消息显示异常**：批量删除弹窗提示"确定要删除 {name} 吗？"但未传入 name 参数，现改为"确定要删除选中的工具吗？"
+- **GitHub CodeQL 全部安全告警清零**：修复 i18n 正则转义、sw-config.js ReDoS 正则、handler SSRF 风险（新增私有 IP 校验），补充 Workflow permissions 声明
+- **依赖安全升级**：`golang.org/x/crypto` v0.38.0 → v0.45.0，修复 CVE-2025-47914、CVE-2025-58181
 
 ### 风险提示
 
@@ -22,27 +16,4 @@
 ## 升级注意事项
 
 1. 本次更新无数据库 schema 变更，升级后自动兼容
-2. 静态资源缓存策略变更：带哈希的 JS/CSS 文件首次加载后将被浏览器强缓存 1 年，如需强制刷新请使用 Ctrl+Shift+R
-3. `index.html` 的 `Last-Modified` 不再是实时时间，而是编译时固定时间戳，304 协商链路恢复正常
-
----
-
-## [v2.3.0] - 2026-06-07
-
-### Added
-
-- **智能排序（按使用频率）**：后台"站点设置"新增开关，开启后"全部工具" Tab 将根据用户在当前浏览器中的点击频次自动重排。采用半衰期 30 天的时间衰减算法，近期常用工具优先展示；新工具享有 14 天冷启动曝光分，避免零点击沉底。点击数据存储于 localStorage，不同用户排序结果独立
-- **分词模糊搜索**：搜索框支持空格分隔多关键词，系统自动拆分为多个 Token 进行 AND 匹配。例如搜索"AB EF"可匹配名称为"ABCDEF"的工具（Token 分散命中）。每个 Token 独立在名称、描述、URL 三个维度中匹配，支持拼音
-- **搜索亲密分加成**：当搜索词完整出现在工具名称或描述中时，额外获得 +2000 分亲密权重，确保连续匹配的工具排在跨字段匹配之前
-
-### 风险提示
-
-本项目代码包含部分由 AI 自动生成与修改的逻辑。为确保数据资产安全，请在升级前务必对底层物理数据库（data/nav.db）进行完整备份，并自行评估导入风险。
-
----
-
-## 升级注意事项
-
-1. 本次更新新增 `nav_site_config.sortByClicks` 和 `nav_table.created_at` 两个数据库字段，迁移自动执行，无需手动操作
-2. 智能排序默认关闭，需在管理后台"设置 → 站点设置"手动开启
-3. 搜索逻辑升级为分词匹配，原有单关键词搜索行为不变，多关键词搜索体验增强
+2. 依赖 `golang.org/x/crypto` 已升级，建议验证 SSH 相关功能（如有）
