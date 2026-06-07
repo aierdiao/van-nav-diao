@@ -47,6 +47,7 @@ type Tool struct {
 	Hide        bool   `json:"hide"`
 	IsAlive     *bool  `json:"is_alive,omitempty"`
 	LastChecked string `json:"last_checked,omitempty"`
+	CreatedAt   string `json:"created_at,omitempty"`
 }
 
 type Catelog struct {
@@ -69,11 +70,12 @@ type SearchEngine struct {
 
 // 网站配置模型
 type SiteConfig struct {
-	Id                  int  `json:"id"`
-	NoImageMode         bool `json:"noImageMode"`
-	CompactMode         bool `json:"compactMode"`
-	FaviconApiEnabled   bool   `json:"faviconApiEnabled"`
-	FaviconApiTemplate  string `json:"faviconApiTemplate"`
+	Id                 int    `json:"id"`
+	NoImageMode        bool   `json:"noImageMode"`
+	CompactMode        bool   `json:"compactMode"`
+	FaviconApiEnabled  bool   `json:"faviconApiEnabled"`
+	FaviconApiTemplate string `json:"faviconApiTemplate"`
+	SortByClicks       bool   `json:"sortByClicks"`
 }
 
 // WebDAV 备份配置模型

@@ -14,6 +14,8 @@ import { isLogin } from "../../utils/check";
 import { generateSearchEngineCard } from "../../utils/serachEngine";
 import { toggleJumpTarget, syncJumpTargetFromServer } from "../../utils/setting";
 import { useTranslation } from "../../i18n";
+import { getTotalScore } from "../../utils/clickTracker";
+import { getSearchRelevanceScore } from "../../utils/searchScore";
 
 // 系统内置工具名称翻译映射（仅限前端硬编码的系统工具，不翻译用户数据）
 const systemToolTranslations: Record<string, Record<string, string>> = {
@@ -205,6 +207,26 @@ const Content = (props: any) => {
             mutiSearch(item.url, searchString)
           );
         });
+
+      const sortByClicks = data?.siteConfig?.sortByClicks;
+
+      // 分支 1: 搜索中 + 智能排序开启 → 相关性主排序，点击分破局
+      if (searchString !== '' && sortByClicks) {
+        localResult.sort((a: any, b: any) => {
+          const relA = getSearchRelevanceScore(a, searchString);
+          const relB = getSearchRelevanceScore(b, searchString);
+          if (relA !== relB) return relB - relA;
+          return getTotalScore(b.id, b.created_at) - getTotalScore(a.id, a.created_at);
+        });
+      }
+      // 分支 2: 非搜索 + 全部工具 + 智能排序开启 → 按综合得分
+      else if (searchString === '' && currTag === '全部工具' && sortByClicks) {
+        localResult.sort((a: any, b: any) =>
+          getTotalScore(b.id, b.created_at) - getTotalScore(a.id, a.created_at)
+        );
+      }
+      // 分支 3: 其他 → 保持后端原始排序
+
       return [...localResult, ...searchEngineCards]
     } else {
       return [...searchEngineCards];
@@ -231,6 +253,7 @@ const Content = (props: any) => {
     return filteredData.map((item, index) => {
       return (
         <CardV2
+          id={item.id}
           title={translateSystemTool(item.name)}
           url={item.url}
           des={translateSystemTool(item.desc)}

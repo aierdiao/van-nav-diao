@@ -408,6 +408,9 @@ const zhCN: Record<string, string> = {
   "admin.settings.config.faviconApiTemplateTooltip": "使用 {domain} 占位符表示工具主域名，默认使用 https://favicon.im/{domain}",
   "admin.settings.config.faviconApiTemplateRequired": "请输入 API 地址模板",
   "admin.settings.config.faviconApiTemplateValidator": "模板必须包含 {domain} 占位符",
+  "admin.settings.config.sortByClicks": "智能排序（按使用频率）",
+  "admin.settings.config.sortByClicksTooltip": "开启后，全部工具 Tab 将根据用户点击频率自动重排，新工具享有 14 天冷启动曝光",
+  "admin.settings.config.sortByClicksNote": "提示：开启后，系统将根据用户在当前浏览器中的点击频次进行个性化重排。由于点击数据存储于本地浏览器（localStorage），不同用户的排序结果将因其使用习惯而异。",
 
   // ---- 数据备份 ----
   "admin.settings.backup.title": "数据备份",

@@ -2,9 +2,10 @@ import { useMemo, useState, useEffect } from "react";
 import "./index.css";
 import { getLogoUrl } from "../../utils/check";
 import { getJumpTarget } from "../../utils/setting";
+import { recordClick } from "../../utils/clickTracker";
 import { useTranslation } from "../../i18n";
 
-const Card = ({ title, url, des, logo, catelog, onClick, index, isSearching, noImageMode, compactMode, jumpTargetBlank }: any) => {
+const Card = ({ id, title, url, des, logo, catelog, onClick, index, isSearching, noImageMode, compactMode, jumpTargetBlank }: any) => {
   const { t } = useTranslation();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -82,6 +83,9 @@ const Card = ({ title, url, des, logo, catelog, onClick, index, isSearching, noI
     <a
       href={url === "toggleJumpTarget" ? undefined : url}
       onClick={() => {
+        if (id && url !== "toggleJumpTarget" && url !== "admin") {
+          recordClick(id);
+        }
         onClick();
       }}
       target={getJumpTarget(jumpTargetBlank) === "blank" ? "_blank" : "_self"}

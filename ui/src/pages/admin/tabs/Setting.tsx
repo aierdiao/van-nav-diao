@@ -684,6 +684,14 @@ export const Setting: React.FC<SettingProps> = (props) => {
             <Form.Item label={t("admin.settings.config.compactMode")} name="compactMode" tooltip={t("admin.settings.config.compactModeTooltip")}>
               <Switch defaultChecked={Boolean(store?.siteConfig?.compactMode)} />
             </Form.Item>
+            <Form.Item label={t("admin.settings.config.sortByClicks")} tooltip={t("admin.settings.config.sortByClicksTooltip")}>
+              <Form.Item name="sortByClicks" valuePropName="checked" noStyle>
+                <Switch defaultChecked={Boolean(store?.siteConfig?.sortByClicks)} />
+              </Form.Item>
+              <span style={{ marginLeft: 12, fontSize: 12, color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)' }}>
+                {t("admin.settings.config.sortByClicksNote")}
+              </span>
+            </Form.Item>
             <Form.Item
               label={t("admin.settings.config.faviconApiTemplate")}
               name="faviconApiTemplate"

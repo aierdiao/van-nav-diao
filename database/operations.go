@@ -782,7 +782,7 @@ func ResetAdminPassword(hashedPassword string) error {
 
 // GetAllToolRows 查询所有工具（按 sort 排序）
 func GetAllToolRows() ([]types.Tool, error) {
-	rows, err := DB.Query(`SELECT id, name, url, logo, catelog, desc, sort, hide, is_alive, last_checked FROM nav_table ORDER BY sort`)
+	rows, err := DB.Query(`SELECT id, name, url, logo, catelog, desc, sort, hide, is_alive, last_checked, COALESCE(created_at, '2020-01-01 00:00:00') FROM nav_table ORDER BY sort`)
 	if err != nil {
 		return nil, err
 	}
@@ -791,7 +791,8 @@ func GetAllToolRows() ([]types.Tool, error) {
 	for rows.Next() {
 		var tool types.Tool
 		var hide, sortVal, isAlive, lastChecked interface{}
-		if err := rows.Scan(&tool.Id, &tool.Name, &tool.Url, &tool.Logo, &tool.Catelog, &tool.Desc, &sortVal, &hide, &isAlive, &lastChecked); err != nil {
+		var createdAt interface{}
+		if err := rows.Scan(&tool.Id, &tool.Name, &tool.Url, &tool.Logo, &tool.Catelog, &tool.Desc, &sortVal, &hide, &isAlive, &lastChecked, &createdAt); err != nil {
 			return nil, err
 		}
 		tool.Hide = hide != nil && hide.(int64) != 0
@@ -810,6 +811,9 @@ func GetAllToolRows() ([]types.Tool, error) {
 				tool.LastChecked = t.Format("2006-01-02 15:04:05")
 			}
 		}
+		if createdAt != nil {
+			tool.CreatedAt = createdAt.(string)
+		}
 		results = append(results, tool)
 	}
 	return results, nil
@@ -826,7 +830,7 @@ func InsertToolRow(data types.AddToolDto) (int64, error) {
 			tx.Rollback()
 		}
 	}()
-	result, err := tx.Exec(`INSERT INTO nav_table (name, url, logo, catelog, desc, sort, hide) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+	result, err := tx.Exec(`INSERT INTO nav_table (name, url, logo, catelog, desc, sort, hide, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
 		data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide)
 	if err != nil {
 		return 0, err
@@ -1046,10 +1050,10 @@ func SyncDeploymentVersion(version string) {
 // GetSiteConfigRow 查询站点配置行（含 NULL 安全转换）
 func GetSiteConfigRow() (types.SiteConfig, error) {
 	var cfg types.SiteConfig
-	var noImageMode, compactMode, faviconApiEnabled interface{}
+	var noImageMode, compactMode, faviconApiEnabled, sortByClicks interface{}
 	var faviconApiTemplate interface{}
-	err := DB.QueryRow(`SELECT id, noImageMode, compactMode, faviconApiEnabled, COALESCE(faviconApiTemplate, 'https://favicon.im/{domain}') FROM nav_site_config ORDER BY id ASC LIMIT 1`).Scan(
-		&cfg.Id, &noImageMode, &compactMode, &faviconApiEnabled, &faviconApiTemplate,
+	err := DB.QueryRow(`SELECT id, noImageMode, compactMode, faviconApiEnabled, COALESCE(faviconApiTemplate, 'https://favicon.im/{domain}'), COALESCE(sortByClicks, 0) FROM nav_site_config ORDER BY id ASC LIMIT 1`).Scan(
+		&cfg.Id, &noImageMode, &compactMode, &faviconApiEnabled, &faviconApiTemplate, &sortByClicks,
 	)
 	if err != nil {
 		return types.SiteConfig{Id: 1, FaviconApiEnabled: true, FaviconApiTemplate: "https://favicon.im/{domain}"}, err
@@ -1057,6 +1061,7 @@ func GetSiteConfigRow() (types.SiteConfig, error) {
 	cfg.NoImageMode = noImageMode != nil && noImageMode.(int64) != 0
 	cfg.CompactMode = compactMode != nil && compactMode.(int64) != 0
 	cfg.FaviconApiEnabled = faviconApiEnabled != nil && faviconApiEnabled.(int64) != 0
+	cfg.SortByClicks = sortByClicks != nil && sortByClicks.(int64) != 0
 	if faviconApiTemplate != nil {
 		cfg.FaviconApiTemplate = faviconApiTemplate.(string)
 	} else {
@@ -1067,8 +1072,8 @@ func GetSiteConfigRow() (types.SiteConfig, error) {
 
 // UpdateSiteConfigRow 更新站点配置行
 func UpdateSiteConfigRow(data types.SiteConfig) error {
-	_, err := DB.Exec(`UPDATE nav_site_config SET noImageMode=?, compactMode=?, faviconApiEnabled=?, faviconApiTemplate=? WHERE id=(SELECT id FROM nav_site_config ORDER BY id ASC LIMIT 1)`,
-		data.NoImageMode, data.CompactMode, data.FaviconApiEnabled, data.FaviconApiTemplate)
+	_, err := DB.Exec(`UPDATE nav_site_config SET noImageMode=?, compactMode=?, faviconApiEnabled=?, faviconApiTemplate=?, sortByClicks=? WHERE id=(SELECT id FROM nav_site_config ORDER BY id ASC LIMIT 1)`,
+		data.NoImageMode, data.CompactMode, data.FaviconApiEnabled, data.FaviconApiTemplate, data.SortByClicks)
 	return err
 }
 

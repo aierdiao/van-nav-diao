@@ -81,6 +81,10 @@ func InitDB() {
 	if !columnExists("nav_table", "hide") { DB.Exec(`ALTER TABLE nav_table ADD COLUMN hide BOOLEAN;`) }
 	if !columnExists("nav_table", "is_alive") { DB.Exec(`ALTER TABLE nav_table ADD COLUMN is_alive BOOLEAN DEFAULT 1;`) }
 	if !columnExists("nav_table", "last_checked") { DB.Exec(`ALTER TABLE nav_table ADD COLUMN last_checked DATETIME;`) }
+	if !columnExists("nav_table", "created_at") {
+		DB.Exec(`ALTER TABLE nav_table ADD COLUMN created_at TIMESTAMP;`)
+		DB.Exec(`UPDATE nav_table SET created_at = '2020-01-01 00:00:00' WHERE created_at IS NULL;`)
+	}
 
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_catelog (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);`
 	_, err = DB.Exec(sql_create_table)
@@ -118,6 +122,7 @@ func InitDB() {
 	if !columnExists("nav_site_config", "compactMode") { DB.Exec(`ALTER TABLE nav_site_config ADD COLUMN compactMode BOOLEAN NOT NULL DEFAULT 0;`) }
 	if !columnExists("nav_site_config", "faviconApiEnabled") { DB.Exec(`ALTER TABLE nav_site_config ADD COLUMN faviconApiEnabled BOOLEAN NOT NULL DEFAULT 0;`) }
 	if !columnExists("nav_site_config", "faviconApiTemplate") { DB.Exec(`ALTER TABLE nav_site_config ADD COLUMN faviconApiTemplate TEXT DEFAULT 'https://favicon.im/{domain}';`) }
+	if !columnExists("nav_site_config", "sortByClicks") { DB.Exec(`ALTER TABLE nav_site_config ADD COLUMN sortByClicks BOOLEAN NOT NULL DEFAULT 0;`) }
 
 	// WebDAV 备份配置表
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_backup_config (
