@@ -87,7 +87,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
 
   // 从 store 同步 dataSource
   useEffect(() => {
-    if (store?.catelogs) {
+    if (Array.isArray(store?.catelogs)) {
       setDataSource([...store.catelogs].sort((a: any, b: any) => a.sort - b.sort));
     }
   }, [store?.catelogs]);

@@ -477,7 +477,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
 
   // 在 useEffect 中初始化 dataSource
   useEffect(() => {
-    if (store?.tools) {
+    if (Array.isArray(store?.tools)) {
       const filteredData = store.tools
         .filter((item: any) => {
           let show = false;
@@ -507,7 +507,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           <span style={{ color: '#999', fontSize: 13 }}>{t("admin.tools.total", { count: store?.tools?.length ?? 0 })}</span>
           {selectedRows.length > 0 && (
             <Popconfirm
-              title={t("admin.tools.confirm.delete")}
+              title={t("admin.tools.confirm.deleteBulk")}
               onConfirm={() => {
                 handleBulkDelete();
               }}

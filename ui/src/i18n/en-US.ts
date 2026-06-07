@@ -85,6 +85,7 @@ const enUS: Record<string, string> = {
   "admin.tools.form.getDescNotFound": "No description found, please enter manually",
   "admin.tools.form.getDescFailed": "Failed to fetch description",
   "admin.tools.confirm.delete": "Are you sure you want to delete {name}?",
+  "admin.tools.confirm.deleteBulk": "Are you sure you want to delete the selected tools?",
   "admin.tools.msg.addSuccess": "Added successfully! Logo will refresh and load in 3 seconds!",
   "admin.tools.msg.addFailed": "Failed to add!",
   "admin.tools.msg.updateSuccess": "Updated successfully! Logo will refresh and load in 3 seconds!",

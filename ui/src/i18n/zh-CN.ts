@@ -121,6 +121,7 @@ const zhCN: Record<string, string> = {
 
   // 删除确认
   "admin.tools.confirm.delete": "确定要删除 {name} 吗？",
+  "admin.tools.confirm.deleteBulk": "确定要删除选中的工具吗？",
 
   // 操作结果消息
   "admin.tools.msg.addSuccess": "添加成功! Logo 将在 3 秒后刷新并加载！",

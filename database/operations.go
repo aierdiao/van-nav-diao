@@ -237,7 +237,7 @@ func GetAllCatelogs() ([]types.Catelog, error) {
 	}
 	defer rows.Close()
 
-	var catelogs []types.Catelog
+	catelogs := make([]types.Catelog, 0)
 	for rows.Next() {
 		var catelog types.Catelog
 		var hide interface{}
@@ -787,7 +787,7 @@ func GetAllToolRows() ([]types.Tool, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var results []types.Tool
+	results := make([]types.Tool, 0)
 	for rows.Next() {
 		var tool types.Tool
 		var hide, sortVal, isAlive, lastChecked interface{}
