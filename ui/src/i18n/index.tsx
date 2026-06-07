@@ -77,7 +77,7 @@ export const I18nProvider: React.FC<{ children: ReactNode; serverLang?: string }
     let text = messages[language]?.[key] || messages['zh-CN']?.[key] || key;
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
-        text = text.replace(new RegExp(`\{${k}\}`, 'g'), String(v));
+        text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
       });
     }
     return text;

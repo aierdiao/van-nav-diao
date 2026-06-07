@@ -23,7 +23,7 @@ var (
 	scraperClient = &http.Client{
 		Timeout: 15 * time.Second,
 		Transport: &http.Transport{
-			TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig:     &tls.Config{InsecureSkipVerify: true}, // codeql[go/disabled-certificate-check] — 抓取外部页面需兼容自签名证书
 			MaxIdleConns:        50,
 			MaxIdleConnsPerHost: 5,
 			IdleConnTimeout:     90 * time.Second,

@@ -27,7 +27,7 @@ type LinkCheckResult struct {
 var linkCheckClient = &http.Client{
 	Timeout: 5 * time.Second,
 	Transport: &http.Transport{
-		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true}, // codeql[go/disabled-certificate-check] — 导航站需兼容自签名/过期证书的外部站点
 		MaxIdleConns:        20,
 		MaxIdleConnsPerHost: 10,
 	},

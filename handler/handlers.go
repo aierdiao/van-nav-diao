@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -910,6 +911,25 @@ func FetchPageInfoHandler(c *gin.Context) {
 		urlStr = "https://" + urlStr
 	}
 
+	// SSRF 防护：校验目标地址不是内网/私有地址
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":      false,
+			"errorMessage": "无效的 URL 格式",
+		})
+		return
+	}
+	host := parsedURL.Hostname()
+	ip := net.ParseIP(host)
+	if ip != nil && (ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast()) {
+		c.JSON(http.StatusForbidden, gin.H{
+			"success":      false,
+			"errorMessage": "禁止请求内网地址",
+		})
+		return
+	}
+
 	// 浏览器 User-Agent，模拟真实浏览器请求
 	browserUA := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
@@ -917,7 +937,7 @@ func FetchPageInfoHandler(c *gin.Context) {
 		Timeout: 30 * time.Second,
 	}
 	client.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // codeql[go/disabled-certificate-check] — 页面信息抓取需兼容自签名证书
 	}
 
 	// 最多重试 1 次
