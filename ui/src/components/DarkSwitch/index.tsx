@@ -31,11 +31,30 @@ const DarkSwitch = ({ showGithub }: { showGithub: boolean }) => {
     // 广播主题变更，通知其他页面同步
     broadcastThemeChange();
     if (theme === "auto") {
-      currentTimer.timer = setInterval(() => {
+      // P7: 使用 matchMedia 监听系统主题变化，替代 10s 轮询
+      const mql = window.matchMedia('(prefers-color-scheme: dark)');
+      const onSystemThemeChange = () => {
         applyCurrentTheme("auto");
         broadcastThemeChange();
-      }, 10000);
+      };
+      mql.addEventListener('change', onSystemThemeChange);
+      // 时间因素检查（白天/夜间）用 5 分钟间隔，远低于原 10s
+      currentTimer.timer = setInterval(() => {
+        applyCurrentTheme("auto");
+      }, 5 * 60 * 1000);
+      // 存储 cleanup 函数供卸载时调用
+      currentTimer.cleanup = () => mql.removeEventListener('change', onSystemThemeChange);
     }
+    return () => {
+      if (currentTimer.timer) {
+        clearInterval(currentTimer.timer);
+        currentTimer.timer = null;
+      }
+      if (currentTimer.cleanup) {
+        currentTimer.cleanup();
+        currentTimer.cleanup = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
 

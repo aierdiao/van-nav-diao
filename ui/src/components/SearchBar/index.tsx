@@ -1,7 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useTranslation } from "../../i18n";
 import "./index.css";
-// import { useState } from 'react';
 
 interface SearchBarProps {
   setSearchText: (t: string) => void;
@@ -9,7 +8,8 @@ interface SearchBarProps {
 }
 const SearchBar = (props: SearchBarProps) => {
   const { t } = useTranslation();
-  const onKeyDown = (ev) => {
+
+  const onKeyDown = useCallback((ev: KeyboardEvent) => {
     const reg = /[a-zA-Z0-9]|[\u4e00-\u9fa5]/g;
     if (ev.code === "Enter" || reg.test(ev.key)) {
       const el = document.getElementById("search-bar");
@@ -17,13 +17,15 @@ const SearchBar = (props: SearchBarProps) => {
         el.focus();
       }
     }
-  }
+  }, []);
+
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.removeEventListener("keydown", onKeyDown)
-    }
-  })
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onKeyDown]);
+
   return (
     <div className="search span-3">
       <div className="search-wraper">
@@ -33,8 +35,7 @@ const SearchBar = (props: SearchBarProps) => {
           placeholder={t('home.search.placeholder')}
           value={props.searchString}
           onChange={(ev) => {
-            const v = ev.target.value
-            props.setSearchText(v);
+            props.setSearchText(ev.target.value);
           }}
         ></input>
       </div>

@@ -88,3 +88,39 @@ export function getTotalScore(toolId: number, createdAt?: string): number {
 
   return clickScore + newbieBoost;
 }
+
+/**
+ * 批量计算综合得分 — 一次性读取 localStorage，避免 sort 中 N·log(N) 次重复读取
+ * @param items 工具列表（需含 id 和可选 created_at）
+ * @returns Map<toolId, totalScore> 与单条 getTotalScore 计算结果完全一致
+ */
+export function batchGetTotalScores(
+  items: { id: number; created_at?: string }[]
+): Map<number, number> {
+  const clicks = loadClicks();
+  const now = Date.now();
+  const result = new Map<number, number>();
+
+  for (const item of items) {
+    const entry = clicks[String(item.id)];
+    let clickScore = 0;
+    if (entry) {
+      const elapsed = (now - entry.lastClick) / HALF_LIFE_MS;
+      clickScore = entry.score * Math.pow(DECAY, elapsed);
+    }
+
+    let newbieBoost = 0;
+    if (item.created_at) {
+      const createdTime = new Date(item.created_at).getTime();
+      if (!isNaN(createdTime)) {
+        const ageDays = (now - createdTime) / (24 * 60 * 60 * 1000);
+        if (ageDays >= 0 && ageDays < NEWBIE_PERIOD_DAYS) {
+          newbieBoost = BOOST_BASE * (1 - ageDays / NEWBIE_PERIOD_DAYS);
+        }
+      }
+    }
+
+    result.set(item.id, clickScore + newbieBoost);
+  }
+  return result;
+}

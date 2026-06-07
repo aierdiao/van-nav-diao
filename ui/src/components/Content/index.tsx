@@ -13,7 +13,7 @@ import { isLogin } from "../../utils/check";
 import { generateSearchEngineCard } from "../../utils/serachEngine";
 import { toggleJumpTarget, syncJumpTargetFromServer } from "../../utils/setting";
 import { useTranslation } from "../../i18n";
-import { getTotalScore } from "../../utils/clickTracker";
+import { batchGetTotalScores } from "../../utils/clickTracker";
 import { getSearchRelevanceScore } from "../../utils/searchScore";
 
 // 系统内置工具名称翻译映射（仅限前端硬编码的系统工具，不翻译用户数据）
@@ -52,15 +52,24 @@ const Content = (props: any) => {
   const [searchString, setSearchString] = useState("");
   const [val, setVal] = useState("");
   const [searchEngineCards, setSearchEngineCards] = useState<any[]>([]);
-  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1060 : true);
+  const [isDesktop, setIsDesktop] = useState(true);
 
   const filteredDataRef = useRef<any>([]);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const VISIBLE_BATCH = 20;
+  const [visibleCount, setVisibleCount] = useState(VISIBLE_BATCH);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // 监听窗口大小变化
+  // P3: 使用 matchMedia 替代 resize 事件，零 Forcing
   useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1060);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const mql = window.matchMedia('(min-width: 1060px)');
+    setIsDesktop(mql.matches);
+    const handler = (e: MediaQueryListEvent) => {
+      setIsDesktop(e.matches);
+    };
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
   }, []);
 
   const showGithub = useMemo(() => {
@@ -170,14 +179,32 @@ const Content = (props: any) => {
     }
   };
 
-  const handleSetSearch = (val: string) => {
-    if (val !== "" && val) {
-      setCurrTag('全部工具');
-      setSearchString(val.trim());
-    } else {
-      resetSearch();
+  // P1: 防抖搜索 — 300ms 延迟触发实际搜索，输入框即时响应
+  const handleSetSearchText = useCallback((text: string) => {
+    setVal(text);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
     }
-  }
+    if (text.trim() !== "") {
+      debounceTimerRef.current = setTimeout(() => {
+        setCurrTag('全部工具');
+        setSearchString(text.trim());
+      }, 300);
+    } else {
+      debounceTimerRef.current = setTimeout(() => {
+        resetSearch();
+      }, 300);
+    }
+  }, []);
+
+  // 组件卸载时清除防抖计时器，严防内存泄漏
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   const filteredData = useMemo(() => {
     if (!data.tools) return [...searchEngineCards];
@@ -198,11 +225,13 @@ const Content = (props: any) => {
 
       // O(N log N)：纯数字标量比对，零拼音开销
       if (sortByClicks) {
+        // P2: 一次性批量计算点击分，避免 sort 中 N·log(N) 次 localStorage 读取
+        const scoreMap = batchGetTotalScores(scoredList.map((n: any) => n.item));
         scoredList.sort((a: any, b: any) => {
           if (a.relevanceScore !== b.relevanceScore) {
             return b.relevanceScore - a.relevanceScore;
           }
-          return getTotalScore(b.item.id, b.item.created_at) - getTotalScore(a.item.id, a.item.created_at);
+          return (scoreMap.get(b.item.id) || 0) - (scoreMap.get(a.item.id) || 0);
         });
       }
 
@@ -212,8 +241,10 @@ const Content = (props: any) => {
 
     // 3. 非搜索 + 全部工具 + 智能排序开启 → 按综合得分
     if (currTag === '全部工具' && sortByClicks) {
+      // P2: 批量计算一次，sort 中零 localStorage 开销
+      const scoreMap = batchGetTotalScores(categoryFiltered);
       const sorted = [...categoryFiltered].sort((a: any, b: any) =>
-        getTotalScore(b.id, b.created_at) - getTotalScore(a.id, a.created_at)
+        (scoreMap.get(b.id) || 0) - (scoreMap.get(a.id) || 0)
       );
       return [...sorted, ...searchEngineCards];
     }
@@ -239,7 +270,9 @@ const Content = (props: any) => {
   }, [searchString])
 
   const renderCardsV2 = useCallback(() => {
-    return filteredData.map((item, index) => {
+    // P4: 懒加载 — 只渲染 visibleCount 个卡片
+    const visibleItems = filteredData.slice(0, visibleCount);
+    return visibleItems.map((item: any, index: number) => {
       return (
         <CardV2
           id={item.id}
@@ -265,7 +298,31 @@ const Content = (props: any) => {
       );
     });
     // eslint-disable-next-line
-  }, [filteredData, searchString, data?.siteConfig?.noImageMode, data?.siteConfig?.compactMode]);
+  // eslint-disable-next-line
+  }, [filteredData, visibleCount, searchString, data?.siteConfig?.noImageMode, data?.siteConfig?.compactMode]);
+
+  // P4: 当 filteredData 变化时重置可见批次数量
+  useEffect(() => {
+    setVisibleCount(VISIBLE_BATCH);
+  }, [currTag, searchString]);
+
+  // P4: 滚动触底自动加载更多卡片（passive 事件，零性能影响）
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+    let isThrottled = false;
+    const handleScroll = () => {
+      if (isThrottled) return;
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      if (scrollHeight - scrollTop - clientHeight < 300) {
+        isThrottled = true;
+        setVisibleCount((prev) => Math.min(prev + VISIBLE_BATCH, filteredData.length));
+        setTimeout(() => { isThrottled = false; }, 200);
+      }
+    };
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [filteredData.length]);
 
   const onKeyEnter = (ev: KeyboardEvent) => {
     const cards = filteredDataRef.current;
@@ -306,10 +363,7 @@ const Content = (props: any) => {
         <div className="content">
           <SearchBar
             searchString={val}
-            setSearchText={(t) => {
-              setVal(t);
-              handleSetSearch(t);
-            }}
+            setSearchText={handleSetSearchText}
           />
           <TagSelector
             tags={data?.catelogs ?? ['全部工具']}
@@ -318,7 +372,7 @@ const Content = (props: any) => {
           />
         </div>
       </div>
-      <div className="content-wraper">
+      <div className="content-wraper" ref={contentRef}>
         <div className={`content cards ${data?.siteConfig?.compactMode ? 'compact-grid' : ''}`} style={gridStyle}>
           {loading ? <Loading></Loading> : renderCardsV2()}
         </div>
