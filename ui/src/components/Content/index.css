@@ -81,7 +81,7 @@
     margin-bottom: 14px;
   }
   .tag-selector {
-    margin-bottom: 12px;
+    margin-bottom: 0;
   }
   .content {
     display: grid;
@@ -216,7 +216,7 @@
     margin-bottom: 18px;
   }
   .tag-selector {
-    margin-bottom: 14px;
+    margin-bottom: 0;
   }
 
   .content {
@@ -345,7 +345,7 @@
     color: var(--van-nav-text-secondary);
   }
   .tag-selector {
-    margin-bottom: 16px;
+    margin-bottom: 0;
   }
 
   .content {
@@ -498,7 +498,7 @@
   }
 
   .tag-selector {
-    margin-bottom: 20px;
+    margin-bottom: 0;
   }
   .card-box {
     display: flex;
@@ -591,6 +591,7 @@
 .content-wraper {
   min-height: 100vh;
   padding-bottom: 60px;
+  padding-top: 4px;
 }
 .cards {
   padding-top: 10px;
