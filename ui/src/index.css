@@ -46,18 +46,7 @@ code {
     monospace;
 }
 
-/* 暗色模式CSS变量覆盖 */
-body.dark-mode {
-  --van-nav-primary: #1668dc;
-  --van-nav-bg-base: #141414;
-  --van-nav-bg-card: #222222;
-  --van-nav-text-primary: rgba(255, 255, 255, 0.85);
-  --van-nav-text-secondary: rgba(255, 255, 255, 0.65);
-  --van-nav-border: #424242;
-  
-  background-color: var(--van-nav-bg-base);
-  color: var(--van-nav-text-primary);
-}
+
 
 body.dark-mode .github-link-box svg {
   fill: white;

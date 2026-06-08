@@ -96,7 +96,6 @@ export interface ThemeTypography {
 export interface ThemeConfig {
   version: string;
   colors: ThemeColors;
-  colorsDark: ThemeColors;
   layout: ThemeLayout;
   typography: ThemeTypography;
   customCSS: string;
@@ -118,8 +117,7 @@ export const getCurrentThemeConfig = (): ThemeConfig | null => {
 // 应用主题CSS变量到:root
 export const applyThemeVars = (config: ThemeConfig) => {
   const root = document.documentElement;
-  const isDark = document.body.classList.contains('dark-mode');
-  const colors = isDark ? config.colorsDark : config.colors;
+  const colors = config.colors;
   
   // 应用色彩变量
   root.style.setProperty('--van-nav-primary', colors.primary);

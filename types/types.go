@@ -130,7 +130,6 @@ type ThemeTypography struct {
 type ThemeConfig struct {
 	Version    string         `json:"version"`
 	Colors     ThemeColors    `json:"colors"`
-	ColorsDark ThemeColors    `json:"colorsDark"`
 	Layout     ThemeLayout    `json:"layout"`
 	Typography ThemeTypography `json:"typography"`
 	CustomCSS  string         `json:"customCSS"`

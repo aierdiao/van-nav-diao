@@ -20,14 +20,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textSecondary: "#666666",
         border: "#e8e8e8",
       },
-      colorsDark: {
-        primary: "#177ddc",
-        bgBase: "#0a1929",
-        bgCard: "#0d2137",
-        textPrimary: "#e6e6e6",
-        textSecondary: "#8c8c8c",
-        border: "#173855",
-      },
       layout: {
         cardBorderRadius: "8px",
         cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
@@ -55,14 +47,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textPrimary: "#1f1f1f",
         textSecondary: "#666666",
         border: "#d3adf7",
-      },
-      colorsDark: {
-        primary: "#9254de",
-        bgBase: "#1a0a2e",
-        bgCard: "#2d1650",
-        textPrimary: "#e6e6e6",
-        textSecondary: "#8c8c8c",
-        border: "#51258f",
       },
       layout: {
         cardBorderRadius: "12px",
@@ -92,14 +76,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textSecondary: "#8c8c8c",
         border: "#e0e0e0",
       },
-      colorsDark: {
-        primary: "#8c8c8c",
-        bgBase: "#0a0a0a",
-        bgCard: "#1a1a1a",
-        textPrimary: "#d9d9d9",
-        textSecondary: "#666666",
-        border: "#303030",
-      },
       layout: {
         cardBorderRadius: "4px",
         cardShadow: "none",
@@ -127,14 +103,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textPrimary: "#1f1f1f",
         textSecondary: "#666666",
         border: "#b7eb8f",
-      },
-      colorsDark: {
-        primary: "#49aa19",
-        bgBase: "#0a1a0a",
-        bgCard: "#112211",
-        textPrimary: "#e6e6e6",
-        textSecondary: "#8c8c8c",
-        border: "#1a3a1a",
       },
       layout: {
         cardBorderRadius: "10px",
@@ -164,14 +132,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textSecondary: "#666666",
         border: "#ffd591",
       },
-      colorsDark: {
-        primary: "#d87a16",
-        bgBase: "#1a1000",
-        bgCard: "#2b1a00",
-        textPrimary: "#e6e6e6",
-        textSecondary: "#8c8c8c",
-        border: "#4a2a00",
-      },
       layout: {
         cardBorderRadius: "12px",
         cardShadow: "0 2px 8px rgba(212,107,8,0.08)",
@@ -199,14 +159,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textPrimary: "#1f1f1f",
         textSecondary: "#666666",
         border: "#ffadd2",
-      },
-      colorsDark: {
-        primary: "#c41d7f",
-        bgBase: "#1a0a14",
-        bgCard: "#2d1620",
-        textPrimary: "#e6e6e6",
-        textSecondary: "#8c8c8c",
-        border: "#512540",
       },
       layout: {
         cardBorderRadius: "16px",
@@ -292,14 +244,6 @@ export const Theme: React.FC<ThemeProps> = () => {
           textSecondary: colorToHex(values.colors?.textSecondary, "#000000a6"),
           border: colorToHex(values.colors?.border, "#d9d9d9"),
         },
-        colorsDark: {
-          primary: colorToHex(values.colorsDark?.primary, "#1668dc"),
-          bgBase: colorToHex(values.colorsDark?.bgBase, "#141414"),
-          bgCard: colorToHex(values.colorsDark?.bgCard, "#222222"),
-          textPrimary: colorToHex(values.colorsDark?.textPrimary, "#ffffffe0"),
-          textSecondary: colorToHex(values.colorsDark?.textSecondary, "#ffffffa6"),
-          border: colorToHex(values.colorsDark?.border, "#424242"),
-        },
         layout: values.layout || {},
         typography: values.typography || {},
         customCSS: values.customCSS || "",
@@ -383,7 +327,7 @@ export const Theme: React.FC<ThemeProps> = () => {
                     width: 16,
                     height: 16,
                     borderRadius: 4,
-                    backgroundColor: isDark ? preset.config.colorsDark.primary : preset.config.colors.primary,
+                    backgroundColor: preset.config.colors.primary,
                   }}
                 />
                 {preset.name}
@@ -406,14 +350,6 @@ export const Theme: React.FC<ThemeProps> = () => {
               textSecondary: "#000000a6",
               border: "#d9d9d9",
             },
-            colorsDark: {
-              primary: "#1668dc",
-              bgBase: "#141414",
-              bgCard: "#1f1f1f",
-              textPrimary: "#ffffffe0",
-              textSecondary: "#ffffffa6",
-              border: "#424242",
-            },
             layout: {
               cardBorderRadius: "8px",
               cardShadow: "0 1px 2px 0 rgba(0,0,0,0.03), 0 1px 6px -1px rgba(0,0,0,0.02), 0 2px 4px 0 rgba(0,0,0,0.02)",
@@ -430,8 +366,8 @@ export const Theme: React.FC<ThemeProps> = () => {
             customCSS: "",
           }}
         >
-          {/* 亮色主题色彩配置 */}
-          <Card title="亮色主题色彩" style={{ marginBottom: 24 }}>
+          {/* 主题色彩配置 */}
+          <Card title="主题色彩" style={{ marginBottom: 24 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
               <Form.Item name={["colors", "primary"]} label="主色调">
                 <ColorPicker showText />
@@ -449,30 +385,6 @@ export const Theme: React.FC<ThemeProps> = () => {
                 <ColorPicker showText />
               </Form.Item>
               <Form.Item name={["colors", "border"]} label="边框颜色">
-                <ColorPicker showText />
-              </Form.Item>
-            </div>
-          </Card>
-
-          {/* 暗色主题色彩配置 */}
-          <Card title="暗色主题色彩" style={{ marginBottom: 24 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
-              <Form.Item name={["colorsDark", "primary"]} label="主色调">
-                <ColorPicker showText />
-              </Form.Item>
-              <Form.Item name={["colorsDark", "bgBase"]} label="页面背景色">
-                <ColorPicker showText />
-              </Form.Item>
-              <Form.Item name={["colorsDark", "bgCard"]} label="卡片背景色">
-                <ColorPicker showText />
-              </Form.Item>
-              <Form.Item name={["colorsDark", "textPrimary"]} label="主文字颜色">
-                <ColorPicker showText />
-              </Form.Item>
-              <Form.Item name={["colorsDark", "textSecondary"]} label="次文字颜色">
-                <ColorPicker showText />
-              </Form.Item>
-              <Form.Item name={["colorsDark", "border"]} label="边框颜色">
                 <ColorPicker showText />
               </Form.Item>
             </div>

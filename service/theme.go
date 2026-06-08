@@ -45,14 +45,7 @@ func getDefaultThemeConfig() types.ThemeConfig {
 			TextSecondary: "#000000a6",
 			Border:        "#d9d9d9",
 		},
-		ColorsDark: types.ThemeColors{
-			Primary:       "#1668dc",
-			BgBase:        "#141414",
-			BgCard:        "#1f1f1f",
-			TextPrimary:   "#ffffffe0",
-			TextSecondary: "#ffffffa6",
-			Border:        "#424242",
-		},
+
 		Layout: types.ThemeLayout{
 			CardBorderRadius: "8px",
 			CardShadow:       "0 1px 2px 0 rgba(0,0,0,0.03), 0 1px 6px -1px rgba(0,0,0,0.02), 0 2px 4px 0 rgba(0,0,0,0.02)",
@@ -139,17 +132,6 @@ func validateThemeConfig(config *types.ThemeConfig) error {
 		return fmt.Errorf("亮色主题卡片背景色格式无效")
 	}
 	
-	// 校验暗色主题颜色
-	if !colorPattern.MatchString(config.ColorsDark.Primary) {
-		return fmt.Errorf("暗色主题主色调格式无效")
-	}
-	if !colorPattern.MatchString(config.ColorsDark.BgBase) {
-		return fmt.Errorf("暗色主题背景色格式无效")
-	}
-	if !colorPattern.MatchString(config.ColorsDark.BgCard) {
-		return fmt.Errorf("暗色主题卡片背景色格式无效")
-	}
-	
 	// 校验布局数值（使用正则提取数字）
 	pxPattern := regexp.MustCompile(`^(\d+(?:\.\d+)?)px$`)
 	
@@ -200,27 +182,6 @@ func GetThemeConfig() (*types.ThemeConfig, error) {
 		}
 	}
 	
-	// 解析colorsDark
-	if colorsDark, ok := configMap["colorsDark"].(map[string]interface{}); ok {
-		if v, ok := colorsDark["primary"].(string); ok {
-			config.ColorsDark.Primary = v
-		}
-		if v, ok := colorsDark["bgBase"].(string); ok {
-			config.ColorsDark.BgBase = v
-		}
-		if v, ok := colorsDark["bgCard"].(string); ok {
-			config.ColorsDark.BgCard = v
-		}
-		if v, ok := colorsDark["textPrimary"].(string); ok {
-			config.ColorsDark.TextPrimary = v
-		}
-		if v, ok := colorsDark["textSecondary"].(string); ok {
-			config.ColorsDark.TextSecondary = v
-		}
-		if v, ok := colorsDark["border"].(string); ok {
-			config.ColorsDark.Border = v
-		}
-	}
 	
 	// 解析layout
 	if layout, ok := configMap["layout"].(map[string]interface{}); ok {
@@ -298,14 +259,7 @@ func SaveThemeConfig(config types.ThemeConfig) error {
 			"textSecondary": config.Colors.TextSecondary,
 			"border":        config.Colors.Border,
 		},
-		"colorsDark": map[string]interface{}{
-			"primary":       config.ColorsDark.Primary,
-			"bgBase":        config.ColorsDark.BgBase,
-			"bgCard":        config.ColorsDark.BgCard,
-			"textPrimary":   config.ColorsDark.TextPrimary,
-			"textSecondary": config.ColorsDark.TextSecondary,
-			"border":        config.ColorsDark.Border,
-		},
+
 		"layout": map[string]interface{}{
 			"cardBorderRadius": config.Layout.CardBorderRadius,
 			"cardShadow":       config.Layout.CardShadow,
