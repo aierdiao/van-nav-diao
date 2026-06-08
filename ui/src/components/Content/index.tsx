@@ -58,7 +58,6 @@ const Content = (props: any) => {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const VISIBLE_BATCH = 20;
   const [visibleCount, setVisibleCount] = useState(VISIBLE_BATCH);
-  const contentRef = useRef<HTMLDivElement>(null);
 
   // 监听窗口大小变化
   // P3: 使用 matchMedia 替代 resize 事件，零 Forcing
@@ -189,7 +188,7 @@ const Content = (props: any) => {
       debounceTimerRef.current = setTimeout(() => {
         setSearchString(text.trim());
         // 搜索时滚到顶部，避免结果被sticky搜索栏遮挡
-        window.scrollTo({ top: 0 });
+        requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
       }, 300);
     } else {
       debounceTimerRef.current = setTimeout(() => {
@@ -373,7 +372,7 @@ const Content = (props: any) => {
           />
         </div>
       </div>
-      <div className="content-wraper" ref={contentRef}>
+      <div className="content-wraper">
         <div className={`content cards ${data?.siteConfig?.compactMode ? 'compact-grid' : ''}`} style={gridStyle}>
           {loading ? <Loading></Loading> : renderCardsV2()}
         </div>
