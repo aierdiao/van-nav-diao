@@ -164,6 +164,32 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
       customCSS: "",
     },
   },
+  gradientGlass: {
+    name: "渐变毛玻璃",
+    config: {
+      version: "1.0",
+      colors: {
+        primary: "#74b9ff",
+        bgBase: "#f0f2f5",
+        bgCard: "#ffffff",
+        textPrimary: "#1f1f1f",
+        textSecondary: "#666666",
+        border: "#e8e8e8",
+      },
+      layout: {
+        cardBorderRadius: "16px",
+        cardShadow: "0 8px 32px rgba(0,0,0,0.05)",
+        cardPadding: "16px",
+        cardGap: "16px",
+      },
+      typography: {
+        titleFontSize: "15px",
+        titleFontWeight: "600",
+        descFontSize: "13px",
+      },
+      customCSS: "/* 1. 全局渐变背景 */\nbody {\n  background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 50%, #fd79a8 100%) !important;\n  background-attachment: fixed !important;\n}\n\n/* 2. 顶栏透明化 */\n.topbar {\n  background: transparent !important;\n  backdrop-filter: none !important;\n  -webkit-backdrop-filter: none !important;\n  border: none !important;\n  box-shadow: none !important;\n  z-index: 10000 !important;\n}\n\n/* 搜索框毛玻璃 */\n.topbar input {\n  background: rgba(255, 255, 255, 0.25) !important;\n  backdrop-filter: blur(16px) !important;\n  -webkit-backdrop-filter: blur(16px) !important;\n  border: 1px solid rgba(255, 255, 255, 0.3) !important;\n  color: #ffffff !important;\n}\n.topbar input::placeholder {\n  color: rgba(255, 255, 255, 0.6) !important;\n}\n\n/* 分类标签 */\n.select-tag {\n  background: rgba(255, 255, 255, 0.15) !important;\n  backdrop-filter: blur(10px) !important;\n  -webkit-backdrop-filter: blur(10px) !important;\n  border: 1px solid rgba(255, 255, 255, 0.2) !important;\n  color: #ffffff !important;\n}\n.select-tag-active {\n  background: rgba(255, 255, 255, 0.45) !important;\n  border: 1px solid rgba(255, 255, 255, 0.55) !important;\n  color: #ffffff !important;\n}\n\n/* 3. 色彩消隐盾 */\n.content-wraper {\n  background: transparent !important;\n  backdrop-filter: none !important;\n  -webkit-backdrop-filter: none !important;\n  position: relative !important;\n}\n.content-wraper::before {\n  content: \"\" !important;\n  position: fixed !important;\n  top: 0 !important;\n  left: 0 !important;\n  width: 100% !important;\n  height: 190px !important;\n  background: linear-gradient(to bottom, rgba(116, 185, 255, 1) 0%, rgba(116, 185, 255, 0.9) 50%, rgba(116, 185, 255, 0) 100%) !important;\n  z-index: 9990 !important;\n  pointer-events: none !important;\n}\nbody.dark-mode .content-wraper::before {\n  background: linear-gradient(to bottom, rgba(15, 23, 42, 1) 0%, rgba(15, 23, 42, 0.9) 50%, rgba(15, 23, 42, 0) 100%) !important;\n}\n\n/* 4. 工具卡片毛玻璃 */\n.card-box {\n  background: rgba(255, 255, 255, 0.25) !important;\n  backdrop-filter: blur(20px) !important;\n  -webkit-backdrop-filter: blur(20px) !important;\n  border: 1px solid rgba(255, 255, 255, 0.25) !important;\n  border-radius: 16px !important;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;\n  transition: transform 0.2s ease-in-out;\n}\n.card-box:hover {\n  background: rgba(255, 255, 255, 0.35) !important;\n  transform: translateY(-2px);\n}\nbody.dark-mode .card-box {\n  background: rgba(30, 41, 59, 0.4) !important;\n  border: 1px solid rgba(255, 255, 255, 0.05) !important;\n}\n\n/* 白字清晰度 */\n.card-right-title { color: #ffffff !important; }\n.card-right-bottom { color: rgba(255, 255, 255, 0.8) !important; }\n.card-tag { background: rgba(255, 255, 255, 0.2) !important; color: #ffffff !important; }\n\n/* 页脚透明 */\n.record-wraper {\n  background: transparent !important;\n  backdrop-filter: none !important;\n  -webkit-backdrop-filter: none !important;\n  border-top: none !important;\n}"
+    },
+  },
 };
 
 // 辅助函数：将 Color 对象或字符串转换为 hex 字符串
