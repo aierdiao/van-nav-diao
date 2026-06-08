@@ -35,7 +35,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--van-nav-bg-base);
-  overflow: hidden;
   color: var(--van-nav-text-primary);
 }
 
