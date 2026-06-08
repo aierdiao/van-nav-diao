@@ -51,6 +51,11 @@ html, body {
   scrollbar-width: none;
 }
 
+/* 全面禁用滚动锚定，防止搜索结果变化导致页面跳动 */
+html, body, * {
+  overflow-anchor: none;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;

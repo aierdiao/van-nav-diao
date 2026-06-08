@@ -589,7 +589,7 @@
   }
 }
 .content-wraper {
-  min-height: calc(100vh - 200px);
+  min-height: 100vh;
   padding-bottom: 60px;
 }
 .cards {

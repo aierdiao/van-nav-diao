@@ -10,12 +10,11 @@ const SearchBar = (props: SearchBarProps) => {
   const { t } = useTranslation();
 
   const onKeyDown = useCallback((ev: KeyboardEvent) => {
+    const el = document.getElementById("search-bar");
+    if (!el || document.activeElement === el) return;
     const reg = /[a-zA-Z0-9]|[\u4e00-\u9fa5]/g;
     if (ev.code === "Enter" || reg.test(ev.key)) {
-      const el = document.getElementById("search-bar");
-      if (el) {
-        el.focus();
-      }
+      el.focus();
     }
   }, []);
 
