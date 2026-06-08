@@ -102,10 +102,8 @@ type BackupConfig struct {
 // 主题色彩配置
 type ThemeColors struct {
 	Primary        string `json:"primary"`
-	PrimaryHover   string `json:"primaryHover"`
 	BgBase         string `json:"bgBase"`
 	BgCard         string `json:"bgCard"`
-	BgHeader       string `json:"bgHeader"`
 	TextPrimary    string `json:"textPrimary"`
 	TextSecondary  string `json:"textSecondary"`
 	Border         string `json:"border"`

@@ -39,20 +39,16 @@ func getDefaultThemeConfig() types.ThemeConfig {
 		Version: "1.0",
 		Colors: types.ThemeColors{
 			Primary:       "#1677ff",
-			PrimaryHover:  "#4096ff",
 			BgBase:        "#f5f5f5",
 			BgCard:        "#ffffff",
-			BgHeader:      "#ffffff",
 			TextPrimary:   "#000000e0",
 			TextSecondary: "#000000a6",
 			Border:        "#d9d9d9",
 		},
 		ColorsDark: types.ThemeColors{
 			Primary:       "#1668dc",
-			PrimaryHover:  "#3c89e8",
 			BgBase:        "#141414",
 			BgCard:        "#1f1f1f",
-			BgHeader:      "#1f1f1f",
 			TextPrimary:   "#ffffffe0",
 			TextSecondary: "#ffffffa6",
 			Border:        "#424242",
@@ -187,17 +183,11 @@ func GetThemeConfig() (*types.ThemeConfig, error) {
 		if v, ok := colors["primary"].(string); ok {
 			config.Colors.Primary = v
 		}
-		if v, ok := colors["primaryHover"].(string); ok {
-			config.Colors.PrimaryHover = v
-		}
 		if v, ok := colors["bgBase"].(string); ok {
 			config.Colors.BgBase = v
 		}
 		if v, ok := colors["bgCard"].(string); ok {
 			config.Colors.BgCard = v
-		}
-		if v, ok := colors["bgHeader"].(string); ok {
-			config.Colors.BgHeader = v
 		}
 		if v, ok := colors["textPrimary"].(string); ok {
 			config.Colors.TextPrimary = v
@@ -215,17 +205,11 @@ func GetThemeConfig() (*types.ThemeConfig, error) {
 		if v, ok := colorsDark["primary"].(string); ok {
 			config.ColorsDark.Primary = v
 		}
-		if v, ok := colorsDark["primaryHover"].(string); ok {
-			config.ColorsDark.PrimaryHover = v
-		}
 		if v, ok := colorsDark["bgBase"].(string); ok {
 			config.ColorsDark.BgBase = v
 		}
 		if v, ok := colorsDark["bgCard"].(string); ok {
 			config.ColorsDark.BgCard = v
-		}
-		if v, ok := colorsDark["bgHeader"].(string); ok {
-			config.ColorsDark.BgHeader = v
 		}
 		if v, ok := colorsDark["textPrimary"].(string); ok {
 			config.ColorsDark.TextPrimary = v
@@ -308,20 +292,16 @@ func SaveThemeConfig(config types.ThemeConfig) error {
 		"version": config.Version,
 		"colors": map[string]interface{}{
 			"primary":       config.Colors.Primary,
-			"primaryHover":  config.Colors.PrimaryHover,
 			"bgBase":        config.Colors.BgBase,
 			"bgCard":        config.Colors.BgCard,
-			"bgHeader":      config.Colors.BgHeader,
 			"textPrimary":   config.Colors.TextPrimary,
 			"textSecondary": config.Colors.TextSecondary,
 			"border":        config.Colors.Border,
 		},
 		"colorsDark": map[string]interface{}{
 			"primary":       config.ColorsDark.Primary,
-			"primaryHover":  config.ColorsDark.PrimaryHover,
 			"bgBase":        config.ColorsDark.BgBase,
 			"bgCard":        config.ColorsDark.BgCard,
-			"bgHeader":      config.ColorsDark.BgHeader,
 			"textPrimary":   config.ColorsDark.TextPrimary,
 			"textSecondary": config.ColorsDark.TextSecondary,
 			"border":        config.ColorsDark.Border,

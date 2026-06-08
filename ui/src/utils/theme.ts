@@ -71,10 +71,8 @@ export const broadcastThemeChange = () => {
 // 主题配置类型定义
 export interface ThemeColors {
   primary: string;
-  primaryHover: string;
   bgBase: string;
   bgCard: string;
-  bgHeader: string;
   textPrimary: string;
   textSecondary: string;
   border: string;
@@ -125,10 +123,8 @@ export const applyThemeVars = (config: ThemeConfig) => {
   
   // 应用色彩变量
   root.style.setProperty('--van-nav-primary', colors.primary);
-  root.style.setProperty('--van-nav-primary-hover', colors.primaryHover);
   root.style.setProperty('--van-nav-bg-base', colors.bgBase);
   root.style.setProperty('--van-nav-bg-card', colors.bgCard);
-  root.style.setProperty('--van-nav-bg-header', colors.bgHeader);
   root.style.setProperty('--van-nav-text-primary', colors.textPrimary);
   root.style.setProperty('--van-nav-text-secondary', colors.textSecondary);
   root.style.setProperty('--van-nav-border', colors.border);
@@ -170,8 +166,8 @@ export const reapplyThemeVars = () => {
 export const clearThemeVars = () => {
   const root = document.documentElement;
   const customProps = [
-    '--van-nav-primary', '--van-nav-primary-hover',
-    '--van-nav-bg-base', '--van-nav-bg-card', '--van-nav-bg-header',
+    '--van-nav-primary',
+    '--van-nav-bg-base', '--van-nav-bg-card',
     '--van-nav-text-primary', '--van-nav-text-secondary', '--van-nav-border',
     '--van-nav-card-radius', '--van-nav-card-shadow', '--van-nav-card-padding',
     '--van-nav-card-gap', '--van-nav-header-height',

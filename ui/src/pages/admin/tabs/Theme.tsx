@@ -9,39 +9,35 @@ import { useTranslation } from '../../../i18n';
 // 预设主题
 const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
   default: {
-    name: "默认蓝",
+    name: "经典蓝",
     config: {
       version: "1.0",
       colors: {
         primary: "#1677ff",
-        primaryHover: "#4096ff",
-        bgBase: "#f5f5f5",
+        bgBase: "#f0f2f5",
         bgCard: "#ffffff",
-        bgHeader: "#ffffff",
-        textPrimary: "#000000e0",
-        textSecondary: "#000000a6",
-        border: "#d9d9d9",
+        textPrimary: "#1f1f1f",
+        textSecondary: "#666666",
+        border: "#e8e8e8",
       },
       colorsDark: {
-        primary: "#1668dc",
-        primaryHover: "#3c89e8",
-        bgBase: "#141414",
-        bgCard: "#1f1f1f",
-        bgHeader: "#1f1f1f",
-        textPrimary: "#ffffffe0",
-        textSecondary: "#ffffffa6",
-        border: "#424242",
+        primary: "#177ddc",
+        bgBase: "#0a1929",
+        bgCard: "#0d2137",
+        textPrimary: "#e6e6e6",
+        textSecondary: "#8c8c8c",
+        border: "#173855",
       },
       layout: {
         cardBorderRadius: "8px",
-        cardShadow: "0 1px 2px 0 rgba(0,0,0,0.03), 0 1px 6px -1px rgba(0,0,0,0.02), 0 2px 4px 0 rgba(0,0,0,0.02)",
+        cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
         cardPadding: "16px",
-        cardGap: "12px",
+        cardGap: "16px",
         headerHeight: "64px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-        titleFontSize: "16px",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
       },
@@ -54,33 +50,29 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
       version: "1.0",
       colors: {
         primary: "#722ed1",
-        primaryHover: "#9254de",
         bgBase: "#f9f0ff",
         bgCard: "#ffffff",
-        bgHeader: "#ffffff",
-        textPrimary: "#000000e0",
-        textSecondary: "#000000a6",
+        textPrimary: "#1f1f1f",
+        textSecondary: "#666666",
         border: "#d3adf7",
       },
       colorsDark: {
-        primary: "#722ed1",
-        primaryHover: "#9254de",
+        primary: "#9254de",
         bgBase: "#1a0a2e",
         bgCard: "#2d1650",
-        bgHeader: "#2d1650",
-        textPrimary: "#ffffffe0",
-        textSecondary: "#ffffffa6",
+        textPrimary: "#e6e6e6",
+        textSecondary: "#8c8c8c",
         border: "#51258f",
       },
       layout: {
         cardBorderRadius: "12px",
-        cardShadow: "0 2px 8px rgba(114, 46, 209, 0.15)",
-        cardPadding: "16px",
-        cardGap: "14px",
+        cardShadow: "0 2px 8px rgba(114,46,209,0.1)",
+        cardPadding: "20px",
+        cardGap: "18px",
         headerHeight: "64px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         titleFontSize: "16px",
         titleFontWeight: "600",
         descFontSize: "13px",
@@ -94,22 +86,18 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
       version: "1.0",
       colors: {
         primary: "#434343",
-        primaryHover: "#595959",
-        bgBase: "#f5f5f5",
-        bgCard: "#fafafa",
-        bgHeader: "#ffffff",
-        textPrimary: "#1f1f1f",
+        bgBase: "#f7f7f7",
+        bgCard: "#ffffff",
+        textPrimary: "#262626",
         textSecondary: "#8c8c8c",
-        border: "#d9d9d9",
+        border: "#e0e0e0",
       },
       colorsDark: {
         primary: "#8c8c8c",
-        primaryHover: "#bfbfbf",
         bgBase: "#0a0a0a",
         bgCard: "#1a1a1a",
-        bgHeader: "#141414",
-        textPrimary: "#ffffffe0",
-        textSecondary: "#ffffffa6",
+        textPrimary: "#d9d9d9",
+        textSecondary: "#666666",
         border: "#303030",
       },
       layout: {
@@ -120,128 +108,116 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         headerHeight: "64px",
       },
       typography: {
-        fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        titleFontSize: "15px",
+        fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+        titleFontSize: "14px",
         titleFontWeight: "500",
-        descFontSize: "13px",
-      },
-      customCSS: "",
-    },
-  },
-  darkBlue: {
-    name: "暗夜蓝",
-    config: {
-      version: "1.0",
-      colors: {
-        primary: "#177ddc",
-        primaryHover: "#3c89e8",
-        bgBase: "#f0f2f5",
-        bgCard: "#ffffff",
-        bgHeader: "#ffffff",
-        textPrimary: "#000000e0",
-        textSecondary: "#000000a6",
-        border: "#d9d9d9",
-      },
-      colorsDark: {
-        primary: "#177ddc",
-        primaryHover: "#3c89e8",
-        bgBase: "#0a1929",
-        bgCard: "#0d2137",
-        bgHeader: "#0d2137",
-        textPrimary: "#ffffffe0",
-        textSecondary: "#ffffffa6",
-        border: "#173855",
-      },
-      layout: {
-        cardBorderRadius: "8px",
-        cardShadow: "0 2px 8px rgba(0, 0, 0, 0.3)",
-        cardPadding: "16px",
-        cardGap: "12px",
-        headerHeight: "64px",
-      },
-      typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-        titleFontSize: "16px",
-        titleFontWeight: "600",
-        descFontSize: "13px",
+        descFontSize: "12px",
       },
       customCSS: "",
     },
   },
   forestGreen: {
-    name: "森林绿",
+    name: "自然绿",
     config: {
       version: "1.0",
       colors: {
         primary: "#389e0d",
-        primaryHover: "#52c41a",
         bgBase: "#f6ffed",
         bgCard: "#ffffff",
-        bgHeader: "#ffffff",
-        textPrimary: "#000000e0",
-        textSecondary: "#000000a6",
+        textPrimary: "#1f1f1f",
+        textSecondary: "#666666",
         border: "#b7eb8f",
       },
       colorsDark: {
-        primary: "#389e0d",
-        primaryHover: "#52c41a",
+        primary: "#49aa19",
         bgBase: "#0a1a0a",
         bgCard: "#112211",
-        bgHeader: "#112211",
-        textPrimary: "#ffffffe0",
-        textSecondary: "#ffffffa6",
+        textPrimary: "#e6e6e6",
+        textSecondary: "#8c8c8c",
         border: "#1a3a1a",
       },
       layout: {
         cardBorderRadius: "10px",
-        cardShadow: "0 2px 8px rgba(56, 158, 13, 0.15)",
-        cardPadding: "16px",
-        cardGap: "14px",
+        cardShadow: "0 2px 6px rgba(56,158,13,0.08)",
+        cardPadding: "18px",
+        cardGap: "16px",
         headerHeight: "64px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-        titleFontSize: "16px",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
       },
       customCSS: "",
     },
   },
-  vibrantOrange: {
-    name: "活力橙",
+  sunsetOrange: {
+    name: "日落橙",
     config: {
       version: "1.0",
       colors: {
         primary: "#d46b08",
-        primaryHover: "#fa8c16",
         bgBase: "#fff7e6",
         bgCard: "#ffffff",
-        bgHeader: "#ffffff",
-        textPrimary: "#000000e0",
-        textSecondary: "#000000a6",
+        textPrimary: "#1f1f1f",
+        textSecondary: "#666666",
         border: "#ffd591",
       },
       colorsDark: {
-        primary: "#d46b08",
-        primaryHover: "#fa8c16",
+        primary: "#d87a16",
         bgBase: "#1a1000",
         bgCard: "#2b1a00",
-        bgHeader: "#2b1a00",
-        textPrimary: "#ffffffe0",
-        textSecondary: "#ffffffa6",
+        textPrimary: "#e6e6e6",
+        textSecondary: "#8c8c8c",
         border: "#4a2a00",
       },
       layout: {
         cardBorderRadius: "12px",
-        cardShadow: "0 2px 8px rgba(212, 107, 8, 0.15)",
-        cardPadding: "16px",
-        cardGap: "14px",
+        cardShadow: "0 2px 8px rgba(212,107,8,0.08)",
+        cardPadding: "18px",
+        cardGap: "16px",
         headerHeight: "64px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-        titleFontSize: "16px",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        titleFontSize: "15px",
+        titleFontWeight: "600",
+        descFontSize: "13px",
+      },
+      customCSS: "",
+    },
+  },
+  sakuraPink: {
+    name: "樱花粉",
+    config: {
+      version: "1.0",
+      colors: {
+        primary: "#eb2f96",
+        bgBase: "#fff0f6",
+        bgCard: "#ffffff",
+        textPrimary: "#1f1f1f",
+        textSecondary: "#666666",
+        border: "#ffadd2",
+      },
+      colorsDark: {
+        primary: "#c41d7f",
+        bgBase: "#1a0a14",
+        bgCard: "#2d1620",
+        textPrimary: "#e6e6e6",
+        textSecondary: "#8c8c8c",
+        border: "#512540",
+      },
+      layout: {
+        cardBorderRadius: "16px",
+        cardShadow: "0 2px 8px rgba(235,47,150,0.08)",
+        cardPadding: "20px",
+        cardGap: "18px",
+        headerHeight: "64px",
+      },
+      typography: {
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
       },
@@ -310,20 +286,16 @@ export const Theme: React.FC<ThemeProps> = () => {
         ...values,
         colors: {
           primary: colorToHex(values.colors?.primary, "#1677ff"),
-          primaryHover: colorToHex(values.colors?.primaryHover, "#4096ff"),
           bgBase: colorToHex(values.colors?.bgBase, "#f5f5f5"),
           bgCard: colorToHex(values.colors?.bgCard, "#ffffff"),
-          bgHeader: colorToHex(values.colors?.bgHeader, "#ffffff"),
           textPrimary: colorToHex(values.colors?.textPrimary, "#000000e0"),
           textSecondary: colorToHex(values.colors?.textSecondary, "#000000a6"),
           border: colorToHex(values.colors?.border, "#d9d9d9"),
         },
         colorsDark: {
           primary: colorToHex(values.colorsDark?.primary, "#1668dc"),
-          primaryHover: colorToHex(values.colorsDark?.primaryHover, "#3c89e8"),
           bgBase: colorToHex(values.colorsDark?.bgBase, "#141414"),
           bgCard: colorToHex(values.colorsDark?.bgCard, "#222222"),
-          bgHeader: colorToHex(values.colorsDark?.bgHeader, "#1f1f1f"),
           textPrimary: colorToHex(values.colorsDark?.textPrimary, "#ffffffe0"),
           textSecondary: colorToHex(values.colorsDark?.textSecondary, "#ffffffa6"),
           border: colorToHex(values.colorsDark?.border, "#424242"),
@@ -428,20 +400,16 @@ export const Theme: React.FC<ThemeProps> = () => {
             version: "1.0",
             colors: {
               primary: "#1677ff",
-              primaryHover: "#4096ff",
               bgBase: "#f5f5f5",
               bgCard: "#ffffff",
-              bgHeader: "#ffffff",
               textPrimary: "#000000e0",
               textSecondary: "#000000a6",
               border: "#d9d9d9",
             },
             colorsDark: {
               primary: "#1668dc",
-              primaryHover: "#3c89e8",
               bgBase: "#141414",
               bgCard: "#1f1f1f",
-              bgHeader: "#1f1f1f",
               textPrimary: "#ffffffe0",
               textSecondary: "#ffffffa6",
               border: "#424242",
@@ -468,16 +436,10 @@ export const Theme: React.FC<ThemeProps> = () => {
               <Form.Item name={["colors", "primary"]} label="主色调">
                 <ColorPicker showText />
               </Form.Item>
-              <Form.Item name={["colors", "primaryHover"]} label="主色调悬停">
-                <ColorPicker showText />
-              </Form.Item>
               <Form.Item name={["colors", "bgBase"]} label="页面背景色">
                 <ColorPicker showText />
               </Form.Item>
               <Form.Item name={["colors", "bgCard"]} label="卡片背景色">
-                <ColorPicker showText />
-              </Form.Item>
-              <Form.Item name={["colors", "bgHeader"]} label="顶部栏背景">
                 <ColorPicker showText />
               </Form.Item>
               <Form.Item name={["colors", "textPrimary"]} label="主文字颜色">
@@ -498,16 +460,10 @@ export const Theme: React.FC<ThemeProps> = () => {
               <Form.Item name={["colorsDark", "primary"]} label="主色调">
                 <ColorPicker showText />
               </Form.Item>
-              <Form.Item name={["colorsDark", "primaryHover"]} label="主色调悬停">
-                <ColorPicker showText />
-              </Form.Item>
               <Form.Item name={["colorsDark", "bgBase"]} label="页面背景色">
                 <ColorPicker showText />
               </Form.Item>
               <Form.Item name={["colorsDark", "bgCard"]} label="卡片背景色">
-                <ColorPicker showText />
-              </Form.Item>
-              <Form.Item name={["colorsDark", "bgHeader"]} label="顶部栏背景">
                 <ColorPicker showText />
               </Form.Item>
               <Form.Item name={["colorsDark", "textPrimary"]} label="主文字颜色">

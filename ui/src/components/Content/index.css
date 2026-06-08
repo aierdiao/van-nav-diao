@@ -1,17 +1,10 @@
 
 /* 顶部栏样式 */
 .topbar {
-  background-color: var(--van-nav-bg-header, #ffffff);
   padding: 16px 0;
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-body.dark-mode .topbar {
-  background-color: var(--van-nav-bg-header, #1f1f1f);
 }
 
 :root {
@@ -551,7 +544,7 @@ body.dark-mode .topbar {
   .card-tag {
     color: var(--van-nav-text-secondary);
     font-size: 12px;
-    background-color: var(--van-nav-bg-base);
+    background-color: var(--van-nav-border);
     display: inline-block;
     box-sizing: border-box;
     padding: 0 8px;

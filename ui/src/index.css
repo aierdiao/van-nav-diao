@@ -11,10 +11,8 @@
   
   /* 色彩系统 - 亮色主题 */
   --van-nav-primary: #1677ff;
-  --van-nav-primary-hover: #4096ff;
   --van-nav-bg-base: #f5f5f5;
   --van-nav-bg-card: #ffffff;
-  --van-nav-bg-header: #ffffff;
   --van-nav-text-primary: #000000e0;
   --van-nav-text-secondary: #000000a6;
   --van-nav-border: #d9d9d9;
@@ -51,10 +49,8 @@ code {
 /* 暗色模式CSS变量覆盖 */
 body.dark-mode {
   --van-nav-primary: #1668dc;
-  --van-nav-primary-hover: #3c89e8;
   --van-nav-bg-base: #141414;
   --van-nav-bg-card: #222222;
-  --van-nav-bg-header: #1f1f1f;
   --van-nav-text-primary: rgba(255, 255, 255, 0.85);
   --van-nav-text-secondary: rgba(255, 255, 255, 0.65);
   --van-nav-border: #424242;
