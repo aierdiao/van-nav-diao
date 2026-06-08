@@ -20,7 +20,7 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textSecondary: "#666666",
         border: "#e8e8e8",
       },
-      layout: {
+            layout: {
         cardBorderRadius: "8px",
         cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
         cardPadding: "16px",
@@ -48,16 +48,16 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textSecondary: "#666666",
         border: "#d3adf7",
       },
-      layout: {
-        cardBorderRadius: "12px",
-        cardShadow: "0 2px 8px rgba(114,46,209,0.1)",
-        cardPadding: "20px",
-        cardGap: "18px",
+            layout: {
+        cardBorderRadius: "8px",
+        cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
+        cardPadding: "16px",
+        cardGap: "16px",
         headerHeight: "64px",
       },
       typography: {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        titleFontSize: "16px",
+        titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
       },
@@ -76,18 +76,18 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textSecondary: "#8c8c8c",
         border: "#e0e0e0",
       },
-      layout: {
-        cardBorderRadius: "4px",
-        cardShadow: "none",
+            layout: {
+        cardBorderRadius: "8px",
+        cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
         cardPadding: "16px",
-        cardGap: "12px",
+        cardGap: "16px",
         headerHeight: "64px",
       },
       typography: {
-        fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
-        titleFontSize: "14px",
-        titleFontWeight: "500",
-        descFontSize: "12px",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        titleFontSize: "15px",
+        titleFontWeight: "600",
+        descFontSize: "13px",
       },
       customCSS: "",
     },
@@ -104,10 +104,10 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textSecondary: "#666666",
         border: "#b7eb8f",
       },
-      layout: {
-        cardBorderRadius: "10px",
-        cardShadow: "0 2px 6px rgba(56,158,13,0.08)",
-        cardPadding: "18px",
+            layout: {
+        cardBorderRadius: "8px",
+        cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
+        cardPadding: "16px",
         cardGap: "16px",
         headerHeight: "64px",
       },
@@ -132,10 +132,10 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textSecondary: "#666666",
         border: "#ffd591",
       },
-      layout: {
-        cardBorderRadius: "12px",
-        cardShadow: "0 2px 8px rgba(212,107,8,0.08)",
-        cardPadding: "18px",
+            layout: {
+        cardBorderRadius: "8px",
+        cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
+        cardPadding: "16px",
         cardGap: "16px",
         headerHeight: "64px",
       },
@@ -160,11 +160,11 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         textSecondary: "#666666",
         border: "#ffadd2",
       },
-      layout: {
-        cardBorderRadius: "16px",
-        cardShadow: "0 2px 8px rgba(235,47,150,0.08)",
-        cardPadding: "20px",
-        cardGap: "18px",
+            layout: {
+        cardBorderRadius: "8px",
+        cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
+        cardPadding: "16px",
+        cardGap: "16px",
         headerHeight: "64px",
       },
       typography: {
@@ -350,20 +350,20 @@ export const Theme: React.FC<ThemeProps> = () => {
               textSecondary: "#000000a6",
               border: "#d9d9d9",
             },
-            layout: {
-              cardBorderRadius: "8px",
-              cardShadow: "0 1px 2px 0 rgba(0,0,0,0.03), 0 1px 6px -1px rgba(0,0,0,0.02), 0 2px 4px 0 rgba(0,0,0,0.02)",
-              cardPadding: "16px",
-              cardGap: "12px",
-              headerHeight: "64px",
-            },
-            typography: {
-              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-              titleFontSize: "16px",
-              titleFontWeight: "600",
-              descFontSize: "13px",
-            },
-            customCSS: "",
+                  layout: {
+        cardBorderRadius: "8px",
+        cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
+        cardPadding: "16px",
+        cardGap: "16px",
+        headerHeight: "64px",
+      },
+      typography: {
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        titleFontSize: "15px",
+        titleFontWeight: "600",
+        descFontSize: "13px",
+      },
+      customCSS: "",
           }}
         >
           {/* 主题色彩配置 */}
