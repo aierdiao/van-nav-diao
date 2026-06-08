@@ -37,6 +37,7 @@ body {
   background-color: var(--van-nav-bg-base);
   overflow-y: auto;
   overflow-x: hidden;
+  overflow-anchor: none;
   color: var(--van-nav-text-primary);
 }
 
