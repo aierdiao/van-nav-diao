@@ -435,12 +435,14 @@ export const Theme: React.FC<ThemeProps> = () => {
             </div>
             <Form.Item name={["typography", "fontFamily"]} label="字体族">
               <Select
+                optionLabelProp="label"
                 options={[
                   { label: "系统默认", value: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
                   { label: "苹方 (Mac)", value: "'PingFang SC', -apple-system, sans-serif" },
                   { label: "微软雅黑", value: "'Microsoft YaHei', 'PingFang SC', sans-serif" },
                   { label: "思源黑体", value: "'Source Han Sans CN', 'Noto Sans SC', sans-serif" },
                 ]}
+                labelRender={(option) => option.label}
               />
             </Form.Item>
           </Card>
