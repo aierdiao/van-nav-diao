@@ -187,7 +187,6 @@ const Content = (props: any) => {
     }
     if (text.trim() !== "") {
       debounceTimerRef.current = setTimeout(() => {
-        setCurrTag('全部工具');
         setSearchString(text.trim());
       }, 300);
     } else {
@@ -209,10 +208,10 @@ const Content = (props: any) => {
   const filteredData = useMemo(() => {
     if (!data.tools) return [...searchEngineCards];
 
-    // 1. 分类过滤（零拼音开销）
-    const categoryFiltered = data.tools.filter((item: any) =>
-      currTag === '全部工具' || item.catelog === currTag
-    );
+    // 1. 分类过滤（搜索时跳过分类，搜索全部工具）
+    const categoryFiltered = searchString !== ''
+      ? data.tools
+      : data.tools.filter((item: any) => currTag === '全部工具' || item.catelog === currTag);
 
     const sortByClicks = data?.siteConfig?.sortByClicks;
 
