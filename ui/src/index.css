@@ -1,25 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #ffffff;
-  overflow: hidden;
-}
+
+/* 主题CSS变量默认值 */
 :root {
+  /* 布局变量 */
   --width-small: 500px;
   --width-medium: 700px;
   --width-large: 1060px;
+  
+  /* 色彩系统 - 亮色主题 */
+  --van-nav-primary: #1677ff;
+  --van-nav-primary-hover: #4096ff;
+  --van-nav-bg-base: #f5f5f5;
+  --van-nav-bg-card: #ffffff;
+  --van-nav-bg-header: #ffffff;
+  --van-nav-text-primary: #000000e0;
+  --van-nav-text-secondary: #000000a6;
+  --van-nav-border: #d9d9d9;
+  
+  /* 布局系统 */
+  --van-nav-card-radius: 8px;
+  --van-nav-card-shadow: 0 1px 2px 0 rgba(0,0,0,0.03), 0 1px 6px -1px rgba(0,0,0,0.02), 0 2px 4px 0 rgba(0,0,0,0.02);
+  --van-nav-card-padding: 16px;
+  --van-nav-card-gap: 12px;
+  --van-nav-header-height: 64px;
+  
+  /* 排版系统 */
+  --van-nav-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --van-nav-title-size: 16px;
+  --van-nav-title-weight: 600;
+  --van-nav-desc-size: 13px;
 }
+
+body {
+  margin: 0;
+  font-family: var(--van-nav-font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--van-nav-bg-base);
+  overflow: hidden;
+  color: var(--van-nav-text-primary);
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+/* 暗色模式CSS变量覆盖 */
+body.dark-mode {
+  --van-nav-primary: #1668dc;
+  --van-nav-primary-hover: #3c89e8;
+  --van-nav-bg-base: #141414;
+  --van-nav-bg-card: #1f1f1f;
+  --van-nav-bg-header: #1f1f1f;
+  --van-nav-text-primary: #ffffffe0;
+  --van-nav-text-secondary: #ffffffa6;
+  --van-nav-border: #424242;
+  
+  background-color: var(--van-nav-bg-base);
+  color: var(--van-nav-text-primary);
+}
+
 body.dark-mode .github-link-box svg {
   fill: white;
 }
@@ -38,17 +81,14 @@ body.dark-mode .theme-switch-box svg {
 body.dark-mode .theme-switch-box svg:hover {
   fill: #f1f1f1;
 }
-body.dark-mode {
-  background-color: #121212;
-  color: rgba(255, 255, 255, 0.6);
-}
+
 body.dark-mode .select-tag-active {
   background-color: #383838;
   border: 1px solid #383838;
 }
 body.dark-mode .select-tag {
-  border: 1px solid #121212;
-  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--van-nav-bg-base);
+  color: var(--van-nav-text-secondary);
 }
 body.dark-mode .select-tag:hover {
   background-color: #424242;
@@ -57,7 +97,7 @@ body.dark-mode .select-tag:hover {
 body.dark-mode input {
   background-color: #222222;
   border: 1px solid #222222;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--van-nav-text-secondary);
 }
 body.dark-mode input:hover {
   background-color: #303030;
@@ -68,36 +108,49 @@ input:focus-visible {
   background-color: #3d3d3d;
   border: 1px solid #3d3d3d;
 }
+
+/* 卡片样式使用CSS变量 */
+.card-box {
+  background-color: var(--van-nav-bg-card);
+  border-radius: var(--van-nav-card-radius);
+  box-shadow: var(--van-nav-card-shadow);
+}
+
 body.dark-mode .card-box {
-  background-color: #222222;
+  background-color: var(--van-nav-bg-card);
 }
 body.dark-mode .card-box:hover {
   box-shadow: 2px 2px 12px 0px #292929;
 }
 body.dark-mode .card-right-title {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--van-nav-text-secondary);
 }
 body.dark-mode .card-right-bottom {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--van-nav-text-secondary);
 }
 body.dark-mode .card-tag {
   background-color: #383838;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--van-nav-text-secondary);
 }
 
 @media (max-width: 1060px) and (min-width: 700px) {
   body.dark-mode span.card-tag {
-    background-color: #222222 !important;
+    background-color: var(--van-nav-bg-card) !important;
   }
 }
 
 @media (max-width: 700px) and (min-width: 500px) {
   body.dark-mode a.card-box {
-    background-color: #121212;
+    background-color: var(--van-nav-bg-base);
   }
 }
 @media (max-width: 500px) {
   body.dark-mode a.card-box {
-    background-color: #121212;
+    background-color: var(--van-nav-bg-base);
   }
+}
+
+/* 自定义CSS注入点 */
+#van-nav-custom-css {
+  /* 由前端动态生成 */
 }

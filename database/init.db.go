@@ -151,6 +151,16 @@ func InitDB() {
 		DB.Exec(`ALTER TABLE nav_backup_config ADD COLUMN encryption_key TEXT NOT NULL DEFAULT '';`)
 	}
 
+
+	// 主题美化配置表
+	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_theme_config (
+		id INTEGER PRIMARY KEY CHECK (id = 1),
+		config_json TEXT NOT NULL DEFAULT '{}',
+		created_at TEXT NOT NULL DEFAULT (datetime('now')),
+		updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+	);`
+	_, err = DB.Exec(sql_create_table)
+	utils.CheckErr(err)
 	// 初始化默认搜索引擎
 	var searchEngineCount int
 	err = DB.QueryRow(`SELECT COUNT(*) FROM nav_search_engine;`).Scan(&searchEngineCount)

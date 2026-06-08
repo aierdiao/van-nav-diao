@@ -34,6 +34,7 @@ const zhCN: Record<string, string> = {
   "admin.sidebar.searchEngines": "搜索引擎管理",
   "admin.sidebar.apiToken": "API Token",
   "admin.sidebar.settings": "系统设置",
+  "admin.sidebar.theme": "主题美化",
 
   // ==================== Admin / Tools 管理 ====================
   // 标题与统计

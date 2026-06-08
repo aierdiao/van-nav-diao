@@ -100,6 +100,7 @@ type ExportConfigResponse struct {
 	ApiTokens     []Token        `json:"api_tokens"`
 	Settings      map[string]string `json:"settings"`
 	SiteConfig    map[string]interface{} `json:"site_config"`
+	ThemeConfig   map[string]interface{} `json:"theme_config,omitempty"`
 }
 
 // 导入配置请求
@@ -110,6 +111,7 @@ type ImportConfigRequest struct {
 	ApiTokens     []Token        `json:"api_tokens"`
 	Settings      map[string]string `json:"settings"`
 	SiteConfig    map[string]interface{} `json:"site_config"`
+	ThemeConfig   map[string]interface{} `json:"theme_config,omitempty"`
 }
 
 // 导入配置响应
@@ -124,5 +126,6 @@ type ImportConfigResponse struct {
 	ApiTokensSkipped int                  `json:"api_tokens_skipped"`
 	SettingsUpdated int                   `json:"settings_updated"`
 	SiteConfigUpdated int                 `json:"site_config_updated"`
+	ThemeConfigUpdated int                 `json:"theme_config_updated"`
 	Errors        []string                `json:"errors"`
 }

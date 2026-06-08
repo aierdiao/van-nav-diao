@@ -96,3 +96,44 @@ type BackupConfig struct {
 	CreatedAt        string `json:"createdAt"`
 	UpdatedAt        string `json:"updatedAt"`
 }
+
+// ==================== 主题美化配置相关 ====================
+
+// 主题色彩配置
+type ThemeColors struct {
+	Primary        string `json:"primary"`
+	PrimaryHover   string `json:"primaryHover"`
+	BgBase         string `json:"bgBase"`
+	BgCard         string `json:"bgCard"`
+	BgHeader       string `json:"bgHeader"`
+	TextPrimary    string `json:"textPrimary"`
+	TextSecondary  string `json:"textSecondary"`
+	Border         string `json:"border"`
+}
+
+// 主题布局配置
+type ThemeLayout struct {
+	CardBorderRadius string `json:"cardBorderRadius"`
+	CardShadow       string `json:"cardShadow"`
+	CardPadding      string `json:"cardPadding"`
+	CardGap          string `json:"cardGap"`
+	HeaderHeight     string `json:"headerHeight"`
+}
+
+// 主题排版配置
+type ThemeTypography struct {
+	FontFamily    string `json:"fontFamily"`
+	TitleFontSize string `json:"titleFontSize"`
+	TitleFontWeight string `json:"titleFontWeight"`
+	DescFontSize  string `json:"descFontSize"`
+}
+
+// 完整主题配置
+type ThemeConfig struct {
+	Version    string         `json:"version"`
+	Colors     ThemeColors    `json:"colors"`
+	ColorsDark ThemeColors    `json:"colorsDark"`
+	Layout     ThemeLayout    `json:"layout"`
+	Typography ThemeTypography `json:"typography"`
+	CustomCSS  string         `json:"customCSS"`
+}

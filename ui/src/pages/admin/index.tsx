@@ -9,6 +9,7 @@ import {
   BackpackIcon,
   TableIcon,
   MagnifyingGlassIcon,
+  ColorWheelIcon,
 } from '@radix-ui/react-icons';
 import { useOnce } from '../../utils/useOnce';
 import { useGlobalTheme } from '../../utils/useGlobalTheme';
@@ -21,6 +22,7 @@ const getMenuItems = (t: (key: string) => string): MenuItem[] => [
   { key: 'search-engines', icon: <MagnifyingGlassIcon className="w-5 h-5" />, label: t('admin.search.title'), path: '/admin/search-engines' },
   { key: 'api-token', icon: <StarFilledIcon className="w-5 h-5" />, label: t('admin.token.title'), path: '/admin/api-token' },
   { key: 'settings', icon: <GearIcon className="w-5 h-5" />, label: t('admin.settings.title'), path: '/admin/settings' },
+  { key: 'theme', icon: <ColorWheelIcon className="w-5 h-5" />, label: t('admin.sidebar.theme'), path: '/admin/theme' },
 ];
 
 export const AdminPage = () => {

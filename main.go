@@ -137,6 +137,8 @@ func main() {
 		// 获取启用的搜索引擎（公开接口）
 		api.GET("/searchEngines", handler.GetEnabledSearchEnginesHandler)
 		
+		// 获取主题配置（公开接口）
+		api.GET("/theme", handler.GetThemeConfigHandler)
 		// 管理员用的
 		admin := api.Group("/admin")
 		admin.Use(middleware.JWTMiddleware())
@@ -199,6 +201,10 @@ func main() {
 		// 部署版本
 		admin.GET("/deploymentVersion", handler.GetDeploymentVersionHandler)
 		admin.POST("/deploymentVersion/increment", handler.IncrementDeploymentVersionHandler)
+		
+		// 主题美化配置
+		admin.POST("/theme", handler.UpdateThemeConfigHandler)
+		admin.DELETE("/theme", handler.ResetThemeConfigHandler)
 	}
 	}
 	logger.LogInfo("应用启动成功，网址: http://localhost:%s", *port)

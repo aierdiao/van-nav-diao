@@ -1527,3 +1527,63 @@ func RestoreBackupHandler(c *gin.Context) {
 		"message": "数据库恢复成功，请刷新页面以查看最新数据",
 	})
 }
+
+// ==================== 主题美化配置相关 ====================
+
+// GetThemeConfigHandler 获取主题配置（公开接口，无token返回默认主题）
+func GetThemeConfigHandler(c *gin.Context) {
+	config, err := service.GetThemeConfig()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
+	
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    config,
+	})
+}
+
+// UpdateThemeConfigHandler 更新主题配置（管理员接口）
+func UpdateThemeConfigHandler(c *gin.Context) {
+	var config types.ThemeConfig
+	if err := c.ShouldBindJSON(&config); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":      false,
+			"errorMessage": "请求参数格式错误: " + err.Error(),
+		})
+		return
+	}
+	
+	if err := service.SaveThemeConfig(config); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
+	
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "主题配置已保存",
+	})
+}
+
+// ResetThemeConfigHandler 重置主题配置为默认值（管理员接口）
+func ResetThemeConfigHandler(c *gin.Context) {
+	if err := service.ResetThemeConfig(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
+	
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "已重置为默认主题",
+	})
+}

@@ -21,6 +21,7 @@ const enUS: Record<string, string> = {
   "admin.sidebar.searchEngines": "Search Engines",
   "admin.sidebar.apiToken": "API Token",
   "admin.sidebar.settings": "Settings",
+  "admin.sidebar.theme": "Theme",
   "admin.tools.title": "Tools Management",
   "admin.tools.total": "Total {count} items",
   "admin.tools.table.sort": "Sort",

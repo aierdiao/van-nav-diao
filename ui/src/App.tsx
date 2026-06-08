@@ -2,7 +2,8 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { App as AntApp } from 'antd';
 import { Spin } from 'antd';
-import { decodeTheme, initTheme, broadcastThemeChange } from './utils/theme';
+import { decodeTheme, initTheme, applyThemeVars } from './utils/theme';
+import { fetchGetTheme } from './utils/api';
 import { I18nProvider } from './i18n';
 import './App.css';
 
@@ -17,12 +18,39 @@ const Catelog = React.lazy(() => import('./pages/admin/tabs/Catelog').then(modul
 const ApiToken = React.lazy(() => import('./pages/admin/tabs/ApiToken').then(module => ({ default: module.ApiToken })));
 const Setting = React.lazy(() => import('./pages/admin/tabs/Setting').then(module => ({ default: module.Setting })));
 const SearchEngine = React.lazy(() => import('./pages/admin/tabs/Search'));
+const Theme = React.lazy(() => import('./pages/admin/tabs/Theme').then(module => ({ default: module.Theme })));
 
 /**
  * 主题同步组件：监听路由变化和 storage 变化，全局同步主题
  */
 const ThemeSync = () => {
   const location = useLocation();
+
+  // 加载并应用主题配置
+  const loadAndApplyTheme = async () => {
+    try {
+      const res = await fetchGetTheme();
+      if (res?.success && res?.data && Object.keys(res.data).length > 0) {
+        applyThemeVars(res.data);
+      }
+    } catch (err) {
+      console.error('加载主题配置失败:', err);
+    }
+  };
+
+  // 初始加载主题配置
+  useEffect(() => {
+    loadAndApplyTheme();
+  }, []);
+
+  // 监听主题变化事件（跨标签页同步）
+  useEffect(() => {
+    const handleThemeChange = () => {
+      loadAndApplyTheme();
+    };
+    window.addEventListener('theme-change', handleThemeChange);
+    return () => window.removeEventListener('theme-change', handleThemeChange);
+  }, []);
 
   useEffect(() => {
     const applyThemeToBody = () => {
@@ -38,6 +66,8 @@ const ThemeSync = () => {
       if (html) {
         html.classList.toggle('dark', isDark);
       }
+      // 主题切换后重新应用CSS变量
+      setTimeout(() => loadAndApplyTheme(), 50);
     };
 
     // 路由变化时应用主题
@@ -138,6 +168,7 @@ function App() {
               <Route path="search-engines" element={<SearchEngine />} />
               <Route path="api-token" element={<ApiToken />} />
               <Route path="settings" element={<Setting />} />
+              <Route path="theme" element={<Theme />} />
             </Route>
           </Routes>
           {/* 全局主题同步 */}

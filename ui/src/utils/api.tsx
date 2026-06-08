@@ -317,3 +317,22 @@ export const fetchRestoreBackup = async (filename: string) => {
     const { data } = await axios.post(`/api/admin/backup/restore`, { filename });
     return data;
 };
+// ==================== 主题美化配置接口 ====================
+
+// 获取主题配置（公开接口）
+export const fetchGetTheme = async () => {
+    const { data } = await axios.get(`/api/theme`);
+    return data;
+};
+
+// 更新主题配置（管理员接口）
+export const fetchUpdateTheme = async (config: any) => {
+    const { data } = await axios.post(`/api/admin/theme`, config);
+    return data;
+};
+
+// 重置主题配置为默认值（管理员接口）
+export const fetchResetTheme = async () => {
+    const { data } = await axios.delete(`/api/admin/theme`);
+    return data;
+};
