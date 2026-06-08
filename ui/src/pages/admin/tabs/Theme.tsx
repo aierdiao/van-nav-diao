@@ -1,9 +1,8 @@
 import { Button, Card, ColorPicker, Form, Input, message, Modal, Select, Space, Spin } from "antd";
 import type { Color } from "antd/es/color-picker";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchGetTheme, fetchUpdateTheme, fetchResetTheme } from "../../../utils/api";
 import { applyThemeVars, clearThemeVars, type ThemeConfig } from "../../../utils/theme";
-import { detectAvailableFonts } from "../../../utils/fontDetect";
 import { BgColorsOutlined, ReloadOutlined, SaveOutlined } from "@ant-design/icons";
 import { useTranslation } from '../../../i18n';
 
@@ -28,7 +27,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardGap: "16px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
@@ -55,7 +53,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardGap: "16px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
@@ -82,7 +79,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardGap: "16px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
@@ -109,7 +105,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardGap: "16px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
@@ -136,7 +131,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardGap: "16px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
@@ -163,7 +157,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardGap: "16px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
@@ -194,8 +187,6 @@ export const Theme: React.FC<ThemeProps> = () => {
   const { t: _t } = useTranslation();
   const [form] = Form.useForm();
   
-  // 检测可用字体
-  const availableFonts = useMemo(() => detectAvailableFonts(), []);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isDark, setIsDark] = useState(() => document.body.classList.contains("dark-mode"));
@@ -360,7 +351,6 @@ export const Theme: React.FC<ThemeProps> = () => {
         cardGap: "16px",
       },
       typography: {
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         titleFontSize: "15px",
         titleFontWeight: "600",
         descFontSize: "13px",
@@ -437,16 +427,7 @@ export const Theme: React.FC<ThemeProps> = () => {
                 <Input placeholder="13px" />
               </Form.Item>
             </div>
-            <Form.Item name={["typography", "fontFamily"]} label="字体族">
-              <Select
-                optionLabelProp="label"
-                options={availableFonts.map(f => ({
-                  label: f.name,
-                  value: f.value,
-                }))}
-                labelRender={(option) => option.label}
-              />
-            </Form.Item>
+            
           </Card>
 
           {/* 自定义CSS */}
@@ -471,7 +452,6 @@ export const Theme: React.FC<ThemeProps> = () => {
               <Input.TextArea
                 rows={6}
                 placeholder={`/* 在此输入自定义CSS */\n.card-box {\n  /* 自定义样式 */\n}`}
-                style={{ fontFamily: 'monospace' }}
               />
             </Form.Item>
             <div style={{ fontSize: 12, color: '#999' }}>

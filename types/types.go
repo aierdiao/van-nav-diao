@@ -119,10 +119,9 @@ type ThemeLayout struct {
 
 // 主题排版配置
 type ThemeTypography struct {
-	FontFamily    string `json:"fontFamily"`
-	TitleFontSize string `json:"titleFontSize"`
+	TitleFontSize   string `json:"titleFontSize"`
 	TitleFontWeight string `json:"titleFontWeight"`
-	DescFontSize  string `json:"descFontSize"`
+	DescFontSize    string `json:"descFontSize"`
 }
 
 // 完整主题配置

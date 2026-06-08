@@ -86,7 +86,6 @@ export interface ThemeLayout {
 }
 
 export interface ThemeTypography {
-  fontFamily: string;
   titleFontSize: string;
   titleFontWeight: string;
   descFontSize: string;
@@ -133,7 +132,6 @@ export const applyThemeVars = (config: ThemeConfig) => {
   root.style.setProperty('--van-nav-card-gap', config.layout.cardGap);
   
   // 应用排版变量
-  root.style.setProperty('--van-nav-font-family', config.typography.fontFamily);
   root.style.setProperty('--van-nav-title-size', config.typography.titleFontSize);
   root.style.setProperty('--van-nav-title-weight', config.typography.titleFontWeight);
   root.style.setProperty('--van-nav-desc-size', config.typography.descFontSize);
@@ -167,7 +165,7 @@ export const clearThemeVars = () => {
     '--van-nav-text-primary', '--van-nav-text-secondary', '--van-nav-border',
     '--van-nav-card-radius', '--van-nav-card-shadow', '--van-nav-card-padding',
     '--van-nav-card-gap', '--van-nav-header-height',
-    '--van-nav-font-family', '--van-nav-title-size',
+    '--van-nav-title-size',
     '--van-nav-title-weight', '--van-nav-desc-size',
   ];
   

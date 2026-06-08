@@ -53,8 +53,7 @@ func getDefaultThemeConfig() types.ThemeConfig {
 			CardGap:          "16px",
 		},
 		Typography: types.ThemeTypography{
-			FontFamily:      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-			TitleFontSize:   "16px",
+			TitleFontSize:   "15px",
 			TitleFontWeight: "600",
 			DescFontSize:    "13px",
 		},
@@ -201,9 +200,6 @@ func GetThemeConfig() (*types.ThemeConfig, error) {
 	
 	// 解析typography
 	if typography, ok := configMap["typography"].(map[string]interface{}); ok {
-		if v, ok := typography["fontFamily"].(string); ok {
-			config.Typography.FontFamily = v
-		}
 		if v, ok := typography["titleFontSize"].(string); ok {
 			config.Typography.TitleFontSize = v
 		}
@@ -264,7 +260,6 @@ func SaveThemeConfig(config types.ThemeConfig) error {
 			"cardGap":          config.Layout.CardGap,
 		},
 		"typography": map[string]interface{}{
-			"fontFamily":      config.Typography.FontFamily,
 			"titleFontSize":   config.Typography.TitleFontSize,
 			"titleFontWeight": config.Typography.TitleFontWeight,
 			"descFontSize":    config.Typography.DescFontSize,
