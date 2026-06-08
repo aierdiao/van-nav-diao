@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback } from "react";
 import { useTranslation } from "../../i18n";
 import "./index.css";
 
@@ -8,11 +8,8 @@ interface SearchBarProps {
 }
 const SearchBar = (props: SearchBarProps) => {
   const { t } = useTranslation();
-  const isComposingRef = useRef(false);
 
   const onKeyDown = useCallback((ev: KeyboardEvent) => {
-    // 输入法合成中不拦截，避免打断中文输入
-    if (isComposingRef.current) return;
     const el = document.getElementById("search-bar");
     if (!el || document.activeElement === el) return;
     const reg = /[a-zA-Z0-9]|[\u4e00-\u9fa5]/g;
@@ -36,16 +33,8 @@ const SearchBar = (props: SearchBarProps) => {
           type="search"
           placeholder={t('home.search.placeholder')}
           value={props.searchString}
-          onCompositionStart={() => { isComposingRef.current = true; }}
-          onCompositionEnd={(ev) => {
-            isComposingRef.current = false;
-            props.setSearchText(ev.currentTarget.value);
-          }}
           onChange={(ev) => {
-            // 输入法合成期间不触发搜索，避免 re-render 打断输入法
-            if (!isComposingRef.current) {
-              props.setSearchText(ev.target.value);
-            }
+            props.setSearchText(ev.target.value);
           }}
         ></input>
       </div>
