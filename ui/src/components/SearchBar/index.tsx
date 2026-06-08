@@ -33,6 +33,7 @@ const SearchBar = (props: SearchBarProps) => {
         <input
           id="search-bar"
           type="search"
+          autoFocus
           placeholder={t('home.search.placeholder')}
           value={props.searchString}
           onChange={(ev) => {
