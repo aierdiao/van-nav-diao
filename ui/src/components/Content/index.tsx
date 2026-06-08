@@ -188,6 +188,8 @@ const Content = (props: any) => {
     if (text.trim() !== "") {
       debounceTimerRef.current = setTimeout(() => {
         setSearchString(text.trim());
+        // 搜索时滚到顶部，避免结果被sticky搜索栏遮挡
+        window.scrollTo({ top: 0 });
       }, 300);
     } else {
       debounceTimerRef.current = setTimeout(() => {
