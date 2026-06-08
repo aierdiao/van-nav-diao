@@ -1,19 +1,18 @@
 .select-tag {
   cursor: pointer;
   color: var(--van-nav-text-secondary);
-  border: 1px solid #979797;
+  border: 1px solid var(--van-nav-border);
   transition: all 0.3s;
   box-sizing: border-box;
 }
 .select-tag:hover {
-  border: 1px solid #969696;
-  background-color: #969696;
-  color: #ffffff;
+  border: 1px solid var(--van-nav-primary);
+  color: var(--van-nav-primary);
 }
 .select-tag-active {
   color: #ffffff;
-  background-color: #7c7c7c;
-  border: 1px solid #7c7c7c;
+  background-color: var(--van-nav-primary);
+  border: 1px solid var(--van-nav-primary);
 }
 .tag-selector {
   width: 100%;
