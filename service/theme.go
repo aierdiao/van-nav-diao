@@ -15,13 +15,13 @@ var (
 )
 
 func init() {
-	// 预编译危险CSS关键字正则
+	// 预编译危险CSS关键字正则（使用RE2兼容语法，不使用lookahead）
 	patterns := []string{
 		`(?i)expression\s*\(`,      // IE expression()
 		`(?i)behavior\s*:`,         // IE behavior
 		`(?i)-moz-binding\s*:`,     // Firefox binding
 		`(?i)@import\s+`,           // 外部样式导入
-		`(?i)url\s*\(\s*['"]?(?!data:)`, // 非data:协议的url()
+		`(?i)url\s*\(`,            // url() 调用（后续逻辑检测协议）
 	}
 	
 	for _, pattern := range patterns {
@@ -88,6 +88,14 @@ func sanitizeCustomCSS(css string) (string, error) {
 	// 2. 危险关键字过滤（使用预编译正则）
 	for _, pattern := range dangerousCSSPatterns {
 		if pattern.MatchString(css) {
+			// 特殊处理 url()：允许 data: 协议
+			if pattern.String() == `(?i)url\s*\(` {
+				// 检测所有 url() 调用，验证是否为 data: 协议
+				if !isDataURL(css) {
+					return "", fmt.Errorf("检测到非 data: 协议的 url() 引用，请移除外部资源引用")
+				}
+				continue
+			}
 			return "", fmt.Errorf("检测到潜在危险CSS关键字，请移除后重试")
 		}
 	}
@@ -96,6 +104,27 @@ func sanitizeCustomCSS(css string) (string, error) {
 	css = strings.TrimSpace(css)
 	
 	return css, nil
+}
+
+// isDataURL 检查CSS中的url()是否只使用data:协议
+func isDataURL(css string) bool {
+	// 匹配所有 url(...) 调用
+	re := regexp.MustCompile(`(?i)url\s*\(\s*['"]?([^)'"]*)`)
+	matches := re.FindAllStringSubmatch(css, -1)
+	
+	for _, match := range matches {
+		if len(match) < 2 {
+			continue
+		}
+		url := strings.TrimSpace(match[1])
+		// 空url或data:协议是安全的
+		if url == "" || strings.HasPrefix(strings.ToLower(url), "data:") {
+			continue
+		}
+		// 其他协议都不允许
+		return false
+	}
+	return true
 }
 
 // validateThemeConfig 校验主题配置的有效性
