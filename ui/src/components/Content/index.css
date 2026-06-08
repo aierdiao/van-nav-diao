@@ -1,3 +1,19 @@
+
+/* 顶部栏样式 */
+.topbar {
+  background-color: var(--van-nav-bg-header, #ffffff);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+body.dark-mode .topbar {
+  background-color: var(--van-nav-bg-header, #1f1f1f);
+}
+
 :root {
   --width-small: 500px;
   --width-medium: 700px;
@@ -341,7 +357,7 @@
   .content {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    grid-gap: 15px;
+    grid-gap: var(--van-nav-card-gap, 15px);
     justify-content: center;
     margin: 0 5vw;
   }
@@ -358,8 +374,8 @@
     user-select: none;
     overflow: hidden;
     transition: box-shadow, transform 0.3s;
-    border-radius: 4px;
-    padding: 9%;
+    border-radius: var(--van-nav-card-radius, 8px);
+    padding: var(--van-nav-card-padding, 16px);
     background-color: var(--van-nav-bg-card);
     text-decoration: none;
   }
@@ -409,10 +425,10 @@
   .card-right-title {
     display: inline-block;
     color: var(--van-nav-text-primary);
-    font-size: 14px;
+    font-size: var(--van-nav-title-size, 16px);
     margin-right: 7px;
     overflow: hidden;
-    font-weight: 500;
+    font-weight: var(--van-nav-title-weight, 600);
     white-space: nowrap;
     text-overflow: ellipsis;
   }
@@ -482,7 +498,7 @@
   .content {
     display: grid;
     grid-template-columns: repeat(3, minmax(299.67px, 350px));
-    grid-gap: 20px;
+    grid-gap: var(--van-nav-card-gap, 20px);
     justify-content: center;
     margin: 0 5vw;
   }
@@ -499,8 +515,8 @@
     user-select: none;
     overflow: hidden;
     transition: box-shadow, transform 0.3s;
-    border-radius: 4px;
-    padding: 9%;
+    border-radius: var(--van-nav-card-radius, 8px);
+    padding: var(--van-nav-card-padding, 16px);
     background-color: var(--van-nav-bg-card);
     text-decoration: none;
     max-width: 350px;
@@ -524,7 +540,7 @@
   }
   .card-right-bottom {
     color: var(--van-nav-text-secondary);
-    font-size: 13px;
+    font-size: var(--van-nav-desc-size, 13px);
     width: 100%;
     overflow: hidden;
     display: -webkit-box;
@@ -553,8 +569,8 @@
   .card-right-title {
     display: inline-block;
     color: var(--van-nav-text-primary);
-    font-size: 14px;
-    font-weight: 500;
+    font-size: var(--van-nav-title-size, 16px);
+    font-weight: var(--van-nav-title-weight, 600);
     margin-right: 7px;
     overflow: hidden;
     white-space: nowrap;
