@@ -1,7 +1,7 @@
 
 /* 顶部栏样式 */
 .topbar {
-  padding: 16px 0;
+  padding: 16px 0 8px 0;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -591,10 +591,10 @@
 .content-wraper {
   min-height: 100vh;
   padding-bottom: 60px;
-  padding-top: 4px;
+  padding-top: 0;
 }
 .cards {
-  padding-top: 10px;
+  padding-top: 0;
   padding-bottom: 250px;
 }
 .record-wraper {
