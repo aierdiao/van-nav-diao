@@ -25,7 +25,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
         cardPadding: "16px",
         cardGap: "16px",
-        headerHeight: "64px",
       },
       typography: {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -53,7 +52,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
         cardPadding: "16px",
         cardGap: "16px",
-        headerHeight: "64px",
       },
       typography: {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -81,7 +79,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
         cardPadding: "16px",
         cardGap: "16px",
-        headerHeight: "64px",
       },
       typography: {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -109,7 +106,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
         cardPadding: "16px",
         cardGap: "16px",
-        headerHeight: "64px",
       },
       typography: {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -137,7 +133,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
         cardPadding: "16px",
         cardGap: "16px",
-        headerHeight: "64px",
       },
       typography: {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -165,7 +160,6 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
         cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
         cardPadding: "16px",
         cardGap: "16px",
-        headerHeight: "64px",
       },
       typography: {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -244,7 +238,12 @@ export const Theme: React.FC<ThemeProps> = () => {
           textSecondary: colorToHex(values.colors?.textSecondary, "#000000a6"),
           border: colorToHex(values.colors?.border, "#d9d9d9"),
         },
-        layout: values.layout || {},
+        layout: {
+          cardBorderRadius: values.layout?.cardBorderRadius || "8px",
+          cardShadow: values.layout?.cardShadow || "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
+          cardPadding: values.layout?.cardPadding || "16px",
+          cardGap: values.layout?.cardGap || "16px",
+        },
         typography: values.typography || {},
         customCSS: values.customCSS || "",
       };
@@ -355,7 +354,6 @@ export const Theme: React.FC<ThemeProps> = () => {
         cardShadow: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
         cardPadding: "16px",
         cardGap: "16px",
-        headerHeight: "64px",
       },
       typography: {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -402,12 +400,16 @@ export const Theme: React.FC<ThemeProps> = () => {
               <Form.Item name={["layout", "cardGap"]} label="卡片间距">
                 <Input placeholder="12px" />
               </Form.Item>
-              <Form.Item name={["layout", "headerHeight"]} label="顶部栏高度">
-                <Input placeholder="64px" />
-              </Form.Item>
             </div>
             <Form.Item name={["layout", "cardShadow"]} label="卡片阴影">
-              <Input.TextArea rows={2} placeholder="CSS box-shadow 值" />
+              <Select
+                options={[
+                  { label: "无阴影", value: "none" },
+                  { label: "轻微阴影", value: "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)" },
+                  { label: "柔和阴影", value: "0 2px 8px rgba(0,0,0,0.08)" },
+                  { label: "明显阴影", value: "0 4px 16px rgba(0,0,0,0.12)" },
+                ]}
+              />
             </Form.Item>
           </Card>
 
@@ -432,7 +434,14 @@ export const Theme: React.FC<ThemeProps> = () => {
               </Form.Item>
             </div>
             <Form.Item name={["typography", "fontFamily"]} label="字体族">
-              <Input.TextArea rows={2} placeholder="CSS font-family 值" />
+              <Select
+                options={[
+                  { label: "系统默认", value: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+                  { label: "苹方 (Mac)", value: "'PingFang SC', -apple-system, sans-serif" },
+                  { label: "微软雅黑", value: "'Microsoft YaHei', 'PingFang SC', sans-serif" },
+                  { label: "思源黑体", value: "'Source Han Sans CN', 'Noto Sans SC', sans-serif" },
+                ]}
+              />
             </Form.Item>
           </Card>
 

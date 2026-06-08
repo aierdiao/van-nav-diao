@@ -21,8 +21,7 @@
   --van-nav-card-radius: 8px;
   --van-nav-card-shadow: 0 1px 2px 0 rgba(0,0,0,0.03), 0 1px 6px -1px rgba(0,0,0,0.02), 0 2px 4px 0 rgba(0,0,0,0.02);
   --van-nav-card-padding: 16px;
-  --van-nav-card-gap: 12px;
-  --van-nav-header-height: 64px;
+  --van-nav-card-gap: 16px;
   
   /* 排版系统 */
   --van-nav-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;

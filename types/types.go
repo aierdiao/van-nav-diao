@@ -115,7 +115,6 @@ type ThemeLayout struct {
 	CardShadow       string `json:"cardShadow"`
 	CardPadding      string `json:"cardPadding"`
 	CardGap          string `json:"cardGap"`
-	HeaderHeight     string `json:"headerHeight"`
 }
 
 // 主题排版配置

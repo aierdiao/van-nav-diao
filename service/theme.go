@@ -48,10 +48,9 @@ func getDefaultThemeConfig() types.ThemeConfig {
 
 		Layout: types.ThemeLayout{
 			CardBorderRadius: "8px",
-			CardShadow:       "0 1px 2px 0 rgba(0,0,0,0.03), 0 1px 6px -1px rgba(0,0,0,0.02), 0 2px 4px 0 rgba(0,0,0,0.02)",
+			CardShadow:       "0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02)",
 			CardPadding:      "16px",
-			CardGap:          "12px",
-			HeaderHeight:     "64px",
+			CardGap:          "16px",
 		},
 		Typography: types.ThemeTypography{
 			FontFamily:      "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
@@ -197,9 +196,7 @@ func GetThemeConfig() (*types.ThemeConfig, error) {
 		if v, ok := layout["cardGap"].(string); ok {
 			config.Layout.CardGap = v
 		}
-		if v, ok := layout["headerHeight"].(string); ok {
-			config.Layout.HeaderHeight = v
-		}
+
 	}
 	
 	// 解析typography
@@ -265,7 +262,6 @@ func SaveThemeConfig(config types.ThemeConfig) error {
 			"cardShadow":       config.Layout.CardShadow,
 			"cardPadding":      config.Layout.CardPadding,
 			"cardGap":          config.Layout.CardGap,
-			"headerHeight":     config.Layout.HeaderHeight,
 		},
 		"typography": map[string]interface{}{
 			"fontFamily":      config.Typography.FontFamily,

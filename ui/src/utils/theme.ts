@@ -83,7 +83,6 @@ export interface ThemeLayout {
   cardShadow: string;
   cardPadding: string;
   cardGap: string;
-  headerHeight: string;
 }
 
 export interface ThemeTypography {
@@ -132,7 +131,6 @@ export const applyThemeVars = (config: ThemeConfig) => {
   root.style.setProperty('--van-nav-card-shadow', config.layout.cardShadow);
   root.style.setProperty('--van-nav-card-padding', config.layout.cardPadding);
   root.style.setProperty('--van-nav-card-gap', config.layout.cardGap);
-  root.style.setProperty('--van-nav-header-height', config.layout.headerHeight);
   
   // 应用排版变量
   root.style.setProperty('--van-nav-font-family', config.typography.fontFamily);
