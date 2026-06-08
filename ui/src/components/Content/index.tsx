@@ -377,9 +377,11 @@ const Content = (props: any) => {
           {loading ? <Loading></Loading> : renderCardsV2()}
         </div>
       </div>
-      <div className="record-wraper">
-        <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer">{data?.setting?.govRecord ?? ""}</a>
-      </div>
+      {data?.setting?.govRecord && (
+        <div className="record-wraper">
+          <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer">{data.setting.govRecord}</a>
+        </div>
+      )}
       <div className="floating-actions">
         {showAdmin && <AdminLink jumpTargetBlank={data?.setting?.jumpTargetBlank} />}
         {showGithub && <GithubLink />}
