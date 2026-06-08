@@ -41,10 +41,11 @@ body {
 }
 
 /* 隐藏全局滚动条 */
+html::-webkit-scrollbar,
 body::-webkit-scrollbar {
   display: none;
 }
-body {
+html, body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
