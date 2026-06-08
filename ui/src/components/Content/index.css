@@ -2,9 +2,6 @@
 /* 顶部栏样式 */
 .topbar {
   padding: 16px 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
 }
 
 :root {
@@ -587,14 +584,8 @@
     height: 48px;
   }
 }
-.content-wraper::-webkit-scrollbar {
-  display: none; /* Chrome Safari */
-}
 .content-wraper {
-  overflow-y: scroll;
-  -ms-overflow-style: none; /* IE 10+ */
-  scrollbar-width: none; /* firefox */
-  height: 100%;
+  min-height: calc(100vh - 200px);
 }
 .cards {
   padding-top: 10px;
@@ -602,10 +593,7 @@
 }
 .record-wraper {
   text-align: center;
-  position: fixed;
-  bottom: 1vh;
-  left: 0;
-  right: 0;
+  padding: 20px 0;
 }
 
 .record-wraper>a {
