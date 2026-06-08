@@ -10,7 +10,7 @@
     position: relative;
 }
 .card-index {
-    color: #272e3b;
+    color: var(--van-nav-text-primary);
 }
 
 body.dark-mode .card-index {

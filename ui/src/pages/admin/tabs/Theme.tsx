@@ -1,4 +1,5 @@
 import { Button, Card, ColorPicker, Form, Input, message, Modal, Select, Space, Spin } from "antd";
+import type { Color } from "antd/es/color-picker";
 import { useCallback, useEffect, useState } from "react";
 import { fetchGetTheme, fetchUpdateTheme, fetchResetTheme } from "../../../utils/api";
 import { applyThemeVars, clearThemeVars, type ThemeConfig } from "../../../utils/theme";
@@ -249,6 +250,21 @@ const presetThemes: Record<string, { name: string; config: ThemeConfig }> = {
   },
 };
 
+// 辅助函数：将 Color 对象或字符串转换为 hex 字符串
+const colorToHex = (color: any, defaultVal: string): string => {
+  if (!color) return defaultVal;
+  if (typeof color === 'string') return color;
+  if (color.toHexString) return color.toHexString();
+  if (color.metaColor) {
+    const { r, g, b, a } = color.metaColor;
+    if (a === 1) {
+      return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+    return '#' + [r, g, b, Math.round(a * 255)].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+  return defaultVal;
+};
+
 export interface ThemeProps {}
 
 export const Theme: React.FC<ThemeProps> = () => {
@@ -289,31 +305,32 @@ export const Theme: React.FC<ThemeProps> = () => {
   const handleSave = useCallback(async (values: any) => {
     setSaving(true);
     try {
-      // 转换颜色值为字符串
+      // 转换颜色值为字符串（处理 ColorPicker 返回的 Color 对象）
       const config = {
         ...values,
         colors: {
-          ...values.colors,
-          primary: typeof values.colors?.primary === 'string' ? values.colors.primary : values.colors?.primary?.toHexString?.() || "#1677ff",
-          primaryHover: typeof values.colors?.primaryHover === 'string' ? values.colors.primaryHover : values.colors?.primaryHover?.toHexString?.() || "#4096ff",
-          bgBase: typeof values.colors?.bgBase === 'string' ? values.colors.bgBase : values.colors?.bgBase?.toHexString?.() || "#f5f5f5",
-          bgCard: typeof values.colors?.bgCard === 'string' ? values.colors.bgCard : values.colors?.bgCard?.toHexString?.() || "#ffffff",
-          bgHeader: typeof values.colors?.bgHeader === 'string' ? values.colors.bgHeader : values.colors?.bgHeader?.toHexString?.() || "#ffffff",
-          textPrimary: typeof values.colors?.textPrimary === 'string' ? values.colors.textPrimary : values.colors?.textPrimary?.toHexString?.() || "#000000e0",
-          textSecondary: typeof values.colors?.textSecondary === 'string' ? values.colors.textSecondary : values.colors?.textSecondary?.toHexString?.() || "#000000a6",
-          border: typeof values.colors?.border === 'string' ? values.colors.border : values.colors?.border?.toHexString?.() || "#d9d9d9",
+          primary: colorToHex(values.colors?.primary, "#1677ff"),
+          primaryHover: colorToHex(values.colors?.primaryHover, "#4096ff"),
+          bgBase: colorToHex(values.colors?.bgBase, "#f5f5f5"),
+          bgCard: colorToHex(values.colors?.bgCard, "#ffffff"),
+          bgHeader: colorToHex(values.colors?.bgHeader, "#ffffff"),
+          textPrimary: colorToHex(values.colors?.textPrimary, "#000000e0"),
+          textSecondary: colorToHex(values.colors?.textSecondary, "#000000a6"),
+          border: colorToHex(values.colors?.border, "#d9d9d9"),
         },
         colorsDark: {
-          ...values.colorsDark,
-          primary: typeof values.colorsDark?.primary === 'string' ? values.colorsDark.primary : values.colorsDark?.primary?.toHexString?.() || "#1668dc",
-          primaryHover: typeof values.colorsDark?.primaryHover === 'string' ? values.colorsDark.primaryHover : values.colorsDark?.primaryHover?.toHexString?.() || "#3c89e8",
-          bgBase: typeof values.colorsDark?.bgBase === 'string' ? values.colorsDark.bgBase : values.colorsDark?.bgBase?.toHexString?.() || "#141414",
-          bgCard: typeof values.colorsDark?.bgCard === 'string' ? values.colorsDark.bgCard : values.colorsDark?.bgCard?.toHexString?.() || "#1f1f1f",
-          bgHeader: typeof values.colorsDark?.bgHeader === 'string' ? values.colorsDark.bgHeader : values.colorsDark?.bgHeader?.toHexString?.() || "#1f1f1f",
-          textPrimary: typeof values.colorsDark?.textPrimary === 'string' ? values.colorsDark.textPrimary : values.colorsDark?.textPrimary?.toHexString?.() || "#ffffffe0",
-          textSecondary: typeof values.colorsDark?.textSecondary === 'string' ? values.colorsDark.textSecondary : values.colorsDark?.textSecondary?.toHexString?.() || "#ffffffa6",
-          border: typeof values.colorsDark?.border === 'string' ? values.colorsDark.border : values.colorsDark?.border?.toHexString?.() || "#424242",
+          primary: colorToHex(values.colorsDark?.primary, "#1668dc"),
+          primaryHover: colorToHex(values.colorsDark?.primaryHover, "#3c89e8"),
+          bgBase: colorToHex(values.colorsDark?.bgBase, "#141414"),
+          bgCard: colorToHex(values.colorsDark?.bgCard, "#222222"),
+          bgHeader: colorToHex(values.colorsDark?.bgHeader, "#1f1f1f"),
+          textPrimary: colorToHex(values.colorsDark?.textPrimary, "#ffffffe0"),
+          textSecondary: colorToHex(values.colorsDark?.textSecondary, "#ffffffa6"),
+          border: colorToHex(values.colorsDark?.border, "#424242"),
         },
+        layout: values.layout || {},
+        typography: values.typography || {},
+        customCSS: values.customCSS || "",
       };
 
       const res = await fetchUpdateTheme(config);

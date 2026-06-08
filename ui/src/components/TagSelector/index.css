@@ -1,6 +1,6 @@
 .select-tag {
   cursor: pointer;
-  color: #8a92a6;
+  color: var(--van-nav-text-secondary);
   border: 1px solid #979797;
   transition: all 0.3s;
   box-sizing: border-box;
