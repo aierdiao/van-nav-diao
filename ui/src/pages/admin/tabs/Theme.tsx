@@ -1,8 +1,9 @@
 import { Button, Card, ColorPicker, Form, Input, message, Modal, Select, Space, Spin } from "antd";
 import type { Color } from "antd/es/color-picker";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchGetTheme, fetchUpdateTheme, fetchResetTheme } from "../../../utils/api";
 import { applyThemeVars, clearThemeVars, type ThemeConfig } from "../../../utils/theme";
+import { detectAvailableFonts } from "../../../utils/fontDetect";
 import { BgColorsOutlined, ReloadOutlined, SaveOutlined } from "@ant-design/icons";
 import { useTranslation } from '../../../i18n';
 
@@ -192,6 +193,9 @@ export interface ThemeProps {}
 export const Theme: React.FC<ThemeProps> = () => {
   const { t: _t } = useTranslation();
   const [form] = Form.useForm();
+  
+  // 检测可用字体
+  const availableFonts = useMemo(() => detectAvailableFonts(), []);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isDark, setIsDark] = useState(() => document.body.classList.contains("dark-mode"));
@@ -436,12 +440,10 @@ export const Theme: React.FC<ThemeProps> = () => {
             <Form.Item name={["typography", "fontFamily"]} label="字体族">
               <Select
                 optionLabelProp="label"
-                options={[
-                  { label: "系统默认", value: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
-                  { label: "苹方 (Mac)", value: "'PingFang SC', -apple-system, sans-serif" },
-                  { label: "微软雅黑", value: "'Microsoft YaHei', 'PingFang SC', sans-serif" },
-                  { label: "思源黑体", value: "'Source Han Sans CN', 'Noto Sans SC', sans-serif" },
-                ]}
+                options={availableFonts.map(f => ({
+                  label: f.name,
+                  value: f.value,
+                }))}
                 labelRender={(option) => option.label}
               />
             </Form.Item>
