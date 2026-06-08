@@ -2,6 +2,10 @@
 /* 顶部栏样式 */
 .topbar {
   padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--van-nav-bg-base);
 }
 
 :root {
@@ -585,7 +589,9 @@
   }
 }
 .content-wraper {
-  min-height: calc(100vh - 200px);
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 .cards {
   padding-top: 10px;
@@ -594,6 +600,7 @@
 .record-wraper {
   text-align: center;
   padding: 20px 0;
+  flex-shrink: 0;
 }
 
 .record-wraper>a {

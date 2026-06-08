@@ -308,20 +308,20 @@ const Content = (props: any) => {
 
   // P4: 滚动触底自动加载更多卡片（passive 事件，零性能影响）
   useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
     let isThrottled = false;
     const handleScroll = () => {
       if (isThrottled) return;
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const scrollHeight = document.documentElement.scrollHeight;
-      const clientHeight = window.innerHeight;
+      const { scrollTop, scrollHeight, clientHeight } = container;
       if (scrollHeight - scrollTop - clientHeight < 300) {
         isThrottled = true;
         setVisibleCount((prev) => Math.min(prev + VISIBLE_BATCH, filteredData.length));
         setTimeout(() => { isThrottled = false; }, 200);
       }
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
   }, [filteredData.length]);
 
   const onKeyEnter = (ev: KeyboardEvent) => {
