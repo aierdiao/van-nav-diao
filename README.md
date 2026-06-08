@@ -119,6 +119,19 @@ docker pull ghcr.io/thirsty5034/van-nav:latest
 
 支持 `linux/amd64`、`linux/arm64`、`linux/arm`、`darwin/amd64`、`darwin/arm64`。
 
+#### 页面美化功能
+
+上游无此功能。管理后台新增「页面美化」配置页，支持管理员自定义前端页面显示效果：
+
+- **主题色彩**：主色调、页面背景色、卡片背景色、主文字颜色、次文字颜色、边框颜色
+- **布局调整**：卡片圆角（8px/12px/16px/20px）、卡片阴影（无/轻微/柔和/明显）、卡片内边距、卡片间距
+- **排版设置**：标题字号、标题字重（400/500/600/700）、描述字号
+- **自定义 CSS**：支持注入最多 10KB 的自定义 CSS，后端自动净化危险关键字（`expression`、`behavior`、跨域 `url()` 等）
+- **预设主题**：7 种预设主题一键填充（经典蓝、科技紫、极简灰、自然绿、日落橙、樱花粉、渐变毛玻璃）
+- **CSS 变量驱动**：前端全局采用原生 CSS 变量（`--van-nav-*`），零运行时性能损耗
+- **备份集成**：主题配置无缝接入现有导入导出与 WebDAV 备份系统
+- **备案栏条件隐藏**：未配置工信部备案信息时，底部备案栏自动隐藏
+
 #### 中英文国际化（i18n）
 
 上游无此功能。本项目实现了完整的前后端中英文双语支持：
@@ -152,7 +165,7 @@ docker pull ghcr.io/thirsty5034/van-nav:latest
 
 | 改进项 | 上游 | 本项目 |
 |--------|------|--------|
-| CI 工具链 | Node.js 较旧版本 | Node.js 22 + pnpm 11.4.0 + Go 1.23 |
+| CI 工具链 | Node.js 较旧版本 | Node.js 22 + pnpm 11.4.0 + Go 1.24 |
 | Docker 构建 | 单阶段 | 多阶段构建（前端 + 后端 + 运行时分离） |
 | 发版流程 | 手动发布 | GoReleaser 自动交叉编译 6 平台 + 结构化 Release Notes |
 | 分层架构 | handler 直接调用 database（10 处） | service 层 42 处 + main.go 4 处越级 DB 操作全部消除，30 个 `database/operations.go` 封装函数，handler/main/service 三层零 `database.DB` 引用 |
@@ -161,7 +174,7 @@ docker pull ghcr.io/thirsty5034/van-nav:latest
 
 ## 使用技巧/快捷键
 
-- 直接在页面输入任意按键，自动聚焦到搜索框
+- 桌面端打开页面后搜索框自动聚焦，可直接输入开始搜索；移动端需点击搜索框
 - 搜索后按回车，直接在新标签页打开第一个结果
 - 搜索后按对应卡片右上角数字 + Ctrl/Command，直接打开对应结果
 - 支持自定义跳转方式（新标签页/当前标签页）
@@ -437,6 +450,19 @@ Upstream has no `docker-compose.yml`. This project provides an out-of-the-box Co
 
 Upstream images are hosted on Docker Hub. This project uses GitHub Container Registry with multi-architecture support: `linux/amd64`, `linux/arm64`, `linux/arm`, `darwin/amd64`, `darwin/arm64`.
 
+#### Theme Beautification System
+
+Not available upstream. The admin panel gains a new "Theme" configuration page for customizing the frontend appearance:
+
+- **Theme Colors**: primary color, page background, card background, primary text color, secondary text color, border color
+- **Layout Adjustments**: card border radius (8px/12px/16px/20px), card shadow (none/subtle/soft/prominent), card padding, card gap
+- **Typography**: title font size, title font weight (400/500/600/700), description font size
+- **Custom CSS**: inject up to 10KB of custom CSS with automatic backend sanitization of dangerous keywords (`expression`, `behavior`, cross-origin `url()`, etc.)
+- **Preset Themes**: 7 one-click presets (Classic Blue, Tech Purple, Minimal Gray, Forest Green, Sunset Orange, Sakura Pink, Gradient Glass)
+- **CSS Variables**: frontend uses native CSS custom properties (`--van-nav-*`) globally, zero runtime performance overhead
+- **Backup Integration**: theme configuration seamlessly integrates with existing import/export and WebDAV backup systems
+- **Conditional Footer**: government record footer auto-hides when not configured
+
 #### Chinese/English Internationalization (i18n)
 
 Not available upstream. This project implements full bilingual Chinese/English support:
@@ -470,7 +496,7 @@ Not available upstream. This project implements full bilingual Chinese/English s
 
 | Improvement | Upstream | This Project |
 |-------------|----------|--------------|
-| CI Toolchain | Older Node.js version | Node.js 22 + pnpm 11.4.0 + Go 1.23 |
+| CI Toolchain | Older Node.js version | Node.js 22 + pnpm 11.4.0 + Go 1.24 |
 | Docker Build | Single-stage | Multi-stage build (frontend + backend + runtime separated) |
 | Release Process | Manual release | GoReleaser auto cross-compiles for 6 platforms + structured Release Notes |
 | Layered Architecture | Handler directly calls database (10 occurrences) | 42 violations in service layer + 4 in main.go fully eliminated; 30 `database/operations.go` wrapper functions; handler/main/service layers have zero `database.DB` references |
@@ -479,7 +505,7 @@ Not available upstream. This project implements full bilingual Chinese/English s
 
 ### Tips & Shortcuts
 
-- Start typing anywhere on the page to auto-focus the search box
+- On desktop, the search box auto-focuses on page load — just start typing; on mobile, tap the search box to focus
 - After searching, press Enter to open the first result in a new tab
 - After searching, press the number on the corresponding card + Ctrl/Command to open that result directly
 - Customizable navigation behavior (new tab / current tab)
