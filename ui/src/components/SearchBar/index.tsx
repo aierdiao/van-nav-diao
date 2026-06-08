@@ -10,6 +10,8 @@ const SearchBar = (props: SearchBarProps) => {
   const { t } = useTranslation();
 
   const onKeyDown = useCallback((ev: KeyboardEvent) => {
+    // 输入法合成中（包括首字符）不拦截，避免打断中文输入法
+    if (ev.isComposing || ev.keyCode === 229) return;
     const el = document.getElementById("search-bar");
     if (!el || document.activeElement === el) return;
     const reg = /[a-zA-Z0-9]|[\u4e00-\u9fa5]/g;
