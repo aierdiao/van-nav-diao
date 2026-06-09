@@ -63,6 +63,15 @@ code {
 
 
 
+/* 暗色模式 CSS 变量覆盖 */
+body.dark-mode {
+  --van-nav-bg-base: #1a1a1a;
+  --van-nav-bg-card: #2a2a2a;
+  --van-nav-text-primary: rgba(255, 255, 255, 0.85);
+  --van-nav-text-secondary: rgba(255, 255, 255, 0.6);
+  --van-nav-border: #404040;
+}
+
 body.dark-mode .github-link-box svg {
   fill: white;
 }

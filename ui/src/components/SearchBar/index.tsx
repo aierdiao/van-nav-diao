@@ -16,6 +16,17 @@ const SearchBar = (props: SearchBarProps) => {
     inputRef.current?.focus();
   }, []);
 
+  // 页面重新可见时（如从外部页面返回），自动恢复焦点
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   // 智能唤回：点击空白区域时自动抓回焦点，点击链接/按钮等可聚焦元素时正常放行
   const handleBlur = useCallback((ev: React.FocusEvent<HTMLInputElement>) => {
     // relatedTarget 存在 → 用户点击了可聚焦元素（<a>/<button>/<input>等）→ 放行
