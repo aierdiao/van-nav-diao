@@ -9,12 +9,11 @@ interface SearchBarProps {
 const SearchBar = (props: SearchBarProps) => {
   const { t } = useTranslation();
   const onKeyDown = useCallback((ev: KeyboardEvent) => {
-    // 输入法合成中（包括首字符）不拦截，避免打断中文输入法
-    if (ev.isComposing || ev.keyCode === 229) return;
+    // 仅 Enter 键聚焦搜索框，不拦截字母按键
+    // （避免抢在输入法 composition 之前导致中文首字符变英文）
+    if (ev.code !== "Enter") return;
     const el = document.getElementById("search-bar");
-    if (!el || document.activeElement === el) return;
-    const reg = /[a-zA-Z0-9]|[\u4e00-\u9fa5]/g;
-    if (ev.code === "Enter" || reg.test(ev.key)) {
+    if (el && document.activeElement !== el) {
       el.focus();
     }
   }, []);
