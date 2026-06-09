@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 import { useTranslation } from "../../i18n";
 import "./index.css";
 
@@ -8,9 +8,6 @@ interface SearchBarProps {
 }
 const SearchBar = (props: SearchBarProps) => {
   const { t } = useTranslation();
-  // 桌面端自动聚焦，移动端不聚焦避免弹出软键盘
-  const [shouldAutoFocus] = useState(() => window.innerWidth >= 700);
-
   const onKeyDown = useCallback((ev: KeyboardEvent) => {
     // 输入法合成中（包括首字符）不拦截，避免打断中文输入法
     if (ev.isComposing || ev.keyCode === 229) return;
@@ -35,7 +32,6 @@ const SearchBar = (props: SearchBarProps) => {
         <input
           id="search-bar"
           type="search"
-          autoFocus={shouldAutoFocus}
           placeholder={t('home.search.placeholder')}
           value={props.searchString}
           onChange={(ev) => {
