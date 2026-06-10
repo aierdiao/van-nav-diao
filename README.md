@@ -10,6 +10,9 @@
 
 <a id="chinese"></a>
 
+> 🌐 **在线 Demo**：[van-nav-73v7.onrender.com](https://van-nav-73v7.onrender.com/)
+> （跟随 GitHub Docker 镜像自动部署更新，数据为演示用途，定期重置）
+
 ## 预览
 
 ### PC 端
@@ -362,6 +365,9 @@ A lightweight navigation site with search engine integration, suitable as a home
 > This project is forked from [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav), with architectural restructuring, security hardening, and engineering improvements on top of the original. See [Differences from Upstream](#differences-from-upstream) for details.
 
 ### Preview
+
+> 🌐 **Online Demo**: [van-nav-73v7.onrender.com](https://van-nav-73v7.onrender.com/)
+> (Auto-deploys from GitHub Docker images. Demo data resets periodically.)
 
 #### Desktop
 
