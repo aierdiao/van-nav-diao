@@ -49,21 +49,24 @@ func init() {
 	}
 }
 
-func SignJWT(user types.User) (string, error) {
+// SignJWT 生成普通登录 JWT，嵌入 tokenVersion 用于密码修改后撤销旧 token
+func SignJWT(user types.User, tokenVersion int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"name": user.Name,
-		"id":   user.Id,
-		"exp":  time.Now().Add(time.Hour * 24 * 30).Unix(),
+		"name":    user.Name,
+		"id":      user.Id,
+		"version": tokenVersion,
+		"exp":     time.Now().Add(time.Hour * 24 * 30).Unix(), // 30 天
 	})
 	tokenString, err := token.SignedString([]byte(jwtSecret))
 	return tokenString, err
 }
 
+// SignJWTForAPI 生成 API Token（不受密码修改影响），独立验证通道
 func SignJWTForAPI(tokenName string, tokenId int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"name": tokenName,
 		"id":   tokenId,
-		"exp":  time.Now().Add(time.Hour * 24 * 365 * 10).Unix(),
+		"exp":  time.Now().Add(time.Hour * 24 * 365).Unix(), // 1 年过期
 	})
 	tokenString, err := token.SignedString([]byte(jwtSecret))
 	return tokenString, err

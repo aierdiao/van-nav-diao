@@ -778,6 +778,22 @@ func ResetAdminPassword(hashedPassword string) error {
 	return err
 }
 
+// GetUserTokenVersion 获取用户当前的 token_version（默认值 1，向后兼容旧 token）
+func GetUserTokenVersion(uid int) int {
+	var version int
+	err := DB.QueryRow(`SELECT COALESCE(token_version, 1) FROM nav_user WHERE id = ?`, uid).Scan(&version)
+	if err != nil {
+		return 1 // 出错时默认返回 1，确保旧 token 仍可验证
+	}
+	return version
+}
+
+// IncrementUserTokenVersion 递增用户的 token_version（密码修改后调用，使旧 token 失效）
+func IncrementUserTokenVersion(uid int) error {
+	_, err := DB.Exec(`UPDATE nav_user SET token_version = token_version + 1 WHERE id = ?`, uid)
+	return err
+}
+
 // ==================== 重构新增：工具 CRUD 操作 ====================
 
 // GetAllToolRows 查询所有工具（按 sort 排序）

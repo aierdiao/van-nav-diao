@@ -45,6 +45,11 @@ func InitDB() {
 	_, err = DB.Exec(sql_create_table)
 	utils.CheckErr(err)
 
+	// nav_user 表 token_version 字段（用于密码修改后撤销旧 token）
+	if !columnExists("nav_user", "token_version") {
+		DB.Exec(`ALTER TABLE nav_user ADD COLUMN token_version INTEGER NOT NULL DEFAULT 1;`)
+	}
+
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_setting (id INTEGER PRIMARY KEY AUTOINCREMENT, favicon TEXT, title TEXT, govRecord TEXT, logo192 TEXT, logo512 TEXT, hideAdmin BOOLEAN, hideGithub BOOLEAN, hideToggleJumpTarget BOOLEAN, jumpTargetBlank BOOLEAN);`
 	_, err = DB.Exec(sql_create_table)
 	utils.CheckErr(err)
