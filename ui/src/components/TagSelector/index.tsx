@@ -20,7 +20,8 @@ const TagSelector = (props: TagSelectorProps) => {
       if (now - lastWheelTime.current < 150) return;
       lastWheelTime.current = now;
 
-      const currentIndex = tags.indexOf(currTag);
+      const names = tags.map((item: any) => typeof item === "string" ? item : item?.name);
+      const currentIndex = names.indexOf(currTag);
       if (currentIndex === -1) return;
 
       let newIndex = currentIndex;
@@ -33,14 +34,15 @@ const TagSelector = (props: TagSelectorProps) => {
       }
 
       if (newIndex !== currentIndex) {
-        onTagChange(tags[newIndex]);
+        onTagChange(names[newIndex]);
       }
     },
     [tags, currTag, onTagChange]
   );
 
   const renderTags = useCallback(() => {
-    const originTags =  tags.map((each) => {
+    const originTags =  tags.map((item) => {
+      const each = typeof item === "string" ? item : item?.name;
       // 处理空分类，显示为"未分类"
       let displayText = each;
       if (each === null || each === undefined || each === "" || (typeof each === 'string' && each.trim() === "")) {

@@ -18,7 +18,7 @@ const normalizeTags = (value: any): string[] => {
     });
 };
 
-const Card = ({ title, url, des, logo, catelog, tags, onClick, index, isSearching, noImageMode, compactMode, jumpTargetBlank }: any) => {
+const Card = ({ title, url, des, logo, catelog, tags, onClick, onTagClick, index, isSearching, noImageMode, compactMode, jumpTargetBlank }: any) => {
   const [imageError, setImageError] = useState(false);
 
   const imageSrc = useMemo(() => {
@@ -50,6 +50,7 @@ const Card = ({ title, url, des, logo, catelog, tags, onClick, index, isSearchin
       <img
         src={displayImageSrc}
         alt={title}
+        decoding="async"
         loading="lazy"
         onError={handleImageError}
       />
@@ -97,8 +98,22 @@ const Card = ({ title, url, des, logo, catelog, tags, onClick, index, isSearchin
               {displayTags.map((tag) => (
                 <span
                   key={tag}
-                  className={`card-label ${tag.toLowerCase() === "aff" ? "card-label-aff" : ""}`}
+                  className={`card-label card-label-clickable ${tag.toLowerCase() === "aff" ? "card-label-aff" : ""}`}
                   title={tag}
+                  role="link"
+                  tabIndex={0}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onTagClick?.(tag);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      onTagClick?.(tag);
+                    }
+                  }}
                 >
                   {tag}
                 </span>

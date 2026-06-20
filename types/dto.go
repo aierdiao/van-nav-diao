@@ -21,14 +21,21 @@ type AddTokenDto struct {
 type UpdateCatelogDto struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
+	Slug string `json:"slug"`
 	Sort int    `json:"sort"`
 	Hide bool   `json:"hide"`
 }
 
 type AddCatelogDto struct {
 	Name string `json:"name"`
+	Slug string `json:"slug"`
 	Sort int    `json:"sort"`
 	Hide bool   `json:"hide"`
+}
+
+type UpdateTagSlugDto struct {
+	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 type UpdateToolDto struct {
 	Id          int    `json:"id"`
@@ -101,6 +108,7 @@ type ExportConfigResponse struct {
 	Version       string                 `json:"version"`
 	Tools         []Tool                 `json:"tools"`
 	Catelogs      []Catelog              `json:"categories"`
+	TagSlugs      []TagSlug              `json:"tag_slugs"`
 	SearchEngines []SearchEngine         `json:"search_engines"`
 	ApiTokens     []Token                `json:"api_tokens"`
 	Settings      map[string]string      `json:"settings"`
@@ -111,6 +119,7 @@ type ExportConfigResponse struct {
 type ImportConfigRequest struct {
 	Tools         []Tool                 `json:"tools"`
 	Catelogs      []Catelog              `json:"categories"`
+	TagSlugs      []TagSlug              `json:"tag_slugs"`
 	SearchEngines []SearchEngine         `json:"search_engines"`
 	ApiTokens     []Token                `json:"api_tokens"`
 	Settings      map[string]string      `json:"settings"`
@@ -124,6 +133,7 @@ type ImportConfigResponse struct {
 	ToolsImported         int      `json:"tools_imported"`
 	ToolsSkipped          int      `json:"tools_skipped"`
 	CatelogsImported      int      `json:"categories_imported"`
+	TagSlugsImported      int      `json:"tag_slugs_imported"`
 	SearchEnginesImported int      `json:"search_engines_imported"`
 	ApiTokensImported     int      `json:"api_tokens_imported"`
 	ApiTokensSkipped      int      `json:"api_tokens_skipped"`

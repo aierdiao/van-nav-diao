@@ -17,6 +17,10 @@ func ExportFullConfig() (*types.ExportConfigResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	tagSlugs, err := GetAllTagSlugs()
+	if err != nil {
+		return nil, err
+	}
 
 	searchEngines, err := database.GetAllSearchEngines()
 	if err != nil {
@@ -43,6 +47,7 @@ func ExportFullConfig() (*types.ExportConfigResponse, error) {
 		Version:       "1.0",
 		Tools:         tools,
 		Catelogs:      catelogs,
+		TagSlugs:      tagSlugs,
 		SearchEngines: searchEngines,
 		ApiTokens:     tokens,
 		Settings:      settings,
@@ -73,6 +78,24 @@ func ImportFullConfig(req types.ImportConfigRequest) types.ImportConfigResponse 
 	}
 	result.ToolsImported = len(req.Tools)
 
+	if len(req.TagSlugs) > 0 {
+		if err := database.InsertTagSlugs(req.TagSlugs); err != nil {
+			result.Success = false
+			result.Errors = append(result.Errors, "导入标签 URL 失败: "+err.Error())
+			return result
+		}
+		if err := database.EnsureTagSlugsFromTools(); err != nil {
+			result.Errors = append(result.Errors, "补全标签 URL 失败: "+err.Error())
+		}
+		tagSlugs, _ := database.GetAllTagSlugs()
+		result.TagSlugsImported = len(tagSlugs)
+	} else if err := database.EnsureTagSlugsFromTools(); err != nil {
+		result.Errors = append(result.Errors, "生成标签 URL 失败: "+err.Error())
+	} else {
+		tagSlugs, _ := database.GetAllTagSlugs()
+		result.TagSlugsImported = len(tagSlugs)
+	}
+
 	// 3. 导入搜索引擎（事务内先清空再插入）
 	if err := database.InsertSearchEngines(req.SearchEngines); err != nil {
 		result.Success = false
@@ -96,11 +119,14 @@ func ImportFullConfig(req types.ImportConfigRequest) types.ImportConfigResponse 
 
 	// 5. 导入设置（合并更新）
 	for key, value := range req.Settings {
-		if err := database.UpdateSettingField(key, value); err != nil {
+		updated, err := database.UpdateSettingField(key, value)
+		if err != nil {
 			result.Errors = append(result.Errors, "更新设置 '"+key+"' 失败: "+err.Error())
 			continue
 		}
-		result.SettingsUpdated++
+		if updated {
+			result.SettingsUpdated++
+		}
 	}
 
 	// 6. 导入网站配置（直接替换）

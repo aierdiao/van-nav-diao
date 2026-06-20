@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -21,13 +22,12 @@ func Serve(urlPrefix string, fs ServeFileSystem) gin.HandlerFunc {
 	}
 	return func(c *gin.Context) {
 		if fs.Exists(urlPrefix, c.Request.URL.Path) {
+			setStaticCacheHeaders(c, c.Request.URL.Path)
 			fileserver.ServeHTTP(c.Writer, c.Request)
 			c.Abort()
 		} else {
 			path := c.Request.URL.Path
 			pathHasAPI := strings.Contains(path, "/api") && !strings.Contains(path, "/api-token")
-			// pathHasAdmin := strings.Contains(path, "/admin")
-			// pathHasLogin := strings.Contains(path, "/login")
 			if pathHasAPI {
 				return
 			} else {
@@ -37,11 +37,25 @@ func Serve(urlPrefix string, fs ServeFileSystem) gin.HandlerFunc {
 					return
 				}
 				defer file.Close()
-				// 把文件返回
+				c.Header("Cache-Control", "no-cache")
 				http.ServeContent(c.Writer, c.Request, "index.html", time.Now(), file)
 				c.Abort()
 			}
 
 		}
+	}
+}
+
+func setStaticCacheHeaders(c *gin.Context, requestPath string) {
+	ext := strings.ToLower(filepath.Ext(requestPath))
+	if requestPath == "/" || ext == "" {
+		c.Header("Cache-Control", "no-cache")
+		return
+	}
+	switch ext {
+	case ".js", ".css", ".png", ".jpg", ".jpeg", ".webp", ".svg", ".ico", ".woff", ".woff2":
+		c.Header("Cache-Control", "public, max-age=31536000, immutable")
+	case ".html":
+		c.Header("Cache-Control", "no-cache")
 	}
 }

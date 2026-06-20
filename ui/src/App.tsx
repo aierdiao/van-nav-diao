@@ -130,6 +130,8 @@ function App() {
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/category/:slug" element={<Home />} />
+            <Route path="/tag/:slug" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminPage />}>
               <Route index element={<Tools />} />

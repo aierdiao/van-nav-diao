@@ -366,6 +366,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
       const payload = {
         tools: importPreview.tools || [],
         categories: importPreview.categories || [],
+        tag_slugs: importPreview.tag_slugs || [],
         search_engines: importPreview.search_engines || [],
         api_tokens: importPreview.api_tokens || [],
         settings: importPreview.settings || {},
@@ -377,6 +378,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
         const detailLines = [
           t("admin.settings.msg.importDetailCategory").replace("{count}", String(result.categories_imported)),
           t("admin.settings.msg.importDetailTool").replace("{count}", String(result.tools_imported)),
+          t("admin.settings.msg.importDetailTagSlug").replace("{count}", String(result.tag_slugs_imported || 0)),
           t("admin.settings.msg.importDetailSearchEngine").replace("{count}", String(result.search_engines_imported)),
           t("admin.settings.msg.importDetailToken").replace("{count}", String(result.api_tokens_imported)).replace("{skipped}", String(result.api_tokens_skipped)),
           t("admin.settings.msg.importDetailSetting").replace("{count}", String(result.settings_updated)),
@@ -397,17 +399,6 @@ export const Setting: React.FC<SettingProps> = (props) => {
         });
         setImportModalVisible(false);
         setImportPreview(null);
-        // 刷新图标缓存：逐个触发工具图标缓存
-        if (importPreview.tools && importPreview.tools.length > 0) {
-          try {
-            const { fetchUpdateTool } = await import('../../../utils/api');
-            for (const tool of importPreview.tools) {
-              try {
-                await fetchUpdateTool({ ...tool });
-              } catch (e) { }
-            }
-          } catch (e) { }
-        }
         reload();
       } else {
         message.error(t("admin.settings.msg.importFailedDetail") + (res?.data?.errorMessage || t("admin.settings.msg.unknownError")));
@@ -428,9 +419,10 @@ export const Setting: React.FC<SettingProps> = (props) => {
   const previewData = importPreview ? [
     { key: "1", module: t("admin.settings.importPreview.tools"), count: importPreview.tools?.length || 0 },
     { key: "2", module: t("admin.settings.importPreview.categories"), count: importPreview.categories?.length || 0 },
-    { key: "3", module: t("admin.settings.importPreview.searchEngines"), count: importPreview.search_engines?.length || 0 },
-    { key: "4", module: "API Token", count: importPreview.api_tokens?.length || 0 },
-    { key: "5", module: t("admin.settings.importPreview.settings"), count: Object.keys(importPreview.settings || {}).length },
+    { key: "3", module: t("admin.settings.importPreview.tagSlugs"), count: importPreview.tag_slugs?.length || 0 },
+    { key: "4", module: t("admin.settings.importPreview.searchEngines"), count: importPreview.search_engines?.length || 0 },
+    { key: "5", module: "API Token", count: importPreview.api_tokens?.length || 0 },
+    { key: "6", module: t("admin.settings.importPreview.settings"), count: Object.keys(importPreview.settings || {}).length },
   ] : [];
 
   // 样本数据

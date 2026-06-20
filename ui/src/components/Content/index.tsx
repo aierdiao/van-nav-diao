@@ -12,6 +12,7 @@ import DarkSwitch from "../DarkSwitch";
 import { generateSearchEngineCard } from "../../utils/serachEngine";
 import { toggleJumpTarget, syncJumpTargetFromServer } from "../../utils/setting";
 import { useTranslation } from "../../i18n";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 // 系统内置工具名称翻译映射（仅限前端硬编码的系统工具，不翻译用户数据）
 const systemToolTranslations: Record<string, Record<string, string>> = {
@@ -45,6 +46,9 @@ const mutiSearch = (s, t) => {
 
 const Content = (props: any) => {
   const { t, language } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { slug } = useParams();
 
   // 翻译系统工具名称
   const translateSystemTool = (name: string) => {
@@ -62,10 +66,45 @@ const Content = (props: any) => {
   const filteredDataRef = useRef<any>([]);
   const pageTitle = data?.setting?.title || "Van Nav";
   const toolCount = Array.isArray(data?.tools) ? data.tools.length : 0;
-  const categoryCount = Array.isArray(data?.catelogs) ? data.catelogs.filter((name: string) => name !== '全部工具').length : 0;
-  const seoDescription = toolCount > 0
-    ? `${pageTitle}，收录 ${toolCount} 个 AI、运营、跨境电商和实用工具，按 ${categoryCount || '多个'} 个分类整理。`
-    : `${pageTitle}，AI、运营、跨境电商和实用工具导航。`;
+  const categoryItems = useMemo(() => data?.categoryItems || [], [data?.categoryItems]);
+  const routeMode = location.pathname.startsWith("/category/") ? "category" : location.pathname.startsWith("/tag/") ? "tag" : "home";
+  const categoryBySlug = useMemo(() => {
+    const map = new Map<string, any>();
+    categoryItems.forEach((item: any) => {
+      if (item?.slug) map.set(item.slug, item);
+    });
+    return map;
+  }, [categoryItems]);
+  const tagBySlug = useMemo(() => {
+    const map = new Map<string, any>();
+    (data?.tagSlugs || []).forEach((item: any) => {
+      if (item?.slug) map.set(item.slug, item);
+    });
+    return map;
+  }, [data?.tagSlugs]);
+  const tagSlugByName = useMemo(() => {
+    const map = new Map<string, string>();
+    (data?.tagSlugs || []).forEach((item: any) => {
+      if (item?.name && item?.slug) map.set(String(item.name).toLowerCase(), item.slug);
+    });
+    return map;
+  }, [data?.tagSlugs]);
+  const activeCategory = routeMode === "category" && slug ? categoryBySlug.get(slug) : null;
+  const activeTag = routeMode === "tag" && slug ? tagBySlug.get(slug) : null;
+  const categoryCount = categoryItems.filter((item: any) => !item?.isAll).length;
+  const routeNotFound = (routeMode === "category" && slug && data?.categoryItems && !activeCategory) || (routeMode === "tag" && slug && data?.tagSlugs && !activeTag);
+  const seoTitle = activeCategory
+    ? `${activeCategory.name} - ${pageTitle}`
+    : activeTag
+      ? `${activeTag.name}标签 - ${pageTitle}`
+      : pageTitle;
+  const seoDescription = activeCategory
+    ? `${pageTitle} 的 ${activeCategory.name} 分类页，整理相关工具和常用网址。`
+    : activeTag
+      ? `${pageTitle} 的 ${activeTag.name} 标签页，整理相关工具和常用网址。`
+      : toolCount > 0
+        ? `${pageTitle}，收录 ${toolCount} 个 AI、运营、跨境电商和实用工具，按 ${categoryCount || '多个'} 个分类整理。`
+        : `${pageTitle}，AI、运营、跨境电商和实用工具导航。`;
   const canonicalUrl = typeof window !== "undefined" ? window.location.origin + window.location.pathname : "";
 
   // 监听窗口大小变化
@@ -122,7 +161,7 @@ const Content = (props: any) => {
         // localStorage 满或不可用时忽略
       }
       const tagInLocalStorage = window.localStorage.getItem("tag");
-      if (tagInLocalStorage && tagInLocalStorage !== "") {
+      if (routeMode === "home" && tagInLocalStorage && tagInLocalStorage !== "") {
         if (r?.catelogs && r?.catelogs.includes(tagInLocalStorage)) {
           setCurrTag(tagInLocalStorage);
         }
@@ -142,11 +181,28 @@ const Content = (props: any) => {
     } finally {
       setLoading(false);
     }
-  }, [setData, setLoading, setCurrTag, t]);
+  }, [setData, setLoading, setCurrTag, t, routeMode]);
   
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (activeCategory?.name) {
+      setCurrTag(activeCategory.name);
+      return;
+    }
+    if (routeMode === "tag") {
+      setCurrTag('全部工具');
+      return;
+    }
+    const tagInLocalStorage = window.localStorage.getItem("tag");
+    if (tagInLocalStorage && data?.catelogs?.includes(tagInLocalStorage)) {
+      setCurrTag(tagInLocalStorage);
+    } else {
+      setCurrTag('全部工具');
+    }
+  }, [activeCategory?.name, routeMode, data?.catelogs]);
 
   // 异步加载搜索引擎卡片
   useEffect(() => {
@@ -174,6 +230,14 @@ const Content = (props: any) => {
     if (tag !== '管理后台') {
       window.localStorage.setItem("tag", tag);
     }
+    if (tag === '全部工具') {
+      navigate("/");
+    } else {
+      const category = categoryItems.find((item: any) => item?.name === tag);
+      if (category?.slug) {
+        navigate(`/category/${category.slug}`);
+      }
+    }
     resetSearch(true);
   };
 
@@ -189,6 +253,7 @@ const Content = (props: any) => {
   const handleSetSearch = (val: string) => {
     if (val !== "" && val) {
       setCurrTag('全部工具');
+      if (routeMode !== "home") navigate("/");
       setSearchString(val.trim());
     } else {
       resetSearch();
@@ -199,10 +264,14 @@ const Content = (props: any) => {
     if (data.tools) {
       const localResult = data.tools
         .filter((item: any) => {
-          if (currTag === '全部工具') {
+          if (activeTag?.name) {
+            return String(item.tags || "").split(/[,，]/).map((tag) => tag.trim().toLowerCase()).includes(String(activeTag.name).toLowerCase());
+          }
+          const categoryName = activeCategory?.name || currTag;
+          if (categoryName === '全部工具') {
             return true;
           }
-          return item.catelog === currTag;
+          return item.catelog === categoryName;
         })
         .filter((item: any) => {
           if (searchString === "") {
@@ -217,7 +286,7 @@ const Content = (props: any) => {
         });
       // 按分类内排序：选择具体分类时按 catelogSort 排序，否则按全局 sort
       const sorted = [...localResult].sort((a: any, b: any) => {
-        if (currTag !== '全部工具') {
+        if ((activeCategory?.name || currTag) !== '全部工具') {
           return (a.catelogSort ?? a.sort) - (b.catelogSort ?? b.sort);
         }
         return (a.sort ?? 0) - (b.sort ?? 0);
@@ -226,7 +295,7 @@ const Content = (props: any) => {
     } else {
       return [...searchEngineCards];
     }
-  }, [data, currTag, searchString, searchEngineCards]);
+  }, [data, currTag, activeCategory?.name, activeTag?.name, searchString, searchEngineCards]);
 
   useEffect(() => {
     filteredDataRef.current = filteredData
@@ -265,6 +334,13 @@ const Content = (props: any) => {
             if (item.url === "toggleJumpTarget") {
               toggleJumpTarget(data?.setting?.jumpTargetBlank);
               loadData();
+            }
+          }}
+          onTagClick={(tag: string) => {
+            const tagSlug = tagSlugByName.get(String(tag).toLowerCase());
+            if (tagSlug) {
+              resetSearch(true);
+              navigate(`/tag/${tagSlug}`);
             }
           }}
         />
@@ -306,16 +382,16 @@ const Content = (props: any) => {
             data?.setting?.favicon ?? "favicon.ico"
           }
         />
-        <title>{pageTitle}</title>
+        <title>{seoTitle}</title>
         <meta name="description" content={seoDescription} />
-        <meta name="robots" content="index,follow" />
+        <meta name="robots" content={routeNotFound ? "noindex,follow" : "index,follow"} />
         {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content={pageTitle} />
+        <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
         <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:title" content={seoTitle} />
         <meta name="twitter:description" content={seoDescription} />
         {data?.setting?.customCss && <style type="text/css">{data.setting.customCss}</style>}
       </Helmet>
@@ -329,17 +405,17 @@ const Content = (props: any) => {
             }}
           />
           <TagSelector
-            tags={data?.catelogs ?? ['全部工具']}
+            tags={data?.categoryItems ?? data?.catelogs ?? ['全部工具']}
             currTag={currTag}
             onTagChange={handleSetCurrTag}
           />
         </div>
       </div>
-      <div className="content-wraper">
+      <main className="content-wraper">
         <div className={`content cards ${data?.siteConfig?.compactMode ? 'compact-grid' : ''}`} style={gridStyle}>
           {loading ? <Loading></Loading> : renderCardsV2()}
         </div>
-      </div>
+      </main>
       <div className="floating-actions">
         {showGithub && <GithubLink />}
         <DarkSwitch showGithub={showGithub} />

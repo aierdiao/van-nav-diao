@@ -1,0 +1,16 @@
+# 刁页
+
+> 面向 AI、运营、跨境电商和实用工具的导航站。
+
+## 主要页面
+
+- [首页](https://diao.page/)
+- [Sitemap](https://diao.page/sitemap.xml)
+
+## 内容说明
+
+刁页收录常用工具网站，并按分类和标签组织。分类页使用 `/category/{slug}`，标签页使用 `/tag/{slug}`。
+
+## 项目来源
+
+本项目是公开 fork，基于 Van Nav 定制。

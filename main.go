@@ -118,6 +118,7 @@ func main() {
 	//router.Use(gzip.Gzip(gzip.DefaultCompression))
 	// 嵌入文件夹
 	router.GET("/manifest.json", handler.ManifestHandler)
+	router.GET("/sitemap.xml", handler.SitemapHandler)
 	router.Use(Serve("/", BinaryFileSystem(fs, "public")))
 	api := router.Group("/api")
 	api.Use(func(c *gin.Context) {
@@ -133,10 +134,10 @@ func main() {
 		api.POST("/login", handler.LoginHandler)
 		api.GET("/logout", handler.LogoutHandler)
 		api.GET("/img", handler.GetLogoImgHandler)
-		
+
 		// 获取启用的搜索引擎（公开接口）
 		api.GET("/searchEngines", handler.GetEnabledSearchEnginesHandler)
-		
+
 		// 管理员用的
 		admin := api.Group("/admin")
 		admin.Use(middleware.JWTMiddleware())
@@ -168,17 +169,18 @@ func main() {
 			admin.POST("/catelog", handler.AddCatelogHandler)
 			admin.DELETE("/catelog/:id", handler.DeleteCatelogHandler)
 			admin.PUT("/catelog/:id", handler.UpdateCatelogHandler)
-			
+			admin.PUT("/tagSlug", handler.UpdateTagSlugHandler)
+
 			// 搜索引擎管理路由
 			admin.GET("/searchEngine", handler.GetAllSearchEnginesHandler)
 			admin.POST("/searchEngine", handler.AddSearchEngineHandler)
 			admin.PUT("/searchEngine/:id", handler.UpdateSearchEngineHandler)
 			admin.DELETE("/searchEngine/:id", handler.DeleteSearchEngineHandler)
 			admin.PUT("/searchEngines/sort", handler.UpdateSearchEngineSortHandler)
-			
+
 			// 分类排序路由
 			admin.PUT("/catelogs/sort", handler.UpdateCatelogSortHandler)
-			
+
 			// 数据备份
 			admin.GET("/backup/config", handler.GetBackupConfigHandler)
 			admin.PUT("/backup/config", handler.SaveBackupConfigHandler)
@@ -187,19 +189,19 @@ func main() {
 			admin.GET("/backup/status", handler.GetBackupStatusHandler)
 			admin.GET("/backup/files", handler.ListBackupFilesHandler)
 			admin.POST("/backup/restore", handler.RestoreBackupHandler)
-			
-		// 导入导出路由
-		admin.GET("/exportConfig", handler.ExportConfigHandler)
-		admin.POST("/importConfig", handler.ImportConfigHandler)
 
-		// 网站健康检测路由
-		admin.POST("/check-links", handler.CheckLinksHandler)
-		admin.POST("/organize-dead-links", handler.OrganizeDeadLinksHandler)
+			// 导入导出路由
+			admin.GET("/exportConfig", handler.ExportConfigHandler)
+			admin.POST("/importConfig", handler.ImportConfigHandler)
 
-		// 部署版本
-		admin.GET("/deploymentVersion", handler.GetDeploymentVersionHandler)
-		admin.POST("/deploymentVersion/increment", handler.IncrementDeploymentVersionHandler)
-	}
+			// 网站健康检测路由
+			admin.POST("/check-links", handler.CheckLinksHandler)
+			admin.POST("/organize-dead-links", handler.OrganizeDeadLinksHandler)
+
+			// 部署版本
+			admin.GET("/deploymentVersion", handler.GetDeploymentVersionHandler)
+			admin.POST("/deploymentVersion/increment", handler.IncrementDeploymentVersionHandler)
+		}
 	}
 	logger.LogInfo("应用启动成功，网址: http://localhost:%s", *port)
 	listen := fmt.Sprintf("%s:%s", *addr, *port)

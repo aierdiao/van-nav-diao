@@ -53,6 +53,8 @@ interface DataType {
 }
 
 const DEFAULT_TOOL_TAG_OPTIONS = [{ label: "Aff", value: "Aff" }];
+const TOOL_DESC_MAX_LENGTH = 40;
+const CHROME_BOOKMARK_FALLBACK_CATEGORY = "Chrome书签";
 
 const parseToolTags = (value: any): string[] => {
   if (!value) return [];
@@ -74,6 +76,129 @@ const withSerializedTags = (record: any) => ({
   ...record,
   tags: serializeToolTags(record?.tags),
 });
+
+const isHttpUrl = (value: string) => /^https?:\/\//i.test(value.trim());
+
+const parseChromeBookmarks = (content: string) => {
+  const doc = new DOMParser().parseFromString(content, "text/html");
+  const root = doc.querySelector("dl");
+  if (!root) return [];
+
+  const tools: any[] = [];
+  const categoryCounts = new Map<string, number>();
+
+  const normalizeText = (value: string | null | undefined) => (value || "").replace(/\s+/g, " ").trim();
+
+  const pushBookmark = (anchor: HTMLAnchorElement, category: string) => {
+    const url = (anchor.getAttribute("href") || "").trim();
+    if (!isHttpUrl(url)) return;
+
+    const catelog = normalizeText(category) || CHROME_BOOKMARK_FALLBACK_CATEGORY;
+    const catelogSort = (categoryCounts.get(catelog) || 0) + 1;
+    categoryCounts.set(catelog, catelogSort);
+
+    tools.push({
+      name: normalizeText(anchor.textContent) || url,
+      url,
+      logo: "",
+      catelog,
+      tags: "",
+      desc: "",
+      sort: tools.length + 1,
+      catelogSort,
+      hide: false,
+    });
+  };
+
+  const directChild = <T extends Element>(element: Element, tagName: string): T | undefined =>
+    Array.from(element.children).find((child) => child.tagName.toLowerCase() === tagName.toLowerCase()) as T | undefined;
+
+  const walk = (list: Element, category: string) => {
+    Array.from(list.children).forEach((child) => {
+      const tag = child.tagName.toLowerCase();
+      if (tag === "p") return;
+      if (tag === "dl") {
+        walk(child, category);
+        return;
+      }
+      if (tag !== "dt") return;
+
+      const anchor = directChild<HTMLAnchorElement>(child, "a");
+      if (anchor) {
+        pushBookmark(anchor, category);
+        return;
+      }
+
+      const heading = directChild<HTMLElement>(child, "h3");
+      const nestedList = directChild<HTMLDListElement>(child, "dl");
+      if (heading && nestedList) {
+        walk(nestedList, normalizeText(heading.textContent) || category);
+      }
+    });
+  };
+
+  walk(root, "");
+  return tools;
+};
+
+const escapeBookmarkText = (value: any) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+const escapeBookmarkAttr = (value: any) =>
+  escapeBookmarkText(value)
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const buildChromeBookmarksHtml = (tools: any[]) => {
+  const now = Math.floor(Date.now() / 1000);
+  const categoryGroups: Array<{ name: string; tools: any[] }> = [];
+  const categoryIndex = new Map<string, number>();
+
+  tools
+    .filter((tool) => tool?.url && isHttpUrl(String(tool.url)))
+    .forEach((tool) => {
+      const category = String(tool.catelog || "").trim() || CHROME_BOOKMARK_FALLBACK_CATEGORY;
+      let index = categoryIndex.get(category);
+      if (index === undefined) {
+        index = categoryGroups.length;
+        categoryIndex.set(category, index);
+        categoryGroups.push({ name: category, tools: [] });
+      }
+      categoryGroups[index].tools.push(tool);
+    });
+
+  const lines = [
+    "<!DOCTYPE NETSCAPE-Bookmark-file-1>",
+    '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">',
+    "<TITLE>Bookmarks</TITLE>",
+    "<H1>Bookmarks</H1>",
+    "<DL><p>",
+  ];
+
+  categoryGroups.forEach((group) => {
+    lines.push(`  <DT><H3 ADD_DATE="${now}" LAST_MODIFIED="${now}">${escapeBookmarkText(group.name)}</H3>`);
+    lines.push("  <DL><p>");
+    group.tools
+      .slice()
+      .sort((a, b) => {
+        const aSort = Number(a.catelogSort || a.sort || 0);
+        const bSort = Number(b.catelogSort || b.sort || 0);
+        return aSort - bSort;
+      })
+      .forEach((tool) => {
+        lines.push(
+          `    <DT><A HREF="${escapeBookmarkAttr(tool.url)}" ADD_DATE="${now}">${escapeBookmarkText(tool.name || tool.url)}</A>`
+        );
+      });
+    lines.push("  </DL><p>");
+  });
+
+  lines.push("</DL><p>");
+  return lines.join("\n");
+};
 
 interface RowContextProps {
   setActivatorNodeRef?: (element: HTMLElement | null) => void;
@@ -413,12 +538,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
   }, [reload, selectedRows, t]);
   const handleExport = useCallback(async () => {
     const data = await fetchExportTools();
-    const jsr = JSON.stringify(data);
-    const blob = new Blob([jsr], { type: "application/json" });
+    const html = buildChromeBookmarksHtml(data || []);
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "tools.json";
+    a.download = "chrome-bookmarks.html";
     document.documentElement.appendChild(a);
     a.click();
     document.documentElement.removeChild(a);
@@ -634,23 +759,26 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             {t("admin.tools.btn.refresh")}
           </Button>
           <Upload
-            name="tools.json"
+            name="bookmarks.html"
             maxCount={1}
-            accept=".json"
+            accept=".html,.htm"
             fileList={[]}
-            beforeUpload={(file, fileList) => {
+            beforeUpload={(file) => {
               const reader = new FileReader();
               reader.readAsText(file);
               reader.onload = (result) => {
-                let tools = result?.target?.result;
-                if (tools) {
-                  handleImport(JSON.parse(tools as string));
+                try {
+                  const content = result?.target?.result;
+                  const tools = parseChromeBookmarks(String(content || ""));
+                  handleImport(tools);
+                } catch (err) {
+                  message.warning(t("admin.tools.msg.chromeImportInvalid"));
                 }
               };
               return false;
             }}
           >
-            <Button type="primary">{t("admin.tools.btn.import")}</Button>
+            <Button type="primary">{t("admin.tools.btn.importChrome")}</Button>
           </Upload>
           <Button
             type="primary"
@@ -658,7 +786,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               handleExport();
             }}
           >
-            {t("admin.tools.btn.export")}
+            {t("admin.tools.btn.exportChrome")}
           </Button>
         </Space>
       }
@@ -908,10 +1036,15 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               name="desc"
               label={t("admin.tools.form.desc")}
               labelCol={{ span: 4 }}
+              rules={[{ max: TOOL_DESC_MAX_LENGTH, message: t("admin.tools.form.descMaxLength", { max: TOOL_DESC_MAX_LENGTH }) }]}
             >
               <Input.TextArea
                 rows={2}
-                placeholder={t("admin.tools.form.desc")}
+                maxLength={TOOL_DESC_MAX_LENGTH}
+                showCount
+                autoSize={false}
+                placeholder={t("admin.tools.form.descPlaceholder")}
+                style={{ resize: "none", overflowWrap: "anywhere" }}
               />
             </Form.Item>
             <Form.Item
@@ -1045,10 +1178,19 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 placeholder={t("admin.tools.form.categoryPlaceholder")}
               />
             </Form.Item>
-            <Form.Item name="desc" label={t("admin.tools.form.desc")} labelCol={{ span: 4 }}>
+            <Form.Item
+              name="desc"
+              label={t("admin.tools.form.desc")}
+              labelCol={{ span: 4 }}
+              rules={[{ max: TOOL_DESC_MAX_LENGTH, message: t("admin.tools.form.descMaxLength", { max: TOOL_DESC_MAX_LENGTH }) }]}
+            >
               <Input.TextArea
                 rows={2}
-                placeholder={t("admin.tools.form.desc")}
+                maxLength={TOOL_DESC_MAX_LENGTH}
+                showCount
+                autoSize={false}
+                placeholder={t("admin.tools.form.descPlaceholder")}
+                style={{ resize: "none", overflowWrap: "anywhere" }}
               />
             </Form.Item>
             <Form.Item

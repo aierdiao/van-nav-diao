@@ -20,6 +20,7 @@ import {
   fetchDeleteCatelog,
   fetchUpdateCateLog,
   fetchUpdateCatelogsSort,
+  fetchUpdateTagSlug,
 } from "../../../utils/api";
 import { useData } from "../hooks/useData";
 import { useTranslation } from "../../../i18n";
@@ -30,6 +31,7 @@ import { CSS } from '@dnd-kit/utilities';
 interface CatelogItem {
   id: number;
   name: string;
+  slug: string;
   sort: number;
   hide: boolean;
 }
@@ -84,6 +86,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
   const [showEdit, setShowEdit] = useState(false);
   const [selectedRows, setSelectRows] = useState<CatelogItem[]>([]);
   const [dataSource, setDataSource] = useState<CatelogItem[]>([]);
+  const [tagSlugDrafts, setTagSlugDrafts] = useState<Record<string, string>>({});
 
   // 从 store 同步 dataSource
   useEffect(() => {
@@ -91,6 +94,16 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
       setDataSource([...store.catelogs].sort((a: any, b: any) => a.sort - b.sort));
     }
   }, [store?.catelogs]);
+
+  useEffect(() => {
+    if (store?.tagSlugs) {
+      const next: Record<string, string> = {};
+      store.tagSlugs.forEach((item: any) => {
+        next[item.name] = item.slug;
+      });
+      setTagSlugDrafts(next);
+    }
+  }, [store?.tagSlugs]);
 
   const handleDelete = useCallback(
     async (id: number) => {
@@ -196,7 +209,18 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
     }
   };
 
+  const handleUpdateTagSlug = async (name: string) => {
+    try {
+      await fetchUpdateTagSlug({ name, slug: tagSlugDrafts[name] || "" });
+      message.success(t("admin.catelog.msg.updateSuccess"));
+      reload();
+    } catch (error) {
+      message.error(t("admin.catelog.msg.updateFailed"));
+    }
+  };
+
   return (
+    <>
     <Card
       title={
         <Space>
@@ -287,6 +311,12 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                 width={150}
               />
               <Table.Column
+                title={t("admin.catelog.table.slug")}
+                dataIndex="slug"
+                width={180}
+                render={(val: string) => <span>/category/{val}</span>}
+              />
+              <Table.Column
                 title={
                   <span>
                     {t("admin.catelog.table.hidden")}
@@ -352,6 +382,9 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
           <Form.Item name="name" required label={t("admin.catelog.form.name")} labelCol={{ span: 4 }}>
             <Input placeholder={t("admin.catelog.form.name")} />
           </Form.Item>
+          <Form.Item name="slug" label={t("admin.catelog.form.slug")} labelCol={{ span: 4 }}>
+            <Input placeholder={t("admin.catelog.form.slugPlaceholder")} />
+          </Form.Item>
           <Form.Item
             name="sort"
             required
@@ -410,6 +443,9 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
             <Form.Item name="name" required label={t("admin.catelog.form.name")} labelCol={{ span: 4 }}>
               <Input placeholder={t("admin.catelog.form.name")} />
             </Form.Item>
+            <Form.Item name="slug" label={t("admin.catelog.form.slug")} labelCol={{ span: 4 }}>
+              <Input placeholder={t("admin.catelog.form.slugPlaceholder")} />
+            </Form.Item>
             <Form.Item
               name="sort"
               required
@@ -444,5 +480,50 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
         </Spin>
       </Modal>
     </Card>
+    <Card
+      style={{ marginTop: 16 }}
+      title={t("admin.catelog.tagSlug.title")}
+      extra={<Button onClick={() => reload()}>{t("admin.catelog.btn.refresh")}</Button>}
+    >
+      <Table
+        dataSource={store?.tagSlugs || []}
+        rowKey="name"
+        size="small"
+        pagination={{
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '20', '50'],
+          defaultPageSize: 10,
+        }}
+      >
+        <Table.Column
+          title={t("admin.catelog.tagSlug.name")}
+          dataIndex="name"
+          width={180}
+        />
+        <Table.Column
+          title={t("admin.catelog.tagSlug.slug")}
+          dataIndex="slug"
+          render={(_: string, record: any) => (
+            <Input
+              addonBefore="/tag/"
+              value={tagSlugDrafts[record.name] ?? record.slug}
+              onChange={(event) => {
+                setTagSlugDrafts((prev) => ({ ...prev, [record.name]: event.target.value }));
+              }}
+            />
+          )}
+        />
+        <Table.Column
+          title={t("admin.catelog.table.action")}
+          width={100}
+          render={(_: any, record: any) => (
+            <Button type="link" onClick={() => handleUpdateTagSlug(record.name)}>
+              {t("admin.catelog.tagSlug.save")}
+            </Button>
+          )}
+        />
+      </Table>
+    </Card>
+    </>
   );
 };

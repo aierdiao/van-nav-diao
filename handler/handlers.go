@@ -3,6 +3,7 @@ package handler
 import (
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"net"
@@ -218,10 +219,92 @@ func GetAllHandler(c *gin.Context) {
 		"data": gin.H{
 			"tools":      tools,
 			"catelogs":   catelogs,
+			"tagSlugs":   cached.TagSlugs,
 			"setting":    cached.Setting,
 			"siteConfig": cached.SiteConfig,
 		},
 	})
+}
+
+type sitemapURL struct {
+	Loc string `xml:"loc"`
+}
+
+type sitemapURLSet struct {
+	XMLName xml.Name     `xml:"urlset"`
+	Xmlns   string       `xml:"xmlns,attr"`
+	URLs    []sitemapURL `xml:"url"`
+}
+
+func SitemapHandler(c *gin.Context) {
+	cached, err := service.GetAllDataCached()
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	tools := utils.FilterHideTools(cached.Tools, cached.Catelogs)
+	catelogs := utils.FilterHideCates(cached.Catelogs)
+	baseURL := publicBaseURL(c)
+	urls := []sitemapURL{{Loc: baseURL + "/"}}
+
+	for _, catelog := range catelogs {
+		if catelog.Slug == "" {
+			continue
+		}
+		urls = append(urls, sitemapURL{Loc: baseURL + "/category/" + url.PathEscape(catelog.Slug)})
+	}
+
+	tagSlugByName := map[string]string{}
+	for _, tag := range cached.TagSlugs {
+		tagSlugByName[strings.ToLower(tag.Name)] = tag.Slug
+	}
+	seenTags := map[string]bool{}
+	for _, tool := range tools {
+		for _, tagName := range splitTags(tool.Tags) {
+			slug := tagSlugByName[strings.ToLower(tagName)]
+			if slug == "" {
+				slug = utils.Slugify(tagName)
+			}
+			if slug == "" || seenTags[slug] {
+				continue
+			}
+			seenTags[slug] = true
+			urls = append(urls, sitemapURL{Loc: baseURL + "/tag/" + url.PathEscape(slug)})
+		}
+	}
+
+	c.Header("Content-Type", "application/xml; charset=utf-8")
+	c.XML(http.StatusOK, sitemapURLSet{
+		Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9",
+		URLs:  urls,
+	})
+}
+
+func publicBaseURL(c *gin.Context) string {
+	proto := c.GetHeader("X-Forwarded-Proto")
+	if proto == "" {
+		proto = "http"
+		if c.Request.TLS != nil {
+			proto = "https"
+		}
+	}
+	host := c.GetHeader("X-Forwarded-Host")
+	if host == "" {
+		host = c.Request.Host
+	}
+	return proto + "://" + host
+}
+
+func splitTags(tags string) []string {
+	var result []string
+	for _, tag := range strings.Split(strings.ReplaceAll(tags, "，", ","), ",") {
+		name := strings.TrimSpace(tag)
+		if name != "" {
+			result = append(result, name)
+		}
+	}
+	return result
 }
 
 func GetLogoImgHandler(c *gin.Context) {
@@ -247,23 +330,28 @@ func GetLogoImgHandler(c *gin.Context) {
 		redirectToFallbackLogo(c)
 		return
 	}
-	l := strings.Split(url, ".")
-	if len(l) == 0 || (len(l) == 1 && l[0] == "") {
-		redirectToFallbackLogo(c)
-		return
-	}
-	suffix := l[len(l)-1]
-	t := "image/x-icon"
-	if suffix == "svg" || strings.Contains(url, ".svg") {
-		t = "image/svg+xml"
-	} else if suffix == "png" {
-		t = "image/png"
-	}
+	t := detectImageContentType(imgBuffer)
 	// 设置浏览器缓存头：图标变化不频繁，缓存 7 天
 	c.Header("Cache-Control", "public, max-age=604800, immutable")
 	c.Header("ETag", fmt.Sprintf(`"%s"`, url))
 	// 直接输出二进制数据，避免string转换导致的内存多分配
 	c.Data(http.StatusOK, t, imgBuffer)
+}
+
+func detectImageContentType(imgBuffer []byte) string {
+	t := http.DetectContentType(imgBuffer)
+	sniffLen := len(imgBuffer)
+	if sniffLen > 256 {
+		sniffLen = 256
+	}
+	sniff := strings.TrimSpace(string(imgBuffer[:sniffLen]))
+	if strings.HasPrefix(sniff, "<svg") || strings.Contains(sniff, "<svg") {
+		return "image/svg+xml"
+	}
+	if t == "application/octet-stream" {
+		return "image/x-icon"
+	}
+	return t
 }
 
 func redirectToFallbackLogo(c *gin.Context) {
@@ -311,6 +399,7 @@ func GetAdminAllDataHandler(c *gin.Context) {
 		"data": gin.H{
 			"tools":      tools,
 			"catelogs":   catelogs,
+			"tagSlugs":   mustGetTagSlugs(),
 			"setting":    setting,
 			"siteConfig": siteConfig,
 			"user": gin.H{
@@ -550,6 +639,37 @@ func UpdateCatelogHandler(c *gin.Context) {
 		"success": true,
 		"message": "更新分类成功",
 	})
+}
+
+func UpdateTagSlugHandler(c *gin.Context) {
+	var data types.UpdateTagSlugDto
+	if err := c.ShouldBindJSON(&data); err != nil {
+		utils.CheckErr(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
+	if err := service.UpdateTagSlug(data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "更新标签 URL 成功",
+	})
+}
+
+func mustGetTagSlugs() []types.TagSlug {
+	tagSlugs, err := service.GetAllTagSlugs()
+	if err != nil {
+		return []types.TagSlug{}
+	}
+	return tagSlugs
 }
 
 func ManifestHandler(c *gin.Context) {
@@ -1307,6 +1427,7 @@ func OrganizeDeadLinksHandler(c *gin.Context) {
 			"affected":   affected,
 			"tools":      tools,
 			"catelogs":   catelogs,
+			"tagSlugs":   mustGetTagSlugs(),
 			"setting":    setting,
 			"siteConfig": siteConfig,
 		},

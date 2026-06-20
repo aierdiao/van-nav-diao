@@ -21,6 +21,7 @@ var (
 type cachedAllData struct {
 	Tools      []types.Tool
 	Catelogs   []types.Catelog
+	TagSlugs   []types.TagSlug
 	Setting    types.Setting
 	SiteConfig types.SiteConfig
 }
@@ -53,6 +54,10 @@ func GetAllDataCached() (*cachedAllData, error) {
 	if err != nil {
 		return nil, err
 	}
+	tagSlugs, err := GetAllTagSlugs()
+	if err != nil {
+		return nil, err
+	}
 	setting, err := GetSetting()
 	if err != nil {
 		return nil, err
@@ -65,6 +70,7 @@ func GetAllDataCached() (*cachedAllData, error) {
 	allDataCache = &cachedAllData{
 		Tools:      tools,
 		Catelogs:   catelogs,
+		TagSlugs:   tagSlugs,
 		Setting:    setting,
 		SiteConfig: siteConfig,
 	}

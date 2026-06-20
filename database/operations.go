@@ -11,6 +11,7 @@ import (
 
 	"github.com/mereith/nav/logger"
 	"github.com/mereith/nav/types"
+	"github.com/mereith/nav/utils"
 )
 
 // ==================== API Token 内存缓存 ====================
@@ -20,6 +21,58 @@ var (
 	apiTokenLoaded  bool       // 缓存是否已加载
 	apiTokenCacheMu sync.Mutex // 保护加载/失效操作
 )
+
+func normalizeSlugOrName(slug, name string) string {
+	if cleaned := utils.Slugify(slug); cleaned != "" {
+		return cleaned
+	}
+	if cleaned := utils.Slugify(name); cleaned != "" {
+		return cleaned
+	}
+	return "item"
+}
+
+func uniqueCatelogSlugTx(tx *sql.Tx, desired string, excludeID int) (string, error) {
+	base := desired
+	if base == "" {
+		base = "category"
+	}
+	for i := 0; ; i++ {
+		candidate := base
+		if i > 0 {
+			candidate = fmt.Sprintf("%s-%d", base, i+1)
+		}
+		var count int
+		err := tx.QueryRow(`SELECT COUNT(*) FROM nav_catelog WHERE slug = ? AND id != ?`, candidate, excludeID).Scan(&count)
+		if err != nil {
+			return "", err
+		}
+		if count == 0 {
+			return candidate, nil
+		}
+	}
+}
+
+func uniqueTagSlugTx(tx *sql.Tx, desired, name string) (string, error) {
+	base := desired
+	if base == "" {
+		base = "tag"
+	}
+	for i := 0; ; i++ {
+		candidate := base
+		if i > 0 {
+			candidate = fmt.Sprintf("%s-%d", base, i+1)
+		}
+		var count int
+		err := tx.QueryRow(`SELECT COUNT(*) FROM nav_tag_slug WHERE slug = ? AND lower(name) != lower(?)`, candidate, name).Scan(&count)
+		if err != nil {
+			return "", err
+		}
+		if count == 0 {
+			return candidate, nil
+		}
+	}
+}
 
 // loadApiTokenCache 从数据库全量加载已启用的 Token 到内存
 func loadApiTokenCache() {
@@ -230,7 +283,7 @@ func GetAllTokens() ([]types.Token, error) {
 
 // 获取所有分类
 func GetAllCatelogs() ([]types.Catelog, error) {
-	sql := `SELECT id, name, sort, hide FROM nav_catelog ORDER BY sort ASC`
+	sql := `SELECT id, name, COALESCE(slug, ''), sort, hide FROM nav_catelog ORDER BY sort ASC`
 	rows, err := DB.Query(sql)
 	if err != nil {
 		return nil, err
@@ -242,7 +295,7 @@ func GetAllCatelogs() ([]types.Catelog, error) {
 		var catelog types.Catelog
 		var hide interface{}
 		var sort interface{}
-		err := rows.Scan(&catelog.Id, &catelog.Name, &sort, &hide)
+		err := rows.Scan(&catelog.Id, &catelog.Name, &catelog.Slug, &sort, &hide)
 		if err != nil {
 			return nil, err
 		}
@@ -390,7 +443,10 @@ func InsertTools(tools []types.Tool) error {
 		}
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	return EnsureTagSlugsFromTools()
 }
 
 // 批量插入分类（在事务内先清空再插入，避免 WAL 可见性问题）
@@ -406,7 +462,7 @@ func InsertCatelogs(catelogs []types.Catelog) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare(`INSERT INTO nav_catelog (name, sort, hide) VALUES (?, ?, ?)`)
+	stmt, err := tx.Prepare(`INSERT INTO nav_catelog (name, slug, sort, hide) VALUES (?, ?, ?, ?)`)
 	if err != nil {
 		return err
 	}
@@ -417,7 +473,11 @@ func InsertCatelogs(catelogs []types.Catelog) error {
 		if catelog.Hide {
 			hide = 1
 		}
-		_, err := stmt.Exec(catelog.Name, catelog.Sort, hide)
+		slug, err := uniqueCatelogSlugTx(tx, normalizeSlugOrName(catelog.Slug, catelog.Name), 0)
+		if err != nil {
+			return err
+		}
+		_, err = stmt.Exec(catelog.Name, slug, catelog.Sort, hide)
 		if err != nil {
 			return err
 		}
@@ -475,8 +535,8 @@ func InsertToken(token types.Token) error {
 	return err
 }
 
-// 更新设置字段
-func UpdateSettingField(key string, value string) error {
+// 更新设置字段，返回该字段是否属于当前版本支持的设置项。
+func UpdateSettingField(key string, value string) (bool, error) {
 	var sql string
 	switch key {
 	case "favicon":
@@ -506,7 +566,7 @@ func UpdateSettingField(key string, value string) error {
 	case "deploymentVersion":
 		sql = `UPDATE nav_setting SET deployment_version = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
 	default:
-		return nil
+		return false, nil
 	}
 
 	var val interface{}
@@ -519,7 +579,7 @@ func UpdateSettingField(key string, value string) error {
 	}
 
 	_, err := DB.Exec(sql, val)
-	return err
+	return true, err
 }
 
 // GetSiteConfigAsMap 获取网站配置为 map
@@ -978,7 +1038,7 @@ func GetCatelogNameById(id int) (string, error) {
 }
 
 // UpdateCatelogWithTx 在事务内更新分类并联动更新工具表的分类名
-func UpdateCatelogWithTx(id int, oldName, newName string, sort int, hide bool) error {
+func UpdateCatelogWithTx(id int, oldName, newName, slug string, sort int, hide bool) error {
 	tx, err := DB.Begin()
 	if err != nil {
 		return err
@@ -988,7 +1048,11 @@ func UpdateCatelogWithTx(id int, oldName, newName string, sort int, hide bool) e
 			tx.Rollback()
 		}
 	}()
-	if _, err = tx.Exec(`UPDATE nav_catelog SET name = ?, sort = ?, hide = ? WHERE id = ?`, newName, sort, hide, id); err != nil {
+	nextSlug, err := uniqueCatelogSlugTx(tx, normalizeSlugOrName(slug, newName), id)
+	if err != nil {
+		return err
+	}
+	if _, err = tx.Exec(`UPDATE nav_catelog SET name = ?, slug = ?, sort = ?, hide = ? WHERE id = ?`, newName, nextSlug, sort, hide, id); err != nil {
 		return err
 	}
 	if oldName != newName {
@@ -1000,25 +1064,141 @@ func UpdateCatelogWithTx(id int, oldName, newName string, sort int, hide bool) e
 }
 
 // InsertNewCatelog 插入新分类（先查重）
-func InsertNewCatelog(name string, sort int, hide bool) error {
+func InsertNewCatelog(name string, slug string, sort int, hide bool) error {
 	if name == "" || strings.TrimSpace(name) == "" {
 		return nil
 	}
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	var count int
-	if err := DB.QueryRow(`SELECT COUNT(*) FROM nav_catelog WHERE name = ?`, name).Scan(&count); err != nil {
+	if err := tx.QueryRow(`SELECT COUNT(*) FROM nav_catelog WHERE name = ?`, name).Scan(&count); err != nil {
 		return err
 	}
 	if count > 0 {
 		return nil // 已存在，跳过
 	}
-	_, err := DB.Exec(`INSERT INTO nav_catelog (name, sort, hide) VALUES (?, ?, ?)`, name, sort, hide)
-	return err
+	nextSlug, err := uniqueCatelogSlugTx(tx, normalizeSlugOrName(slug, name), 0)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`INSERT INTO nav_catelog (name, slug, sort, hide) VALUES (?, ?, ?, ?)`, name, nextSlug, sort, hide)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // DeleteCatelogById 删除指定分类
 func DeleteCatelogById(id string) error {
 	_, err := DB.Exec(`DELETE FROM nav_catelog WHERE id = ?`, id)
 	return err
+}
+
+func GetAllTagSlugs() ([]types.TagSlug, error) {
+	rows, err := DB.Query(`SELECT id, name, slug FROM nav_tag_slug ORDER BY lower(name) ASC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var results = make([]types.TagSlug, 0)
+	for rows.Next() {
+		var tag types.TagSlug
+		if err := rows.Scan(&tag.Id, &tag.Name, &tag.Slug); err != nil {
+			return nil, err
+		}
+		results = append(results, tag)
+	}
+	return results, nil
+}
+
+func InsertTagSlugs(tags []types.TagSlug) error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.Exec(`DELETE FROM nav_tag_slug`); err != nil {
+		return err
+	}
+	stmt, err := tx.Prepare(`INSERT INTO nav_tag_slug (name, slug) VALUES (?, ?)`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	for _, tag := range tags {
+		name := strings.TrimSpace(tag.Name)
+		if name == "" {
+			continue
+		}
+		slug, err := uniqueTagSlugTx(tx, normalizeSlugOrName(tag.Slug, name), name)
+		if err != nil {
+			return err
+		}
+		if _, err = stmt.Exec(name, slug); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+func UpsertTagSlug(name string, slug string) error {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil
+	}
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	nextSlug, err := uniqueTagSlugTx(tx, normalizeSlugOrName(slug, name), name)
+	if err != nil {
+		return err
+	}
+	if _, err = tx.Exec(`INSERT INTO nav_tag_slug (name, slug) VALUES (?, ?)
+		ON CONFLICT(name) DO UPDATE SET slug = excluded.slug`, name, nextSlug); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func EnsureTagSlugsFromTools() error {
+	rows, err := DB.Query(`SELECT COALESCE(tags, '') FROM nav_table WHERE tags IS NOT NULL AND TRIM(tags) != '';`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	seen := make(map[string]string)
+	for rows.Next() {
+		var tags string
+		if err := rows.Scan(&tags); err != nil {
+			return err
+		}
+		for _, tag := range strings.Split(strings.ReplaceAll(tags, "，", ","), ",") {
+			name := strings.TrimSpace(tag)
+			if name != "" {
+				seen[strings.ToLower(name)] = name
+			}
+		}
+	}
+	for _, name := range seen {
+		var count int
+		if err := DB.QueryRow(`SELECT COUNT(*) FROM nav_tag_slug WHERE lower(name) = lower(?)`, name).Scan(&count); err != nil {
+			return err
+		}
+		if count == 0 {
+			if err := UpsertTagSlug(name, ""); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // ==================== 重构新增：设置操作 ====================
@@ -1138,10 +1318,13 @@ func GetImageByUrl(urlEncoded string) (types.Img, bool, error) {
 	return img, true, nil
 }
 
-// InsertImage 插入图片缓存（仅当不存在时）
+// InsertImage 插入或更新图片缓存
 func InsertImage(urlEncoded, base64Value string) error {
-	// 利用唯一索引 idx_img_url_unique，INSERT OR IGNORE 原子完成去重插入
-	_, err := DB.Exec(`INSERT OR IGNORE INTO nav_img (url, value) VALUES (?, ?)`, urlEncoded, base64Value)
+	_, err := DB.Exec(`
+		INSERT INTO nav_img (url, value) VALUES (?, ?)
+		ON CONFLICT(url) DO UPDATE SET value = excluded.value
+		WHERE nav_img.value != excluded.value
+	`, urlEncoded, base64Value)
 	return err
 }
 

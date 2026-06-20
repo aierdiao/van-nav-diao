@@ -39,10 +39,12 @@ export const FetchList = async () => {
     const { data } = raw;
     // 获取分类
     const catelogs = [];
+    const categoryItems: any[] = [{ name: "全部工具", slug: "", isAll: true }];
     catelogs.push("全部工具")
     data.catelogs.forEach(item => {
         if (item?.name && String(item.name).trim() !== "") {
             catelogs.push(item.name)
+            categoryItems.push(item)
         }
     })
     if (!data.tools) {
@@ -51,6 +53,7 @@ export const FetchList = async () => {
     data.tools.forEach(item => {
         if (item.catelog && String(item.catelog).trim() !== "" && !catelogs.includes(item.catelog)) {
             catelogs.push(item.catelog);
+            categoryItems.push({ name: item.catelog, slug: encodeURIComponent(item.catelog) });
         }
     });
     if (!data.setting?.hideAdmin) {
@@ -79,6 +82,8 @@ export const FetchList = async () => {
         })
     }
     data.catelogs = catelogs;
+    data.categoryItems = categoryItems;
+    data.tagSlugs = data.tagSlugs || [];
     return data;
 };
 
@@ -149,6 +154,10 @@ export const fetchAddCateLog = async (payload: any) => {
 };
 export const fetchUpdateCateLog = async (payload: any) => {
     const { data } = await axios.put(`/api/admin/catelog/${payload.id}`, payload);
+    return data?.data || {};
+};
+export const fetchUpdateTagSlug = async (payload: any) => {
+    const { data } = await axios.put(`/api/admin/tagSlug`, payload);
     return data?.data || {};
 };
 export const fetchDeleteCatelog = async (id: number) => {

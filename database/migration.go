@@ -16,7 +16,7 @@ func migration_2024_12_13() {
 
 	_, err := DB.Exec(sql_update_null_sort)
 	if err != nil {
-			logger.LogError("migration_2024_12_13 失败: %s", err)
+		logger.LogError("migration_2024_12_13 失败: %s", err)
 		os.Exit(1)
 	}
 
@@ -26,25 +26,26 @@ func migration_2024_12_13() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             sort INTEGER NOT NULL DEFAULT 0,
-						hide BOOLEAN
+            hide BOOLEAN,
+            slug TEXT DEFAULT ''
         );
     `
 
 	_, err = DB.Exec(sql_create_new_table)
 	if err != nil {
-			logger.LogError("migration_2024_12_13 失败: %s", err)
+		logger.LogError("migration_2024_12_13 失败: %s", err)
 		os.Exit(1)
 	}
 
 	// 3. 复制数据
 	sql_copy_data := `
-        INSERT INTO nav_catelog_new (id, name, sort, hide)
-        SELECT id, name, sort, hide FROM nav_catelog;
+        INSERT INTO nav_catelog_new (id, name, sort, hide, slug)
+        SELECT id, name, sort, hide, COALESCE(slug, '') FROM nav_catelog;
     `
 
 	_, err = DB.Exec(sql_copy_data)
 	if err != nil {
-			logger.LogError("migration_2024_12_13 失败: %s", err)
+		logger.LogError("migration_2024_12_13 失败: %s", err)
 		os.Exit(1)
 	}
 
@@ -53,7 +54,7 @@ func migration_2024_12_13() {
 
 	_, err = DB.Exec(sql_drop_old_table)
 	if err != nil {
-			logger.LogError("migration_2024_12_13 失败: %s", err)
+		logger.LogError("migration_2024_12_13 失败: %s", err)
 		os.Exit(1)
 	}
 
@@ -62,7 +63,7 @@ func migration_2024_12_13() {
 
 	_, err = DB.Exec(sql_rename_table)
 	if err != nil {
-			logger.LogError("migration_2024_12_13 失败: %s", err)
+		logger.LogError("migration_2024_12_13 失败: %s", err)
 		os.Exit(1)
 	}
 }

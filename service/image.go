@@ -53,6 +53,13 @@ func GetImgFromDB(url1 string) (types.Img, error) {
 		return types.Img{}, err
 	}
 	if found {
+		if optimized, changed := utils.OptimizeIconBase64(img.Value); changed {
+			if err := database.InsertImage(urlEncoded, optimized); err != nil {
+				logger.LogError("GetImgFromDB: cache update error for %s: %v", url1, err)
+			} else {
+				img.Value = optimized
+			}
+		}
 		return img, nil
 	}
 	// 缓存未命中：如果 URL 是外部链接（http/https），尝试实时抓取并同步缓存

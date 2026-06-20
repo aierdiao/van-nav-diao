@@ -20,13 +20,17 @@ type ImportToolsResult struct {
 
 func ImportTools(data []types.Tool) ImportToolsResult {
 	var catelogs []string
+	catelogSorts := make(map[string]int)
 	imported := 0
 	skipped := 0
 
 	for _, v := range data {
 		if v.Catelog != "" {
+			if _, ok := catelogSorts[v.Catelog]; !ok {
+				catelogSorts[v.Catelog] = len(catelogSorts) + 1
+			}
 			// 确保分类存在
-			_ = database.InsertNewCatelog(v.Catelog, 0, false)
+			_ = database.InsertNewCatelog(v.Catelog, "", catelogSorts[v.Catelog], false)
 		}
 		_, err := database.InsertToolRow(types.AddToolDto{
 			Name: v.Name, Url: v.Url, Logo: v.Logo, Catelog: v.Catelog,
@@ -64,6 +68,7 @@ func ImportTools(data []types.Tool) ImportToolsResult {
 	}()
 
 	InvalidateAllDataCache()
+	_ = database.EnsureTagSlugsFromTools()
 	return ImportToolsResult{Imported: imported, Skipped: skipped, Categories: catelogs}
 }
 
@@ -72,6 +77,7 @@ func UpdateTool(data types.UpdateToolDto) error {
 	if err != nil {
 		return err
 	}
+	_ = database.EnsureTagSlugsFromTools()
 	InvalidateAllDataCache()
 	if data.Logo != "" {
 		go UpdateImg(data.Logo)
@@ -87,6 +93,7 @@ func AddTool(data types.AddToolDto) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	_ = database.EnsureTagSlugsFromTools()
 	logger.LogInfo("新增工具: %s", data.Name)
 	InvalidateAllDataCache()
 	if data.Logo != "" {

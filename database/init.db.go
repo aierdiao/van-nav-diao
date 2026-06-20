@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -127,6 +129,13 @@ func InitDB() {
 	if !columnExists("nav_catelog", "hide") {
 		DB.Exec(`ALTER TABLE nav_catelog ADD COLUMN hide BOOLEAN;`)
 	}
+	if !columnExists("nav_catelog", "slug") {
+		DB.Exec(`ALTER TABLE nav_catelog ADD COLUMN slug TEXT DEFAULT '';`)
+	}
+
+	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_tag_slug (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, slug TEXT NOT NULL UNIQUE);`
+	_, err = DB.Exec(sql_create_table)
+	utils.CheckErr(err)
 	migration_2024_12_13()
 
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_api_token (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, value TEXT, disabled INTEGER);`
@@ -262,12 +271,119 @@ func InitDB() {
 	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_table_catelog ON nav_table(catelog)`)
 	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_table_alive ON nav_table(is_alive)`)
 	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_table_sort ON nav_table(sort)`)
+	DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_catelog_slug_unique ON nav_catelog(slug) WHERE slug IS NOT NULL AND slug != ''`)
+	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_tag_slug_name ON nav_tag_slug(name)`)
+	DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_slug_unique ON nav_tag_slug(slug)`)
 
 	logger.LogInfo("数据库初始化成功💗")
 
+	migrateCategorySlugs()
+	ensureTagSlugsFromTools()
 	migrateAffiliateCategoryToToolTags()
+	ensureTagSlugsFromTools()
 	migrateAffiliateCustomCssCopy()
 	cleanupEmptyCategories()
+}
+
+func migrateCategorySlugs() {
+	rows, err := DB.Query(`SELECT id, name, COALESCE(slug, '') FROM nav_catelog ORDER BY id ASC;`)
+	if err != nil {
+		logger.LogInfo("读取分类 slug 时出错: %v", err)
+		return
+	}
+	defer rows.Close()
+
+	used := make(map[string]bool)
+	type item struct {
+		id   int
+		name string
+		slug string
+	}
+	var items []item
+	for rows.Next() {
+		var it item
+		if err := rows.Scan(&it.id, &it.name, &it.slug); err != nil {
+			logger.LogInfo("扫描分类 slug 时出错: %v", err)
+			return
+		}
+		items = append(items, it)
+	}
+
+	for _, it := range items {
+		base := utils.Slugify(it.slug)
+		if base == "" {
+			base = utils.Slugify(it.name)
+		}
+		if base == "" {
+			base = "category"
+		}
+		slug := base
+		for i := 2; used[slug]; i++ {
+			slug = base + "-" + strconv.Itoa(i)
+		}
+		used[slug] = true
+		if slug != it.slug {
+			if _, err := DB.Exec(`UPDATE nav_catelog SET slug = ? WHERE id = ?`, slug, it.id); err != nil {
+				logger.LogInfo("更新分类 slug 时出错: %v", err)
+			}
+		}
+	}
+}
+
+func ensureTagSlugsFromTools() {
+	rows, err := DB.Query(`SELECT COALESCE(tags, '') FROM nav_table WHERE tags IS NOT NULL AND TRIM(tags) != '';`)
+	if err != nil {
+		logger.LogInfo("读取工具标签时出错: %v", err)
+		return
+	}
+	defer rows.Close()
+
+	names := make(map[string]string)
+	for rows.Next() {
+		var tags string
+		if err := rows.Scan(&tags); err != nil {
+			logger.LogInfo("扫描工具标签时出错: %v", err)
+			return
+		}
+		for _, tag := range strings.Split(strings.ReplaceAll(tags, "，", ","), ",") {
+			name := strings.TrimSpace(tag)
+			if name == "" {
+				continue
+			}
+			names[strings.ToLower(name)] = name
+		}
+	}
+
+	used := make(map[string]bool)
+	existingRows, err := DB.Query(`SELECT slug FROM nav_tag_slug;`)
+	if err == nil {
+		for existingRows.Next() {
+			var slug string
+			if scanErr := existingRows.Scan(&slug); scanErr == nil && slug != "" {
+				used[slug] = true
+			}
+		}
+		existingRows.Close()
+	}
+
+	for _, name := range names {
+		var count int
+		if err := DB.QueryRow(`SELECT COUNT(*) FROM nav_tag_slug WHERE lower(name) = lower(?)`, name).Scan(&count); err != nil || count > 0 {
+			continue
+		}
+		base := utils.Slugify(name)
+		if base == "" {
+			base = "tag"
+		}
+		slug := base
+		for i := 2; used[slug]; i++ {
+			slug = base + "-" + strconv.Itoa(i)
+		}
+		used[slug] = true
+		if _, err := DB.Exec(`INSERT INTO nav_tag_slug (name, slug) VALUES (?, ?)`, name, slug); err != nil {
+			logger.LogInfo("写入标签 slug 时出错: %v", err)
+		}
+	}
 }
 
 func migrateAffiliateCategoryToToolTags() {

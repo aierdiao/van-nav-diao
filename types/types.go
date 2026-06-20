@@ -54,8 +54,15 @@ type Tool struct {
 type Catelog struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
+	Slug string `json:"slug"`
 	Sort int    `json:"sort"`
 	Hide bool   `json:"hide"`
+}
+
+type TagSlug struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 
 // 搜索引擎模型 - 使用 URL 模板方式
