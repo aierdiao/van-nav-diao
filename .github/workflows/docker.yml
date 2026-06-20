@@ -2,12 +2,12 @@ name: Build & Publish Docker Image to GHCR
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     tags: ["v*"]
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ghcr.io/thirsty5034/van-nav
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
   build-and-push:
