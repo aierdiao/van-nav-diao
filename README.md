@@ -30,6 +30,24 @@ This fork is customized for [diao.page](https://diao.page/). Compared with the u
 - 选择性吸收上游 v2.4.2 的安全和维护修复，并包含当前定制站点所需的数据结构迁移；
 - 基础 SEO、无障碍和 PageSpeed/cache/service-worker 优化。
 
+## Docker Compose
+
+This fork includes a `docker-compose.yml` for self-hosted deployment:
+
+```bash
+docker compose up -d --build
+```
+
+Data is mounted from `./data` to `/app/data`, so `nav.db` and runtime secrets stay outside the container.
+
+本 fork 已包含 `docker-compose.yml`，可直接用于自托管部署：
+
+```bash
+docker compose up -d --build
+```
+
+数据目录会从 `./data` 挂载到容器内 `/app/data`，`nav.db` 和运行时密钥会保留在容器外。
+
 ## License
 
 This project keeps the original MIT License. See [LICENSE](./LICENSE).
