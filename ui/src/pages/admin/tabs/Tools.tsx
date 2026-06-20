@@ -279,6 +279,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
   const [addForm] = Form.useForm();
   const [searchString, setSearchString] = useState("");
   const [catelogName, setCatelogName] = useState("");
+  const [tagName, setTagName] = useState("");
   const [updateForm] = Form.useForm();
   const [selectedRows, setSelectRows] = useState<any>([]);
   const [dataSource, setDataSource] = useState<DataType[]>([]);
@@ -623,6 +624,21 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     }
   };
 
+  const tagOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    (store?.tools || []).forEach((item: any) => {
+      parseToolTags(item?.tags).forEach((tag) => {
+        const key = tag.toLowerCase();
+        if (!seen.has(key)) {
+          seen.set(key, tag);
+        }
+      });
+    });
+    return Array.from(seen.values())
+      .sort((a, b) => a.localeCompare(b, "zh-CN"))
+      .map((tag) => ({ label: tag, value: tag }));
+  }, [store?.tools]);
+
   // 在 useEffect 中初始化 dataSource
   useEffect(() => {
     if (store?.tools) {
@@ -639,6 +655,10 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           } else {
             show = show && mutiSearch(item.catelog, catelogName);
           }
+          if (tagName) {
+            const tags = parseToolTags(item.tags).map((tag) => tag.toLowerCase());
+            show = show && tags.includes(tagName.toLowerCase());
+          }
           return show;
         })
         .sort((a: DataType, b: DataType) => {
@@ -651,7 +671,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         });
       setDataSource(filteredData);
     }
-  }, [store?.tools, searchString, catelogName]);
+  }, [store?.tools, searchString, catelogName, tagName]);
 
   return (
     <>
@@ -725,6 +745,18 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             }}
             onChange={(name: string) => {
               setCatelogName(name);
+            }}
+          />
+          <Select
+            style={{ minWidth: 120 }}
+            options={tagOptions}
+            placeholder={t("admin.tools.filter.tag")}
+            allowClear
+            onClear={() => {
+              setTagName("");
+            }}
+            onChange={(name: string) => {
+              setTagName(name || "");
             }}
           />
           <Input.Search

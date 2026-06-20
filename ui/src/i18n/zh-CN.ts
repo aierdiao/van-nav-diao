@@ -114,6 +114,7 @@ const zhCN: Record<string, string> = {
 
   // 分类筛选
   "admin.tools.filter.category": "分类筛选",
+  "admin.tools.filter.tag": "标签筛选",
 
   // 自动获取
   "admin.tools.form.autoGetLogo": "一键更新Logo网址",

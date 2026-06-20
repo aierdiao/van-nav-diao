@@ -82,6 +82,7 @@ const enUS: Record<string, string> = {
   "admin.tools.form.logoUrl": "Logo URL",
   "admin.tools.form.logoPlaceholder": "Enter logo URL",
   "admin.tools.filter.category": "Filter by category",
+  "admin.tools.filter.tag": "Filter by tag",
   "admin.tools.form.autoGetLogo": "Auto-update Logo URL",
   "admin.tools.form.autoGetDesc": "Auto-fetch Description",
   "admin.tools.form.fillUrlFirst": "Please fill in the tool URL first",

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import "./index.css";
 import { getLogoUrl } from "../../utils/check";
 import { getJumpTarget } from "../../utils/setting";
@@ -20,6 +20,7 @@ const normalizeTags = (value: any): string[] => {
 
 const Card = ({ title, url, des, logo, catelog, tags, onClick, onTagClick, index, isSearching, noImageMode, compactMode, jumpTargetBlank }: any) => {
   const [imageError, setImageError] = useState(false);
+  const imageLoadedRef = useRef(false);
 
   const imageSrc = useMemo(() => {
     return url === "admin" ? logo : getLogoUrl(logo);
@@ -27,19 +28,27 @@ const Card = ({ title, url, des, logo, catelog, tags, onClick, onTagClick, index
 
   useEffect(() => {
     setImageError(false);
+    imageLoadedRef.current = false;
 
     if (!imageSrc) {
       return;
     }
 
     const timeout = setTimeout(() => {
-      setImageError(true);
+      if (!imageLoadedRef.current) {
+        setImageError(true);
+      }
     }, 10000);
 
     return () => clearTimeout(timeout);
   }, [imageSrc]);
 
+  const handleImageLoad = () => {
+    imageLoadedRef.current = true;
+  };
+
   const handleImageError = () => {
+    imageLoadedRef.current = true;
     setImageError(true);
   };
 
@@ -52,6 +61,7 @@ const Card = ({ title, url, des, logo, catelog, tags, onClick, onTagClick, index
         alt={title}
         decoding="async"
         loading="lazy"
+        onLoad={handleImageLoad}
         onError={handleImageError}
       />
     );
@@ -94,7 +104,6 @@ const Card = ({ title, url, des, logo, catelog, tags, onClick, onTagClick, index
               className={`card-label-row ${displayTags.length > 0 ? "has-extra-labels" : "only-category"}`}
               aria-label="tool labels"
             >
-              {displayCatelog && <span className="card-tag" title={displayCatelog}>{displayCatelog}</span>}
               {displayTags.map((tag) => (
                 <span
                   key={tag}
@@ -118,6 +127,7 @@ const Card = ({ title, url, des, logo, catelog, tags, onClick, onTagClick, index
                   {tag}
                 </span>
               ))}
+              {displayCatelog && <span className="card-tag" title={displayCatelog}>{displayCatelog}</span>}
             </div>
           )}
         </div>
