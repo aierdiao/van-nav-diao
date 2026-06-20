@@ -55,6 +55,7 @@ const zhCN: Record<string, string> = {
   // 状态标签
   "admin.tools.status.normal": "正常",
   "admin.tools.status.dead": "失效",
+  "admin.tools.status.restricted": "访问受限",
   "admin.tools.status.unchecked": "未检测",
 
   // 操作按钮
@@ -173,6 +174,8 @@ const zhCN: Record<string, string> = {
   "admin.tools.health.total": "总数",
   "admin.tools.health.alive": "正常",
   "admin.tools.health.dead": "失效",
+  "admin.tools.health.restricted": "访问受限",
+  "admin.tools.health.filter.all": "全部状态",
   "admin.tools.health.table.name": "名称",
   "admin.tools.health.table.url": "网址",
   "admin.tools.health.table.statusCode": "状态码",
@@ -584,7 +587,7 @@ const zhCN: Record<string, string> = {
   "admin.tools.confirm.recacheIcon": "确定重新缓存选中工具的图标吗？",
   "admin.tools.confirm.resetIcon": "确定重置选中工具的图标为默认吗？",
   "admin.tools.form.urlFormat": "请输入以 http:// 或 https:// 开头的网址",
-  "admin.tools.health.complete": "检测完成：{alive} 个正常，{dead} 个失效",
+  "admin.tools.health.complete": "检测完成：{alive} 个正常，{restricted} 个访问受限，{dead} 个失效",
   "admin.tools.health.organized": "已整理 {count} 条失效链接",
   "admin.tools.msg.addSuccessLogo": "添加成功！Logo 将在 3 秒后刷新加载",
   "admin.tools.msg.checkFailed": "检测失败",

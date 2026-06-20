@@ -293,12 +293,14 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     title: string;
     status_code: number;
     alive: boolean;
+    restricted?: boolean;
     error?: string;
   }
   const [checkResults, setCheckResults] = useState<LinkCheckResultItem[]>([]);
-  const [checkSummary, setCheckSummary] = useState<{ total: number; alive: number; dead: number } | null>(null);
+  const [checkSummary, setCheckSummary] = useState<{ total: number; alive: number; dead: number; restricted: number } | null>(null);
   const [checking, setChecking] = useState(false);
   const [organizing, setOrganizing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'alive' | 'restricted' | 'dead'>('all');
 
   // 获取 favicon 的函数
   const handleGetFavicon = async (form: any, formInstance: 'add' | 'update') => {
@@ -565,10 +567,12 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           total: res.data.total,
           alive: res.data.alive,
           dead: res.data.dead,
+          restricted: res.data.restricted ?? 0,
         });
+        setStatusFilter('all');
         // 检测完成后刷新工具列表（因为 is_alive 字段已更新）
         reload();
-        message.success(t("admin.tools.health.complete", { alive: res.data.alive, dead: res.data.dead }));
+        message.success(t("admin.tools.health.complete", { alive: res.data.alive, restricted: res.data.restricted ?? 0, dead: res.data.dead }));
       } else {
         message.error(res.errorMessage || t("admin.tools.msg.checkFailed"));
       }
@@ -1309,6 +1313,19 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       style={{ marginTop: 16 }}
       extra={
         <Space>
+          {checkResults.length > 0 && (
+            <Select
+              value={statusFilter}
+              style={{ minWidth: 110 }}
+              onChange={(val) => setStatusFilter(val)}
+              options={[
+                { label: t("admin.tools.health.filter.all"), value: 'all' },
+                { label: t("admin.tools.health.alive"), value: 'alive' },
+                { label: t("admin.tools.health.restricted"), value: 'restricted' },
+                { label: t("admin.tools.health.dead"), value: 'dead' },
+              ]}
+            />
+          )}
           <Button
             type="primary"
             loading={checking}
@@ -1331,14 +1348,14 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     >
       {checkSummary && (
         <AntRow gutter={16} style={{ marginBottom: 16 }}>
-          <Col span={8}>
+          <Col span={6}>
             <Statistic
               title={t("admin.tools.total.label")}
               value={checkSummary.total}
               prefix={<ExclamationCircleOutlined />}
             />
           </Col>
-          <Col span={8}>
+          <Col span={6}>
             <Statistic
               title={t("admin.tools.status.normal")}
               value={checkSummary.alive}
@@ -1346,7 +1363,15 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               prefix={<CheckCircleOutlined />}
             />
           </Col>
-          <Col span={8}>
+          <Col span={6}>
+            <Statistic
+              title={t("admin.tools.status.restricted")}
+              value={checkSummary.restricted}
+              valueStyle={{ color: checkSummary.restricted > 0 ? '#D97706' : undefined }}
+              prefix={<ExclamationCircleOutlined />}
+            />
+          </Col>
+          <Col span={6}>
             <Statistic
               title={t("admin.tools.status.dead")}
               value={checkSummary.dead}
@@ -1359,7 +1384,13 @@ export const Tools: React.FC<ToolsProps> = (props) => {
 
       {checkResults.length > 0 && (
         <Table
-          dataSource={checkResults}
+          dataSource={checkResults.filter(r => {
+            if (statusFilter === 'all') return true;
+            if (statusFilter === 'restricted') return r.restricted;
+            if (statusFilter === 'alive') return r.alive && !r.restricted;
+            if (statusFilter === 'dead') return !r.alive;
+            return true;
+          })}
           rowKey="id"
           size="small"
           pagination={{
@@ -1394,15 +1425,19 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             dataIndex="alive"
             width={80}
             align="center"
-            render={(alive: boolean, record: LinkCheckResultItem) => (
-              alive ? (
-                <Tag color="success">{t("admin.tools.health.alive")}</Tag>
-              ) : (
+            render={(alive: boolean, record: LinkCheckResultItem) => {
+              if (record.restricted) {
+                return <Tag color="warning">{t("admin.tools.health.restricted")}</Tag>;
+              }
+              if (alive) {
+                return <Tag color="success">{t("admin.tools.health.alive")}</Tag>;
+              }
+              return (
                 <Tooltip title={record.error || t('admin.tools.health.unreachable')}>
                   <Tag color="error">{t("admin.tools.health.dead")}</Tag>
                 </Tooltip>
-              )
-            )}
+              );
+            }}
           />
           <Table.Column
             title={t("admin.tools.msg.errorInfo")}

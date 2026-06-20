@@ -1398,15 +1398,16 @@ func ImportConfigHandler(c *gin.Context) {
 
 // CheckLinksHandler 并发检测所有链接的存活状态
 func CheckLinksHandler(c *gin.Context) {
-	results, aliveCount, deadCount := service.CheckAllLinks()
+	results, aliveCount, deadCount, restrictedCount := service.CheckAllLinks()
 	if results == nil {
 		c.JSON(200, gin.H{
 			"success": true,
 			"data": types.LinkCheckResponse{
-				Total:   0,
-				Alive:   0,
-				Dead:    0,
-				Results: []types.LinkCheckResult{},
+				Total:      0,
+				Alive:      0,
+				Dead:       0,
+				Restricted: 0,
+				Results:    []types.LinkCheckResult{},
 			},
 		})
 		return
@@ -1420,6 +1421,7 @@ func CheckLinksHandler(c *gin.Context) {
 			Title:      r.Title,
 			StatusCode: r.StatusCode,
 			Alive:      r.Alive,
+			Restricted: r.Restricted,
 			Error:      r.Error,
 		}
 	}
@@ -1427,10 +1429,11 @@ func CheckLinksHandler(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"success": true,
 		"data": types.LinkCheckResponse{
-			Total:   len(results),
-			Alive:   aliveCount,
-			Dead:    deadCount,
-			Results: linkResults,
+			Total:      len(results),
+			Alive:      aliveCount,
+			Dead:       deadCount,
+			Restricted: restrictedCount,
+			Results:    linkResults,
 		},
 	})
 }

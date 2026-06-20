@@ -19,6 +19,7 @@ type LinkCheckResult struct {
 	Title      string
 	StatusCode int
 	Alive      bool
+	Restricted bool // 服务器响应但拒绝访问（如 CF 403），视为存活但访问受限
 	Error      string
 }
 
@@ -39,15 +40,15 @@ var linkCheckClient = &http.Client{
 	},
 }
 
-func CheckAllLinks() ([]LinkCheckResult, int, int) {
+func CheckAllLinks() ([]LinkCheckResult, int, int, int) {
 	tools, err := database.GetAllToolsForCheck()
 	if err != nil {
 		logger.LogError("获取工具列表失败: %s", err)
-		return nil, 0, 0
+		return nil, 0, 0, 0
 	}
 
 	if len(tools) == 0 {
-		return nil, 0, 0
+		return nil, 0, 0, 0
 	}
 
 	concurrency := 10
@@ -106,14 +107,16 @@ func CheckAllLinks() ([]LinkCheckResult, int, int) {
 				}
 				respGet.Body.Close()
 				res.StatusCode = respGet.StatusCode
-				res.Alive = respGet.StatusCode >= 200 && respGet.StatusCode < 400
+				res.Alive = respGet.StatusCode >= 200 && respGet.StatusCode < 400 || respGet.StatusCode == 403
+				res.Restricted = respGet.StatusCode == 403
 				results[idx] = res
 				return
 			}
 			resp.Body.Close()
 
 			res.StatusCode = resp.StatusCode
-			res.Alive = resp.StatusCode >= 200 && resp.StatusCode < 400
+			res.Alive = resp.StatusCode >= 200 && resp.StatusCode < 400 || resp.StatusCode == 403
+			res.Restricted = resp.StatusCode == 403
 			results[idx] = res
 		}(i, tool.Id, tool.Url, tool.Title)
 	}
@@ -135,15 +138,17 @@ func CheckAllLinks() ([]LinkCheckResult, int, int) {
 		logger.LogError("批量更新链接健康状态失败: %s", err)
 	}
 
-	var aliveCount, deadCount int
+	var aliveCount, deadCount, restrictedCount int
 	for _, r := range results {
-		if r.Alive {
+		if r.Restricted {
+			restrictedCount++
+		} else if r.Alive {
 			aliveCount++
 		} else {
 			deadCount++
 		}
 	}
 
-	logger.LogInfo("链接检测完成: 总数=%d, 正常=%d, 失效=%d", len(results), aliveCount, deadCount)
-	return results, aliveCount, deadCount
+	logger.LogInfo("链接检测完成: 总数=%d, 正常=%d, 访问受限=%d, 失效=%d", len(results), aliveCount, restrictedCount, deadCount)
+	return results, aliveCount, deadCount, restrictedCount
 }

@@ -84,15 +84,17 @@ type LinkCheckResult struct {
 	Title      string `json:"title"`
 	StatusCode int    `json:"status_code,omitempty"`
 	Alive      bool   `json:"alive"`
+	Restricted bool   `json:"restricted,omitempty"` // 服务器响应但拒绝访问（如 CF 403）
 	Error      string `json:"error,omitempty"`
 }
 
 // 检测响应
 type LinkCheckResponse struct {
-	Total   int               `json:"total"`
-	Alive   int               `json:"alive"`
-	Dead    int               `json:"dead"`
-	Results []LinkCheckResult `json:"results"`
+	Total      int               `json:"total"`
+	Alive      int               `json:"alive"`
+	Dead       int               `json:"dead"`
+	Restricted int               `json:"restricted"`
+	Results    []LinkCheckResult `json:"results"`
 }
 
 // 整理失效链接响应

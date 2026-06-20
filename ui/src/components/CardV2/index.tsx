@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import "./index.css";
 import { getLogoUrl } from "../../utils/check";
 import { getJumpTarget } from "../../utils/setting";
@@ -30,26 +30,23 @@ const Card = ({ title, url, des, logo, catelog, tags, onClick, index, isSearchin
     setImageError(Boolean(imageSrc && failedLogoCache.has(imageSrc)));
   }, [imageSrc]);
 
-  const handleImageError = () => {
+  const handleImageError = useCallback(() => {
     if (imageSrc) {
       failedLogoCache.add(imageSrc);
     }
     setImageError(true);
-  };
+  }, [imageSrc]);
 
-  const el = useMemo(() => {
-    const displayImageSrc = imageError || !imageSrc ? FALLBACK_LOGO : imageSrc;
-
-    return (
-      <img
-        src={displayImageSrc}
-        alt={title}
-        decoding="async"
-        loading={index < 24 ? "eager" : "lazy"}
-        onError={handleImageError}
-      />
-    );
-  }, [imageSrc, title, imageError, index]);
+  const displayImageSrc = imageError || !imageSrc ? FALLBACK_LOGO : imageSrc;
+  const el = (
+    <img
+      src={displayImageSrc}
+      alt={title}
+      decoding="async"
+      loading={index < 24 ? "eager" : "lazy"}
+      onError={handleImageError}
+    />
+  );
 
   // 空分类不显示角标，避免迁移标签后出现大量“未分类”。
   const displayCatelog = useMemo(() => {
