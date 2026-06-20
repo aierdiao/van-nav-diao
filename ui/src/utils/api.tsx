@@ -44,7 +44,7 @@ export const FetchList = async () => {
     data.catelogs.forEach(item => {
         if (item?.name && String(item.name).trim() !== "") {
             catelogs.push(item.name)
-            categoryItems.push(item)
+            categoryItems.push({ ...item, slug: item.slug || encodeURIComponent(item.name) })
         }
     })
     if (!data.tools) {

@@ -5,6 +5,7 @@
   background-color: var(--diao-bg-tag);
   transition: all 0.2s;
   box-sizing: border-box;
+  font: inherit;
 }
 
 .select-tag:hover {
@@ -21,4 +22,47 @@
 
 .tag-selector {
   width: 100%;
+}
+
+.custom-tag-row {
+  display: flex;
+  align-items: flex-start;
+  min-height: 34px;
+  margin-top: 4px;
+}
+
+.custom-tag-list {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.custom-tag-button {
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--diao-border);
+  border-radius: var(--diao-radius-tag);
+  background: var(--diao-bg-tag);
+  color: var(--diao-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.custom-tag-button:hover,
+.custom-tag-button:focus-visible {
+  border-color: var(--diao-border-strong);
+  background: var(--diao-bg-tag-hover);
+  color: var(--diao-text-primary);
+  outline: none;
+}
+
+.custom-tag-button-active {
+  border-color: var(--diao-bg-tag-active);
+  background: var(--diao-bg-tag-active);
+  color: var(--diao-text-on-primary);
 }

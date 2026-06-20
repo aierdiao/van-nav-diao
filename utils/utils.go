@@ -6,12 +6,14 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"encoding/base64"
+	"encoding/binary"
 	"image"
 	"image/color"
 	"image/png"
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -22,6 +24,7 @@ import (
 
 	"github.com/mereith/nav/logger"
 	"github.com/mereith/nav/types"
+	xdraw "golang.org/x/image/draw"
 )
 
 func CheckErr(err error) {
@@ -100,6 +103,18 @@ func OptimizeIconBase64(value string) (string, bool) {
 }
 
 func OptimizeIconBytes(data []byte) ([]byte, bool) {
+	if IsSVG(data) {
+		return OptimizeSVGBytes(data)
+	}
+	if pngData, ok := ExtractBestPNGFromICO(data); ok {
+		if optimized, changed := OptimizeIconBytes(pngData); changed {
+			return optimized, true
+		}
+		if len(pngData) < len(data) {
+			return pngData, true
+		}
+	}
+
 	src, _, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
 		return data, false
@@ -128,7 +143,7 @@ func OptimizeIconBytes(data []byte) ([]byte, bool) {
 	canvas := image.NewNRGBA(image.Rect(0, 0, iconSize, iconSize))
 	drawTransparent(canvas)
 	target := image.Rect((iconSize-dstW)/2, (iconSize-dstH)/2, (iconSize-dstW)/2+dstW, (iconSize-dstH)/2+dstH)
-	scaleNearest(canvas, target, src, bounds)
+	xdraw.CatmullRom.Scale(canvas, target, src, bounds, xdraw.Over, nil)
 
 	var buf bytes.Buffer
 	if err := png.Encode(&buf, canvas); err != nil {
@@ -141,25 +156,95 @@ func OptimizeIconBytes(data []byte) ([]byte, bool) {
 	return optimized, true
 }
 
+func ExtractBestPNGFromICO(data []byte) ([]byte, bool) {
+	if len(data) < 6 ||
+		binary.LittleEndian.Uint16(data[0:2]) != 0 ||
+		binary.LittleEndian.Uint16(data[2:4]) != 1 {
+		return nil, false
+	}
+
+	count := int(binary.LittleEndian.Uint16(data[4:6]))
+	if count <= 0 || len(data) < 6+count*16 {
+		return nil, false
+	}
+
+	bestOffset := 0
+	bestSize := 0
+	bestArea := -1
+	for i := 0; i < count; i++ {
+		entry := 6 + i*16
+		width := int(data[entry])
+		height := int(data[entry+1])
+		if width == 0 {
+			width = 256
+		}
+		if height == 0 {
+			height = 256
+		}
+		size := int(binary.LittleEndian.Uint32(data[entry+8 : entry+12]))
+		offset := int(binary.LittleEndian.Uint32(data[entry+12 : entry+16]))
+		if size <= 8 || offset < 0 || offset+size > len(data) {
+			continue
+		}
+		chunk := data[offset : offset+size]
+		if !bytes.HasPrefix(chunk, []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'}) {
+			continue
+		}
+		area := width * height
+		if area > bestArea {
+			bestArea = area
+			bestOffset = offset
+			bestSize = size
+		}
+	}
+
+	if bestSize == 0 {
+		return nil, false
+	}
+	return data[bestOffset : bestOffset+bestSize], true
+}
+
+func IsSVG(data []byte) bool {
+	sniffLen := len(data)
+	if sniffLen > 512 {
+		sniffLen = 512
+	}
+	sniff := strings.ToLower(strings.TrimSpace(string(data[:sniffLen])))
+	return strings.HasPrefix(sniff, "<svg") ||
+		strings.HasPrefix(sniff, "<?xml") && strings.Contains(sniff, "<svg") ||
+		strings.Contains(sniff, "<svg ")
+}
+
+func OptimizeSVGBytes(data []byte) ([]byte, bool) {
+	s := strings.TrimSpace(string(data))
+	if s == "" {
+		return data, false
+	}
+
+	commentPattern := regexp.MustCompile(`(?s)<!--.*?-->`)
+	betweenTagsPattern := regexp.MustCompile(`>\s+<`)
+	multiSpacePattern := regexp.MustCompile(`\s{2,}`)
+
+	s = commentPattern.ReplaceAllString(s, "")
+	s = betweenTagsPattern.ReplaceAllString(s, "><")
+	s = strings.ReplaceAll(s, "\n", " ")
+	s = strings.ReplaceAll(s, "\r", " ")
+	s = strings.ReplaceAll(s, "\t", " ")
+	s = multiSpacePattern.ReplaceAllString(s, " ")
+	s = strings.TrimSpace(s)
+
+	optimized := []byte(s)
+	if len(optimized) >= len(data) {
+		return data, false
+	}
+	return optimized, true
+}
+
 func drawTransparent(dst *image.NRGBA) {
 	transparent := color.NRGBA{R: 255, G: 255, B: 255, A: 0}
 	for y := dst.Bounds().Min.Y; y < dst.Bounds().Max.Y; y++ {
 		for x := dst.Bounds().Min.X; x < dst.Bounds().Max.X; x++ {
 			dst.SetNRGBA(x, y, transparent)
-		}
-	}
-}
-
-func scaleNearest(dst *image.NRGBA, target image.Rectangle, src image.Image, bounds image.Rectangle) {
-	dstW := target.Dx()
-	dstH := target.Dy()
-	srcW := bounds.Dx()
-	srcH := bounds.Dy()
-	for y := 0; y < dstH; y++ {
-		srcY := bounds.Min.Y + y*srcH/dstH
-		for x := 0; x < dstW; x++ {
-			srcX := bounds.Min.X + x*srcW/dstW
-			dst.Set(target.Min.X+x, target.Min.Y+y, src.At(srcX, srcY))
 		}
 	}
 }

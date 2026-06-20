@@ -1,9 +1,10 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import "./index.css";
 import { getLogoUrl } from "../../utils/check";
 import { getJumpTarget } from "../../utils/setting";
 
 const FALLBACK_LOGO = "/github-mark.svg";
+const failedLogoCache = new Set<string>();
 
 const normalizeTags = (value: any): string[] => {
   if (!value) return [];
@@ -18,37 +19,21 @@ const normalizeTags = (value: any): string[] => {
     });
 };
 
-const Card = ({ title, url, des, logo, catelog, tags, onClick, onTagClick, index, isSearching, noImageMode, compactMode, jumpTargetBlank }: any) => {
-  const [imageError, setImageError] = useState(false);
-  const imageLoadedRef = useRef(false);
-
+const Card = ({ title, url, des, logo, catelog, tags, onClick, index, isSearching, noImageMode, compactMode, jumpTargetBlank }: any) => {
   const imageSrc = useMemo(() => {
     return url === "admin" ? logo : getLogoUrl(logo);
   }, [logo, url]);
 
+  const [imageError, setImageError] = useState(() => Boolean(imageSrc && failedLogoCache.has(imageSrc)));
+
   useEffect(() => {
-    setImageError(false);
-    imageLoadedRef.current = false;
-
-    if (!imageSrc) {
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      if (!imageLoadedRef.current) {
-        setImageError(true);
-      }
-    }, 10000);
-
-    return () => clearTimeout(timeout);
+    setImageError(Boolean(imageSrc && failedLogoCache.has(imageSrc)));
   }, [imageSrc]);
 
-  const handleImageLoad = () => {
-    imageLoadedRef.current = true;
-  };
-
   const handleImageError = () => {
-    imageLoadedRef.current = true;
+    if (imageSrc) {
+      failedLogoCache.add(imageSrc);
+    }
     setImageError(true);
   };
 
@@ -60,12 +45,11 @@ const Card = ({ title, url, des, logo, catelog, tags, onClick, onTagClick, index
         src={displayImageSrc}
         alt={title}
         decoding="async"
-        loading="lazy"
-        onLoad={handleImageLoad}
+        loading={index < 24 ? "eager" : "lazy"}
         onError={handleImageError}
       />
     );
-  }, [imageSrc, title, imageError]);
+  }, [imageSrc, title, imageError, index]);
 
   // 空分类不显示角标，避免迁移标签后出现大量“未分类”。
   const displayCatelog = useMemo(() => {
@@ -107,22 +91,8 @@ const Card = ({ title, url, des, logo, catelog, tags, onClick, onTagClick, index
               {displayTags.map((tag) => (
                 <span
                   key={tag}
-                  className={`card-label card-label-clickable ${tag.toLowerCase() === "aff" ? "card-label-aff" : ""}`}
+                  className={`card-label ${tag.toLowerCase() === "aff" ? "card-label-aff" : ""}`}
                   title={tag}
-                  role="link"
-                  tabIndex={0}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    onTagClick?.(tag);
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      onTagClick?.(tag);
-                    }
-                  }}
                 >
                   {tag}
                 </span>

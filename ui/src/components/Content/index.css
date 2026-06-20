@@ -46,12 +46,11 @@
     background-color: var(--diao-bg-input-hover, #E4DCFF);
     border: 1px solid var(--diao-border-strong);
     cursor: pointer;
-    transition: all 0.2s;
   }
   input:focus,
   input:focus-visible {
     background-color: var(--diao-bg-input-focus);
-    border: 2px solid var(--diao-border-focus);
+    border: 1px solid var(--diao-border-focus);
     color: var(--diao-text-primary);
     box-shadow: 0 0 0 3px rgba(107, 77, 255, 0.15);
   }
@@ -184,12 +183,11 @@
     background-color: var(--diao-bg-input-hover, #E4DCFF);
     border: 1px solid var(--diao-border-strong);
     cursor: pointer;
-    transition: all 0.2s;
   }
   input:focus-visible,
   input:focus {
     background-color: var(--diao-bg-input-focus);
-    border: 2px solid var(--diao-border-focus);
+    border: 1px solid var(--diao-border-focus);
     color: var(--diao-text-primary);
     box-shadow: 0 0 0 3px rgba(107, 77, 255, 0.15);
   }
@@ -320,11 +318,10 @@
     background-color: var(--diao-bg-input-hover, #E4DCFF);
     border: 1px solid var(--diao-border-strong);
     cursor: pointer;
-    transition: all 0.2s;
   }
   input:focus-visible,input:focus {
     background-color: var(--diao-bg-input-focus);
-    border: 2px solid var(--diao-border-focus);
+    border: 1px solid var(--diao-border-focus);
     color: var(--diao-text-primary);
     box-shadow: 0 0 0 3px rgba(107, 77, 255, 0.15);
   }
@@ -503,11 +500,10 @@
     background-color: var(--diao-bg-input-hover, #E4DCFF);
     border: 1px solid var(--diao-border-strong);
     cursor: pointer;
-    transition: all 0.2s;
   }
   input:focus,input:focus-visible {
     background-color: var(--diao-bg-input-focus);
-    border: 2px solid var(--diao-border-focus);
+    border: 1px solid var(--diao-border-focus);
     color: var(--diao-text-primary);
     box-shadow: 0 0 0 3px rgba(107, 77, 255, 0.15);
   }
@@ -668,15 +664,15 @@
 }
 
 body.dark-mode .card-label {
-  border-color: rgba(216, 222, 233, 0.14);
-  background: rgba(216, 222, 233, 0.08);
-  color: #d8dee9;
+  border-color: rgba(217, 199, 143, 0.24);
+  background: rgba(217, 199, 143, 0.10);
+  color: #E9DFAF;
 }
 
 body.dark-mode .card-label-aff {
-  border-color: rgba(107, 77, 255, 0.42);
-  background: rgba(107, 77, 255, 0.18);
-  color: #dcd5ff;
+  border-color: rgba(217, 199, 143, 0.42);
+  background: rgba(217, 199, 143, 0.16);
+  color: #F2E6B8;
 }
 
 /* Card information hierarchy: title, description, then category/tags. */
@@ -772,13 +768,21 @@ body.dark-mode .card-label-aff {
 }
 
 body.dark-mode .content.cards:not(.compact-grid) .card-box {
-  border-color: rgba(216, 222, 233, 0.08);
+  border-color: rgba(118, 139, 148, 0.18);
+  background: linear-gradient(180deg, #111B24 0%, #0F1720 100%);
+  box-shadow: var(--diao-shadow-card);
+}
+
+body.dark-mode .content.cards:not(.compact-grid) .card-box:hover {
+  border-color: rgba(217, 199, 143, 0.22);
+  background: linear-gradient(180deg, #14202A 0%, #111A23 100%);
+  box-shadow: var(--diao-shadow-card-hover);
 }
 
 body.dark-mode .content.cards:not(.compact-grid) .card-tag {
-  border-color: rgba(216, 222, 233, 0.12);
-  background: rgba(216, 222, 233, 0.07);
-  color: #aab4c5;
+  border-color: rgba(154, 168, 173, 0.22);
+  background: rgba(154, 168, 173, 0.10);
+  color: #D6E0E1;
 }
 
 @media (max-width: 500px) {
@@ -1100,5 +1104,127 @@ body.dark-mode .content.cards:not(.compact-grid) .card-tag {
     transform: none;
     box-shadow: var(--diao-shadow-card);
     background-color: var(--diao-bg-compact-hover);
+  }
+}
+
+/* Stable icon boxes. Some SVG favicons have valid natural dimensions but can
+   collapse to 0px with width:auto + max-width after route changes or restore. */
+.content.cards .card-left > img {
+  display: block;
+  width: 32px;
+  height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  object-fit: contain;
+  flex: 0 0 32px;
+}
+
+.content.cards:not(.compact-grid) .card-left > img {
+  display: block;
+  width: 32px;
+  height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  object-fit: contain;
+  flex: 0 0 32px;
+}
+
+.content.cards:not(.compact-grid) .card-left {
+  width: 32px;
+  min-width: 32px;
+  flex: 0 0 32px;
+}
+
+.content.cards .card-content.compact-mode .card-left > img {
+  width: 24px;
+  height: 24px;
+  max-width: 24px;
+  max-height: 24px;
+}
+
+/* Accessible tag controls and stable topbar spacing. */
+.topbar .tag-selector {
+  min-height: 72px;
+}
+
+.topbar .tag-selector .select-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  height: auto;
+  padding: 5px 12px;
+  border-radius: var(--diao-radius-tag);
+  line-height: 1;
+}
+
+.topbar .custom-tag-row {
+  min-height: 34px;
+}
+
+.topbar .custom-tag-button {
+  min-height: 32px;
+}
+
+body.dark-mode .topbar .custom-tag-button {
+  border-color: rgba(154, 168, 173, 0.22);
+  background: rgba(154, 168, 173, 0.08);
+  color: #D6E0E1;
+}
+
+body.dark-mode .topbar .custom-tag-button-active {
+  border-color: #D9C78F;
+  background: #D9C78F;
+  color: #17130A;
+}
+
+body.dark-mode .content.cards:not(.compact-grid) .card-label,
+body.dark-mode .content.cards:not(.compact-grid) .card-label-aff {
+  border-color: rgba(217, 199, 143, 0.30);
+  background: rgba(217, 199, 143, 0.12);
+  color: #F0E7C5;
+}
+
+body.dark-mode .content.cards:not(.compact-grid) .card-tag {
+  border-color: rgba(154, 168, 173, 0.26);
+  background: rgba(154, 168, 173, 0.10);
+  color: #D6E0E1;
+}
+
+body.dark-mode .topbar input {
+  border-color: rgba(118, 139, 148, 0.18);
+  background: #101923;
+  color: #F4F7F5;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+body.dark-mode .topbar input::placeholder {
+  color: #83919A;
+}
+
+body.dark-mode .topbar input:hover,
+body.dark-mode .topbar input:focus,
+body.dark-mode .topbar input:focus-visible {
+  border-color: rgba(217, 199, 143, 0.46);
+  background: #141F2A;
+  box-shadow: 0 0 0 3px rgba(217, 199, 143, 0.11);
+}
+
+body.dark-mode .tag-selector::after {
+  border-color: rgba(118, 139, 148, 0.20) !important;
+  border-left-color: #D9C78F !important;
+  background: #101820 !important;
+  color: #BAC6C8 !important;
+}
+
+@media (max-width: 500px) {
+  .topbar .tag-selector {
+    min-height: 80px;
+  }
+
+  .topbar .tag-selector .select-tag,
+  .topbar .custom-tag-button {
+    min-height: 34px;
+    padding: 6px 10px;
   }
 }

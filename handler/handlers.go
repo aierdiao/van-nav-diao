@@ -331,8 +331,8 @@ func GetLogoImgHandler(c *gin.Context) {
 		return
 	}
 	t := detectImageContentType(imgBuffer)
-	// 设置浏览器缓存头：图标变化不频繁，缓存 7 天
-	c.Header("Cache-Control", "public, max-age=604800, immutable")
+	// 图标内容按 URL 缓存，变更时后台会更新 URL 或清理缓存。
+	c.Header("Cache-Control", "public, max-age=31536000, immutable")
 	c.Header("ETag", fmt.Sprintf(`"%s"`, url))
 	// 直接输出二进制数据，避免string转换导致的内存多分配
 	c.Data(http.StatusOK, t, imgBuffer)
@@ -344,7 +344,7 @@ func detectImageContentType(imgBuffer []byte) string {
 	if sniffLen > 256 {
 		sniffLen = 256
 	}
-	sniff := strings.TrimSpace(string(imgBuffer[:sniffLen]))
+	sniff := strings.ToLower(strings.TrimSpace(string(imgBuffer[:sniffLen])))
 	if strings.HasPrefix(sniff, "<svg") || strings.Contains(sniff, "<svg") {
 		return "image/svg+xml"
 	}
@@ -355,7 +355,7 @@ func detectImageContentType(imgBuffer []byte) string {
 }
 
 func redirectToFallbackLogo(c *gin.Context) {
-	c.Header("Cache-Control", "public, max-age=604800, immutable")
+	c.Header("Cache-Control", "public, max-age=31536000, immutable")
 	c.Redirect(http.StatusFound, "/github-mark.svg")
 }
 

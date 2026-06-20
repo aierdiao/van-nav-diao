@@ -75,33 +75,33 @@ body {
    TMACG Brand Design Tokens — Dark Mode
    ═══════════════════════════════════════════════════════════════ */
 body.dark-mode {
-  --diao-bg-page: #030A14;           /* TMACG brand-navy-deep */
-  --diao-bg-card: #0B1D34;           /* TMACG brand-navy-mid */
-  --diao-bg-card-hover: #10243D;     /* TMACG brand-navy-soft */
-  --diao-bg-input: #0B1D34;          /* Navy mid for inputs */
-  --diao-bg-input-focus: #10243D;    /* Slightly lighter on focus */
-  --diao-bg-tag: #10243D;            /* Navy-soft for inactive tags */
-  --diao-bg-tag-hover: #172033;      /* TMACG brand-ink-soft */
-  --diao-bg-tag-active: #D8DEE9;     /* Inverted: light bg in dark mode for contrast pop */
-  --diao-bg-compact-hover: #172033;  /* Ink-soft for compact hover */
+  --diao-bg-page: #080D12;
+  --diao-bg-card: #101820;
+  --diao-bg-card-hover: #151F29;
+  --diao-bg-input: #101923;
+  --diao-bg-input-focus: #141F2A;
+  --diao-bg-tag: #151F28;
+  --diao-bg-tag-hover: #1C2934;
+  --diao-bg-tag-active: #D9C78F;
+  --diao-bg-compact-hover: #151F29;
 
-  --diao-text-primary: #FFFFFF;      /* TMACG on-dark */
-  --diao-text-secondary: #AAB4C5;    /* TMACG on-dark-muted */
-  --diao-text-muted: #64748B;        /* TMACG steel */
-  --diao-text-on-primary: #0B1220;   /* Dark text on inverted light bg */
+  --diao-text-primary: #F4F7F5;
+  --diao-text-secondary: #BAC6C8;
+  --diao-text-muted: #83919A;
+  --diao-text-on-primary: #17130A;
   --diao-text-on-dark: #FFFFFF;
 
-  --diao-border: #1E293B;            /* Dark hairline */
-  --diao-border-light: #172033;      /* Dark hairline soft */
-  --diao-border-strong: #334155;     /* Dark hairline strong */
-  --diao-border-focus: #6B4DFF;      /* Purple focus ring — same in both modes */
+  --diao-border: #22313D;
+  --diao-border-light: #192530;
+  --diao-border-strong: #40515D;
+  --diao-border-focus: #D9C78F;
 
-  --diao-shadow-card: rgba(3, 10, 20, 0.32) 0px 1px 2px 0px;
-  --diao-shadow-card-hover: rgba(3, 10, 20, 0.48) 0px 12px 32px -12px;
-  --diao-shadow-purple-glow: rgba(107, 77, 255, 0.24) 0px 16px 48px -16px;
+  --diao-shadow-card: rgba(0, 0, 0, 0.22) 0px 1px 2px 0px, rgba(9, 20, 27, 0.28) 0px 16px 44px -28px;
+  --diao-shadow-card-hover: rgba(0, 0, 0, 0.30) 0px 18px 48px -24px;
+  --diao-shadow-purple-glow: rgba(217, 199, 143, 0.18) 0px 16px 48px -18px;
 
-  --diao-icon: #94A3B8;
-  --diao-icon-hover: #D8DEE9;
+  --diao-icon: #9AA8AD;
+  --diao-icon-hover: #F4F7F5;
 }
 
 /* ═══════════════════════════════════════════════════════════════

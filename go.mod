@@ -10,6 +10,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/studio-b12/gowebdav v0.12.0
 	golang.org/x/crypto v0.45.0
+	golang.org/x/image v0.31.0
 	golang.org/x/net v0.47.0
 	golang.org/x/text v0.31.0
 	modernc.org/sqlite v1.37.1

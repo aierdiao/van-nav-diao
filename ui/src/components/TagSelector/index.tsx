@@ -5,10 +5,13 @@ interface TagSelectorProps {
   tags: any;
   onTagChange: (newTag: string) => void;
   currTag: string;
+  customTags?: any[];
+  activeCustomTag?: string;
+  onCustomTagChange?: (tag: string) => void;
 }
 const TagSelector = (props: TagSelectorProps) => {
   const { t } = useTranslation();
-  const { tags = ["all"], onTagChange, currTag } = props;
+  const { tags = ["all"], onTagChange, currTag, customTags = [], activeCustomTag = "", onCustomTagChange } = props;
   const lastWheelTime = useRef(0);
 
   // 滚轮切换分类：在分类栏区域内滚动时阻止页面滚动，切换分类
@@ -53,27 +56,68 @@ const TagSelector = (props: TagSelectorProps) => {
         displayText = t('home.tag.admin');
       }
       
+      const selectTag = () => {
+        onTagChange(each);
+      };
+
       return (
-        <span
+        <button
+          type="button"
+          data-tag-name={each}
+          data-tag-slug={typeof item === "string" ? "" : item?.slug || ""}
           className={`select-tag ${
             currTag === each ? "select-tag-active" : ""
           }`}
           key={`${each}-select-tag`}
-          onClick={() => {
-            onTagChange(each);
+          onPointerDown={(event) => {
+            if (event.pointerType === "mouse" && event.button !== 0) return;
+            event.preventDefault();
+            selectTag();
           }}
+          onClick={selectTag}
         >
           {displayText}
-        </span>
+        </button>
       );
     });
     return originTags;
   }, [tags, onTagChange, currTag, t]);
+
+  const renderCustomTags = useCallback(() => {
+    return customTags
+      .map((item) => {
+        const name = typeof item === "string" ? item : item?.name;
+        if (!name || String(name).trim() === "") return null;
+        const label = String(name).trim();
+        const isActive = activeCustomTag.toLowerCase() === label.toLowerCase();
+        return (
+          <button
+            type="button"
+            className={`custom-tag-button ${isActive ? "custom-tag-button-active" : ""}`}
+            key={`${label}-custom-tag`}
+            onClick={() => onCustomTagChange?.(label)}
+          >
+            #{label}
+          </button>
+        );
+      })
+      .filter(Boolean);
+  }, [customTags, activeCustomTag, onCustomTagChange]);
+
+  const customTagNodes = renderCustomTags();
+
   return (
     <div className="tag-selector span-full" onWheel={handleWheel}>
       <div className="tag-selector-wrapper">
         {renderTags()}
       </div>
+      {customTagNodes.length > 0 && (
+        <div className="custom-tag-row">
+          <div className="custom-tag-list">
+            {customTagNodes}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

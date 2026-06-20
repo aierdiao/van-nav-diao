@@ -1,7 +1,5 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { App as AntApp } from 'antd';
-import { Spin } from 'antd';
 import { decodeTheme, initTheme } from './utils/theme';
 import { I18nProvider } from './i18n';
 import './App.css';
@@ -74,14 +72,11 @@ const ThemeSync = () => {
 
 // 加载中的占位组件
 const LoadingFallback = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
   useEffect(() => {
     const applyThemeFromStorage = () => {
       const theme = initTheme();
       const decodedTheme = decodeTheme(theme);
       const isDark = decodedTheme.includes('dark');
-      setIsDarkMode(isDark);
       const body = document.querySelector('body');
       const html = document.querySelector('html');
       if (body) {
@@ -109,15 +104,8 @@ const LoadingFallback = () => {
   }, []);
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      backgroundColor: isDarkMode ? '#030A14' : '#F7F7FA',
-      color: isDarkMode ? '#FFFFFF' : '#0B1220',
-    }}>
-      <Spin size="large" tip="Loading..." />
+    <div className="app-loading-fallback" role="status" aria-label="Loading">
+      <div className="app-loading-dot" />
     </div>
   );
 };
@@ -125,7 +113,6 @@ const LoadingFallback = () => {
 function App() {
   return (
     <I18nProvider>
-    <AntApp>
       <Router>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
@@ -146,7 +133,6 @@ function App() {
           <ThemeSync />
         </Suspense>
       </Router>
-    </AntApp>
     </I18nProvider>
   );
 }

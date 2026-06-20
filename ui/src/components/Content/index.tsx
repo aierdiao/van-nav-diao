@@ -71,28 +71,80 @@ const Content = (props: any) => {
   const categoryBySlug = useMemo(() => {
     const map = new Map<string, any>();
     categoryItems.forEach((item: any) => {
-      if (item?.slug) map.set(item.slug, item);
+      if (item?.slug) {
+        map.set(item.slug, item);
+        try {
+          map.set(decodeURIComponent(item.slug), item);
+        } catch (e) {
+          // Keep the original slug when it is not URI encoded.
+        }
+      }
+      if (item?.name) map.set(encodeURIComponent(item.name), item);
     });
     return map;
   }, [categoryItems]);
+  const observedTagItems = useMemo(() => {
+    const map = new Map<string, any>();
+    (data?.tools || []).forEach((item: any) => {
+      String(item?.tags || "")
+        .split(/[,，]/)
+        .map((tag) => tag.trim())
+        .filter(Boolean)
+        .forEach((tag) => {
+          const key = tag.toLowerCase();
+          const current = map.get(key);
+          map.set(key, {
+            name: current?.name || tag,
+            slug: current?.slug || encodeURIComponent(tag),
+            count: (current?.count || 0) + 1,
+          });
+        });
+    });
+    return Array.from(map.values());
+  }, [data?.tools]);
+  const tagSlugItems = useMemo(() => {
+    const map = new Map<string, any>();
+    observedTagItems.forEach((item: any) => {
+      if (item?.name) map.set(String(item.name).toLowerCase(), item);
+    });
+    (data?.tagSlugs || []).forEach((item: any) => {
+      if (!item?.name) return;
+      const key = String(item.name).toLowerCase();
+      map.set(key, { ...map.get(key), ...item });
+    });
+    return Array.from(map.values()).filter((item: any) => item?.name && item?.slug);
+  }, [data?.tagSlugs, observedTagItems]);
   const tagBySlug = useMemo(() => {
     const map = new Map<string, any>();
-    (data?.tagSlugs || []).forEach((item: any) => {
-      if (item?.slug) map.set(item.slug, item);
+    tagSlugItems.forEach((item: any) => {
+      if (!item?.slug) return;
+      map.set(item.slug, item);
+      try {
+        map.set(decodeURIComponent(item.slug), item);
+      } catch (e) {
+        // Keep the original slug when it is not URI encoded.
+      }
     });
     return map;
-  }, [data?.tagSlugs]);
+  }, [tagSlugItems]);
   const tagSlugByName = useMemo(() => {
     const map = new Map<string, string>();
-    (data?.tagSlugs || []).forEach((item: any) => {
+    tagSlugItems.forEach((item: any) => {
       if (item?.name && item?.slug) map.set(String(item.name).toLowerCase(), item.slug);
     });
     return map;
-  }, [data?.tagSlugs]);
+  }, [tagSlugItems]);
+  const customTagItems = useMemo(() => {
+    return tagSlugItems
+      .filter((item: any) => item?.count || observedTagItems.some((tag: any) => String(tag.name).toLowerCase() === String(item.name).toLowerCase()))
+      .sort((a: any, b: any) => String(a.name).localeCompare(String(b.name), "zh-Hans-CN"));
+  }, [observedTagItems, tagSlugItems]);
   const activeCategory = routeMode === "category" && slug ? categoryBySlug.get(slug) : null;
   const activeTag = routeMode === "tag" && slug ? tagBySlug.get(slug) : null;
+  const visibleCategoryTag = routeMode === "tag" ? "" : currTag;
+  const visibleCustomTag = routeMode === "tag" ? activeTag?.name || "" : "";
   const categoryCount = categoryItems.filter((item: any) => !item?.isAll).length;
-  const routeNotFound = (routeMode === "category" && slug && data?.categoryItems && !activeCategory) || (routeMode === "tag" && slug && data?.tagSlugs && !activeTag);
+  const routeNotFound = (routeMode === "category" && slug && data?.categoryItems && !activeCategory) || (routeMode === "tag" && slug && tagSlugItems.length > 0 && !activeTag);
   const seoTitle = activeCategory
     ? `${activeCategory.name} - ${pageTitle}`
     : activeTag
@@ -224,7 +276,7 @@ const Content = (props: any) => {
     loadSearchEngineCards();
   }, [searchString, data?.setting?.showSearchEngine]);
 
-  const handleSetCurrTag = (tag: string) => {
+  const handleSetCurrTag = useCallback((tag: string) => {
     setCurrTag(tag);
     // 管理后台不记录了
     if (tag !== '管理后台') {
@@ -234,12 +286,21 @@ const Content = (props: any) => {
       navigate("/");
     } else {
       const category = categoryItems.find((item: any) => item?.name === tag);
-      if (category?.slug) {
-        navigate(`/category/${category.slug}`);
+      const categorySlug = category?.slug || encodeURIComponent(tag);
+      if (categorySlug) {
+        navigate(`/category/${categorySlug}`);
       }
     }
     resetSearch(true);
-  };
+  }, [categoryItems, navigate]);
+
+  const handleSetCustomTag = useCallback((tag: string) => {
+    const tagSlug = tagSlugByName.get(String(tag).toLowerCase());
+    if (!tagSlug) return;
+    resetSearch(true);
+    setCurrTag('全部工具');
+    navigate(`/tag/${tagSlug}`);
+  }, [navigate, tagSlugByName]);
 
   const resetSearch = (notSetTag?: boolean) => {
     setVal("");
@@ -336,13 +397,6 @@ const Content = (props: any) => {
               loadData();
             }
           }}
-          onTagClick={(tag: string) => {
-            const tagSlug = tagSlugByName.get(String(tag).toLowerCase());
-            if (tagSlug) {
-              resetSearch(true);
-              navigate(`/tag/${tagSlug}`);
-            }
-          }}
         />
       );
     });
@@ -406,8 +460,11 @@ const Content = (props: any) => {
           />
           <TagSelector
             tags={data?.categoryItems ?? data?.catelogs ?? ['全部工具']}
-            currTag={currTag}
+            currTag={visibleCategoryTag}
             onTagChange={handleSetCurrTag}
+            customTags={customTagItems}
+            activeCustomTag={visibleCustomTag}
+            onCustomTagChange={handleSetCustomTag}
           />
         </div>
       </div>
