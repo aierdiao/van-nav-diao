@@ -16,7 +16,7 @@
 ### Docker 镜像
 
 ```bash
-docker pull ghcr.io/aierdiao/van-nav-diao:1.0.4
+docker pull ghcr.io/aierdiao/van-nav-diao:v1.0.4
 docker pull ghcr.io/aierdiao/van-nav-diao:latest
 ```
 
