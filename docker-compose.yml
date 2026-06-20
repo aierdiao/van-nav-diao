@@ -1,6 +1,6 @@
 services:
   van-nav:
-    build: .
+    image: ghcr.io/aierdiao/van-nav-diao:latest
     container_name: van-nav
     restart: unless-stopped
     ports:
