@@ -582,25 +582,30 @@ func RestoreFromBackup(filename string) error {
 		}
 	}
 
+	// 先写入临时文件，确保数据完整后再替换，避免关闭 DB 后写入失败导致服务无法恢复
+	tmpRestorePath := dbPath + ".restore.tmp"
+	if err := os.WriteFile(tmpRestorePath, data, 0644); err != nil {
+		return fmt.Errorf("写入恢复数据失败: %w", err)
+	}
+
 	// 使用互斥锁保护数据库连接的关闭和重新初始化
 	dbMutex.Lock()
 	defer dbMutex.Unlock()
 
-	// 关闭当前数据库连接
 	if database.DB != nil {
 		database.CloseDB()
 		database.DB = nil
 	}
 
-	// 写入恢复的数据库文件
-	err = os.WriteFile(dbPath, data, 0644)
-	if err != nil {
-		return fmt.Errorf("写入数据库文件失败: %w", err)
+	// 原子替换数据库文件（同一文件系统上 Rename 是原子操作）
+	if err := os.Rename(tmpRestorePath, dbPath); err != nil {
+		os.Remove(tmpRestorePath)
+		database.InitDB()
+		return fmt.Errorf("替换数据库文件失败: %w", err)
 	}
 
 	logger.LogInfo("数据库恢复成功: %s -> %s", remotePath, dbPath)
 
-	// 重新初始化数据库连接
 	database.InitDB()
 
 	return nil

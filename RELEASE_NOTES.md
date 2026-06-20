@@ -1,35 +1,74 @@
-## [v2.1.1] - 2026-06-03
+## van-nav-diao v1.0.3
 
-### Added
+### 更新内容
 
-- **首页加载性能大幅提升**：数据库添加 7 个关键索引（nav_img / nav_api_token / nav_user / nav_table），首页数据引入 5 秒 TTL 进程内缓存，API Token 校验走内存 O(1) 查找，多用户并发场景下 QPS 预期提升 3-5 倍
-- **链接健康检测批量写入优化**：CheckAllLinks 将逐条独立 UPDATE 改为单次事务批量提交，100 条工具的 DB 写入延迟降低 80% 以上
-- **goscraper 连接复用**：批量导入工具时图标抓取共享 HTTP 客户端，TCP / TLS 连接复用，延迟降低 40-60%
+#### 安全与稳定性修复
 
-### Fixed
+- **SSRF DNS 重绑定防护**：`FetchPageInfoHandler` 新增域名解析后的内网地址判断，避免攻击者通过域名绕过 IP 字面量检查。
+- **Handler 吞错修复**：`UpdateTool`、`UpdateUser`、`AddCatelog`、`UpdateCatelog` 不再忽略 service 层错误，失败时返回 HTTP 500。
+- **字符串切片越界修复**：修复 `extractDomain`、`GetSuffixFromUrl`、`getIcon` 等短字符串或空字符串场景的 panic 风险。
+- **备份恢复流程修复**：`RestoreFromBackup` 改为先写临时文件再原子 rename，失败时回滚并重新初始化数据库连接，避免残留 nil DB。
+- **数据库迁移错误可见化**：迁移阶段的 `DB.Exec` 统一通过辅助函数记录失败日志，避免静默失败。
+- **API 路径判断修复**：`strings.Contains(path, "/api")` 改为 `strings.HasPrefix(path, "/api/")`，避免误匹配普通页面路径。
 
-- **DeleteToolWithImage 先删后查 Bug**：删除工具后因查询已删除行导致图片缓存永远无法清理，nav_img 表持续膨胀。修复为先查询 logo 再执行删除，图片孤儿记录可被正确回收
-- **validUTF8 误判非 ASCII 内容**：自定义 UTF-8 检查函数将任何非 ASCII 字节直接判定为非法，导致中文、日文等页面触发无意义的 GBK 转码开销。替换为标准库 `unicode/utf8.Valid`
+#### SEO 与缓存
 
-### Changed
+- **Sitemap 增加 `<lastmod>`**：站点地图条目新增当日日期，帮助搜索引擎判断页面新鲜度。
+- **首页缓存 TTL 调整**：首页数据缓存从 5 秒提升到 60 秒；后台写操作仍会主动失效缓存。
+- **API 请求去掉 cache-bust 参数**：前端不再为所有 `/api/` GET 请求附加 `_t=Date.now()`，恢复正常 HTTP 缓存语义。
+- **静态资源协商缓存修复**：`ServeContent` 不再传入 `time.Now()` 作为 modtime，避免浏览器条件请求永远无法命中 304。
 
-- **连接池与 WAL 同步优化**：SQLite 连接池配置 SetMaxOpenConns(10) / SetMaxIdleConns(10)，WAL 模式下同步级别设为 NORMAL，兼顾读写并发与数据安全
-- **InsertImage 去重机制重构**：从 SELECT COUNT + INSERT 两步操作改为 INSERT OR IGNORE + 唯一索引，消除 TOCTOU 竞态条件
-- **正则表达式预编译**：FetchPageInfoHandler 热路径上的 6 个正则从请求级编译提升为包级变量，消除重复编译开销与 GC 压力
-- **响应体大小防护**：FetchPageInfoHandler 限制 2MB、GetImgBase64FromUrl 限制 5MB，防止恶意或异常响应导致 OOM
-- **GoReleaser 配置补充**：release_notes_file 字段补全，修复 Release Notes 未自动注入 GitHub Release 的问题
-- **内部开发辅助文件清理**：将 ARCH_CONTRACT.md、restart-test.sh 等非生产文件从版本控制中移除并加入 .gitignore
-- **README 文档完善**：补充 i18n 国际化功能描述，更新架构重构与错误处理改进说明
+#### 图标与性能
 
-### 风险提示
+- **favicon 并发去重**：缓存未命中时通过 `singleflight` 合并同一 URL 的并发抓取，减少外部请求风暴。
+- **兜底图缓存行为修正**：移除对 302 fallback 响应设置长期 immutable 缓存头的无效做法。
+- **linkcheck 重复写入清理**：移除 goroutine 内独立写入，避免和末尾批量更新重复。
 
-本项目代码包含部分由 AI 自动生成与修改的逻辑。为确保数据资产安全，请在升级前务必对底层物理数据库（data/nav.db）进行完整备份，并自行评估导入风险。
+#### CI / Docker
 
----
+- **Docker 镜像目标修复**：GitHub Actions Docker workflow 发布到当前 fork 包 `ghcr.io/aierdiao/van-nav-diao`，不再指向上游 `thirsty5034/van-nav`。
 
-## 升级注意事项
+### Docker 镜像
 
-1. **数据库索引变更**：首次启动 v2.1.1 时会自动创建 7 个新索引（`idx_img_url`、`idx_img_url_unique`、`idx_token_value_disabled`、`idx_user_name`、`idx_table_catelog`、`idx_table_alive`、`idx_table_sort`），该操作对已有数据量较小的实例几乎无感知，数据量较大时可能产生毫秒级启动延迟
-2. **nav_img 唯一索引**：新增 `idx_img_url_unique` 唯一索引，若历史数据中存在重复的 url 记录，首次启动时 INSERT OR IGNORE 会静默跳过重复项，不影响正常运行
-3. **连接池行为变更**：SQLite 最大连接数限制为 10（此前无限制），对于单机部署场景无影响，高并发代理场景下如遇 `SQLITE_BUSY` 可适当调大 `SetMaxOpenConns`
-4. **WAL 同步级别**：从默认 FULL 降为 NORMAL，在极端断电场景下理论上存在极小概率的 WAL 文件损坏风险，但正常关机与进程终止不受影响
+```bash
+docker pull ghcr.io/aierdiao/van-nav-diao:1.0.3
+docker pull ghcr.io/aierdiao/van-nav-diao:latest
+```
+
+Compose 推荐继续使用：
+
+```bash
+mkdir -p van-nav-diao && cd van-nav-diao
+mkdir -p data
+curl -fsSL https://raw.githubusercontent.com/aierdiao/van-nav-diao/main/docker-compose.yml -o docker-compose.yml
+docker compose pull
+docker compose up -d
+```
+
+### 升级说明
+
+1. 升级前建议备份 `data/nav.db`。
+2. 本版本不包含数据库 Schema 破坏性变更，可直接升级。
+3. 首页缓存 TTL 调整为 60 秒；后台写操作会主动失效缓存，正常情况下前台仍会很快更新。
+4. 前端 API 请求不再附加时间戳参数，浏览器和代理层会按 HTTP 语义处理缓存。
+
+### 验证建议
+
+```powershell
+git diff --check
+go test ./...
+pnpm --dir ui exec tsc --noEmit
+docker build -t ghcr.io/aierdiao/van-nav-diao:1.0.3 .
+```
+
+发布后检查：
+
+- GitHub Release body 是否为本文件内容。
+- `ghcr.io/aierdiao/van-nav-diao:1.0.3` 是否可拉取。
+- `ghcr.io/aierdiao/van-nav-diao:latest` 是否更新。
+- `/sitemap.xml`、`/api/`、首页和后台是否正常。
+
+### 已知风险
+
+- 本版本包含安全、缓存、备份恢复和 Docker workflow 等底层修复，升级前请保留数据库备份。
+- 如果 GitHub Actions 推 GHCR 失败，优先检查 workflow 是否仍指向上游镜像，其次检查仓库 Actions workflow permissions。

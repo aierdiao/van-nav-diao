@@ -15,7 +15,7 @@ var (
 	allDataCache    *cachedAllData
 	allDataCacheMu  sync.RWMutex
 	allDataCacheAt  time.Time
-	allDataCacheTTL = 5 * time.Second
+	allDataCacheTTL = 60 * time.Second
 )
 
 type cachedAllData struct {

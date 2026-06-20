@@ -87,22 +87,18 @@ func main() {
 	flag.Parse()
 	database.InitDB()
 
-	// 重置密码模式：无需启动 HTTP 服务
-	if *resetPassword != "" || flag.Lookup("reset-password") != nil && !flagWasSet("reset-password") {
-		// 只有当 -reset-password 被显式传入时才执行
-		if flagWasSet("reset-password") {
-			newPwd := *resetPassword
-			if newPwd == "" {
-				newPwd = "admin"
-			}
-			if err := service.ResetAdminPassword(newPwd); err != nil {
-				logger.LogError("密码重置失败: %s", err)
-				os.Exit(1)
-			}
-			fmt.Printf("✅ 管理员密码已重置为: %s\n", newPwd)
-			fmt.Println("请通过后台管理页面尽快修改为强密码。")
-			os.Exit(0)
+	if flagWasSet("reset-password") {
+		newPwd := *resetPassword
+		if newPwd == "" {
+			newPwd = "admin"
 		}
+		if err := service.ResetAdminPassword(newPwd); err != nil {
+			logger.LogError("密码重置失败: %s", err)
+			os.Exit(1)
+		}
+		fmt.Printf("✅ 管理员密码已重置为: %s\n", newPwd)
+		fmt.Println("请通过后台管理页面尽快修改为强密码。")
+		os.Exit(0)
 	}
 	// 同步部署版本号到数据库（确保新部署/更新部署版本一致）
 	syncDeploymentVersion()

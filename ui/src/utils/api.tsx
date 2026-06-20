@@ -8,10 +8,6 @@ axios.interceptors.request.use(
         if (token) {
             config.headers.Authorization = token;
         }
-        // Cache-busting: 防止 Service Worker 缓存 API 响应
-        if (config.method === "get" && config.url?.includes("/api/")) {
-            config.params = { ...config.params, _t: Date.now() };
-        }
         return config;
     },
     (error) => {

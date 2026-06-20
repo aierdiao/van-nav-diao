@@ -9,28 +9,31 @@ import (
 	"github.com/mereith/nav/logger"
 	"github.com/mereith/nav/types"
 	"github.com/mereith/nav/utils"
+	"golang.org/x/sync/singleflight"
 )
 
-func getIcon(url string) string {
-	logger.LogInfo("getIcon: %s", url)
-	s, err := goscraper.Scrape(url, 5)
+var imgFetchGroup singleflight.Group
+
+func getIcon(rawURL string) string {
+	logger.LogInfo("getIcon: %s", rawURL)
+	s, err := goscraper.Scrape(rawURL, 5)
 	if err != nil {
 		logger.LogError("getIcon: %s", err)
 		return ""
 	}
-	var result string = ""
-	if strings.Contains(s.Preview.Icon, "http:") || strings.Contains(s.Preview.Icon, "https:") {
-		result = s.Preview.Icon
+	icon := s.Preview.Icon
+	link := s.Preview.Link
+	var result string
+	if strings.Contains(icon, "http:") || strings.Contains(icon, "https:") {
+		result = icon
 	} else {
-		var first string = s.Preview.Link
-		var second string = s.Preview.Icon
-		if !strings.Contains(s.Preview.Link[len(s.Preview.Link)-1:len(s.Preview.Link)], "/") {
-			first = s.Preview.Link + "/"
+		if link != "" && !strings.HasSuffix(link, "/") {
+			link += "/"
 		}
-		if strings.Contains(s.Preview.Icon[0:1], "/") {
-			second = s.Preview.Icon[1:len(s.Preview.Icon)]
+		if strings.HasPrefix(icon, "/") {
+			icon = icon[1:]
 		}
-		result = first + second
+		result = link + icon
 	}
 	logger.LogInfo("getIcon: %s", result)
 	return result
@@ -63,14 +66,19 @@ func GetImgFromDB(url1 string) (types.Img, error) {
 		return img, nil
 	}
 	// 缓存未命中：如果 URL 是外部链接（http/https），尝试实时抓取并同步缓存
+	// 用 singleflight 保证同一 URL 并发时只发起一次外部请求
 	if strings.HasPrefix(url1, "http://") || strings.HasPrefix(url1, "https://") {
-		base64ImgValue := utils.GetImgBase64FromUrl(url1)
-		if base64ImgValue != "" {
-			// 同步写入数据库，确保后续请求直接命中缓存
-			if err := database.InsertImage(urlEncoded, base64ImgValue); err != nil {
-				logger.LogError("GetImgFromDB: cache insert error for %s: %v", url1, err)
+		v, _, _ := imgFetchGroup.Do(url1, func() (interface{}, error) {
+			b64 := utils.GetImgBase64FromUrl(url1)
+			if b64 != "" {
+				if err := database.InsertImage(urlEncoded, b64); err != nil {
+					logger.LogError("GetImgFromDB: cache insert error for %s: %v", url1, err)
+				}
 			}
-			return types.Img{Id: 0, Url: url1, Value: base64ImgValue}, nil
+			return b64, nil
+		})
+		if b64, _ := v.(string); b64 != "" {
+			return types.Img{Id: 0, Url: url1, Value: b64}, nil
 		}
 	}
 	// 返回默认占位图

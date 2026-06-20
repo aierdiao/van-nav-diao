@@ -12,6 +12,7 @@ require (
 	golang.org/x/crypto v0.45.0
 	golang.org/x/image v0.31.0
 	golang.org/x/net v0.47.0
+	golang.org/x/sync v0.18.0
 	golang.org/x/text v0.31.0
 	modernc.org/sqlite v1.37.1
 )

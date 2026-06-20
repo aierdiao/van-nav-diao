@@ -27,7 +27,7 @@ func Serve(urlPrefix string, fs ServeFileSystem) gin.HandlerFunc {
 			c.Abort()
 		} else {
 			path := c.Request.URL.Path
-			pathHasAPI := strings.Contains(path, "/api") && !strings.Contains(path, "/api-token")
+			pathHasAPI := strings.HasPrefix(path, "/api/")
 			if pathHasAPI {
 				return
 			} else {
@@ -38,7 +38,7 @@ func Serve(urlPrefix string, fs ServeFileSystem) gin.HandlerFunc {
 				}
 				defer file.Close()
 				c.Header("Cache-Control", "no-cache")
-				http.ServeContent(c.Writer, c.Request, "index.html", time.Now(), file)
+				http.ServeContent(c.Writer, c.Request, "index.html", time.Time{}, file)
 				c.Abort()
 			}
 

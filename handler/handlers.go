@@ -163,7 +163,14 @@ func UpdateUserHandler(c *gin.Context) {
 		})
 		return
 	}
-	service.UpdateUser(data)
+	if err := service.UpdateUser(data); err != nil {
+		utils.CheckErr(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "更新用户成功",
@@ -227,7 +234,8 @@ func GetAllHandler(c *gin.Context) {
 }
 
 type sitemapURL struct {
-	Loc string `xml:"loc"`
+	Loc     string `xml:"loc"`
+	Lastmod string `xml:"lastmod,omitempty"`
 }
 
 type sitemapURLSet struct {
@@ -246,13 +254,14 @@ func SitemapHandler(c *gin.Context) {
 	tools := utils.FilterHideTools(cached.Tools, cached.Catelogs)
 	catelogs := utils.FilterHideCates(cached.Catelogs)
 	baseURL := publicBaseURL(c)
-	urls := []sitemapURL{{Loc: baseURL + "/"}}
+	today := time.Now().UTC().Format("2006-01-02")
+	urls := []sitemapURL{{Loc: baseURL + "/", Lastmod: today}}
 
 	for _, catelog := range catelogs {
 		if catelog.Slug == "" {
 			continue
 		}
-		urls = append(urls, sitemapURL{Loc: baseURL + "/category/" + url.PathEscape(catelog.Slug)})
+		urls = append(urls, sitemapURL{Loc: baseURL + "/category/" + url.PathEscape(catelog.Slug), Lastmod: today})
 	}
 
 	tagSlugByName := map[string]string{}
@@ -270,7 +279,7 @@ func SitemapHandler(c *gin.Context) {
 				continue
 			}
 			seenTags[slug] = true
-			urls = append(urls, sitemapURL{Loc: baseURL + "/tag/" + url.PathEscape(slug)})
+			urls = append(urls, sitemapURL{Loc: baseURL + "/tag/" + url.PathEscape(slug), Lastmod: today})
 		}
 	}
 
@@ -355,7 +364,6 @@ func detectImageContentType(imgBuffer []byte) string {
 }
 
 func redirectToFallbackLogo(c *gin.Context) {
-	c.Header("Cache-Control", "public, max-age=31536000, immutable")
 	c.Redirect(http.StatusFound, "/github-mark.svg")
 }
 
@@ -535,7 +543,14 @@ func UpdateToolHandler(c *gin.Context) {
 		})
 		return
 	}
-	service.UpdateTool(data)
+	if err := service.UpdateTool(data); err != nil {
+		utils.CheckErr(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
 	if data.Logo == "" {
 		logger.LogInfo("%s 获取 logo: %s", data.Name, data.Logo)
 		go service.LazyFetchLogo(data.Url, int64(data.Id))
@@ -596,8 +611,14 @@ func AddCatelogHandler(c *gin.Context) {
 		})
 		return
 	}
-	service.AddCatelog(data)
-
+	if err := service.AddCatelog(data); err != nil {
+		utils.CheckErr(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "增加分类成功",
@@ -633,8 +654,14 @@ func UpdateCatelogHandler(c *gin.Context) {
 		})
 		return
 	}
-	service.UpdateCatelog(data)
-
+	if err := service.UpdateCatelog(data); err != nil {
+		utils.CheckErr(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":      false,
+			"errorMessage": err.Error(),
+		})
+		return
+	}
 	c.JSON(200, gin.H{
 		"success": true,
 		"message": "更新分类成功",
@@ -992,8 +1019,7 @@ func GetFaviconFromApiHandler(c *gin.Context) {
 
 // extractDomain 从 URL 中提取主域名
 func extractDomain(urlStr string) string {
-	// 如果 URL 没有协议头，添加 http://
-	if len(urlStr) > 0 && !(urlStr[:7] == "http://" || urlStr[:8] == "https://") {
+	if !strings.HasPrefix(urlStr, "http://") && !strings.HasPrefix(urlStr, "https://") {
 		urlStr = "http://" + urlStr
 	}
 
@@ -1046,8 +1072,7 @@ func FetchPageInfoHandler(c *gin.Context) {
 		return
 	}
 	host := parsedURL.Hostname()
-	ip := net.ParseIP(host)
-	if ip != nil && (ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast()) {
+	if isInternalHost(host) {
 		c.JSON(http.StatusForbidden, gin.H{
 			"success":      false,
 			"errorMessage": "禁止请求内网地址",
@@ -1652,4 +1677,25 @@ func RestoreBackupHandler(c *gin.Context) {
 		"success": true,
 		"message": "数据库恢复成功，请刷新页面以查看最新数据",
 	})
+}
+
+// isInternalHost 检测主机名或 IP 是否指向内网地址（防止 SSRF）
+func isInternalHost(host string) bool {
+	isInternal := func(ip net.IP) bool {
+		return ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast()
+	}
+	if ip := net.ParseIP(host); ip != nil {
+		return isInternal(ip)
+	}
+	// 对主机名做 DNS 解析，防止通过域名绕过内网检测
+	addrs, err := net.LookupHost(host)
+	if err != nil {
+		return false
+	}
+	for _, addr := range addrs {
+		if ip := net.ParseIP(addr); ip != nil && isInternal(ip) {
+			return true
+		}
+	}
+	return false
 }

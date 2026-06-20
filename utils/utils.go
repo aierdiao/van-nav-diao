@@ -250,8 +250,11 @@ func drawTransparent(dst *image.NRGBA) {
 }
 
 func GetSuffixFromUrl(url string) string {
-	suffix := url[strings.LastIndex(url, "."):]
-	return suffix
+	idx := strings.LastIndex(url, ".")
+	if idx < 0 {
+		return ""
+	}
+	return url[idx:]
 }
 func GetMIME(suffix string) string {
 	var t string = "image/x-icon"

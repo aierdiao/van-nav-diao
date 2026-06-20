@@ -139,6 +139,7 @@ PROJECT_ANALYSIS.md
 SECURITY_FIX_REPORT.md
 upgrade-deps.sh
 AGENTS.md
+RELEASE_PROMPT.md
 .codex/
 .playwright-mcp/
 vendor/

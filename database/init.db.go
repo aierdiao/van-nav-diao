@@ -15,6 +15,12 @@ import (
 
 var DB *sql.DB
 
+func execMigration(query string) {
+	if _, err := DB.Exec(query); err != nil {
+		logger.LogError("数据库迁移失败: %v | SQL: %.120s", err, query)
+	}
+}
+
 func columnExists(tableName string, columnName string) bool {
 	query := `SELECT COUNT(*) FROM pragma_table_info(?) WHERE name=?`
 	var count int
@@ -49,7 +55,7 @@ func InitDB() {
 
 	// token_version is used to revoke old login JWTs after password changes.
 	if !columnExists("nav_user", "token_version") {
-		DB.Exec(`ALTER TABLE nav_user ADD COLUMN token_version INTEGER NOT NULL DEFAULT 1;`)
+		execMigration(`ALTER TABLE nav_user ADD COLUMN token_version INTEGER NOT NULL DEFAULT 1;`)
 	}
 
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_setting (id INTEGER PRIMARY KEY AUTOINCREMENT, favicon TEXT, title TEXT, logo192 TEXT, logo512 TEXT, hideAdmin BOOLEAN, hideGithub BOOLEAN, hideToggleJumpTarget BOOLEAN, jumpTargetBlank BOOLEAN);`
@@ -57,80 +63,80 @@ func InitDB() {
 	utils.CheckErr(err)
 
 	if !columnExists("nav_setting", "logo192") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN logo192 TEXT;`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN logo192 TEXT;`)
 	}
 	if !columnExists("nav_setting", "logo512") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN logo512 TEXT;`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN logo512 TEXT;`)
 	}
 	if !columnExists("nav_setting", "jumpTargetBlank") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN jumpTargetBlank BOOLEAN;`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN jumpTargetBlank BOOLEAN;`)
 	}
 	if !columnExists("nav_setting", "hideAdmin") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN hideAdmin BOOLEAN;`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN hideAdmin BOOLEAN;`)
 	}
 	if !columnExists("nav_setting", "hideGithub") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN hideGithub BOOLEAN;`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN hideGithub BOOLEAN;`)
 	}
 	if !columnExists("nav_setting", "hideToggleJumpTarget") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN hideToggleJumpTarget BOOLEAN;`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN hideToggleJumpTarget BOOLEAN;`)
 	}
 
 	// 搜索引擎显示开关（默认显示）
 	if !columnExists("nav_setting", "showSearchEngine") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN showSearchEngine BOOLEAN DEFAULT 1;`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN showSearchEngine BOOLEAN DEFAULT 1;`)
 	}
 	// PC 端标签列数（默认 3）
 	if !columnExists("nav_setting", "pcColumnCount") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN pcColumnCount INTEGER DEFAULT 3;`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN pcColumnCount INTEGER DEFAULT 3;`)
 	}
 
 	// 部署版本号字段
 	if !columnExists("nav_setting", "deployment_version") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN deployment_version TEXT DEFAULT '';`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN deployment_version TEXT DEFAULT '';`)
 	}
 	if !columnExists("nav_setting", "language") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN language TEXT DEFAULT 'zh-CN';`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN language TEXT DEFAULT 'zh-CN';`)
 	}
 	if !columnExists("nav_setting", "customCss") {
-		DB.Exec(`ALTER TABLE nav_setting ADD COLUMN customCss TEXT DEFAULT '';`)
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN customCss TEXT DEFAULT '';`)
 	}
 
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_table (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, url TEXT, logo TEXT, catelog TEXT, desc TEXT);`
 	_, err = DB.Exec(sql_create_table)
 	utils.CheckErr(err)
 	if !columnExists("nav_table", "sort") {
-		DB.Exec(`ALTER TABLE nav_table ADD COLUMN sort INTEGER;`)
+		execMigration(`ALTER TABLE nav_table ADD COLUMN sort INTEGER;`)
 	}
 	if !columnExists("nav_table", "hide") {
-		DB.Exec(`ALTER TABLE nav_table ADD COLUMN hide BOOLEAN;`)
+		execMigration(`ALTER TABLE nav_table ADD COLUMN hide BOOLEAN;`)
 	}
 	if !columnExists("nav_table", "is_alive") {
-		DB.Exec(`ALTER TABLE nav_table ADD COLUMN is_alive BOOLEAN DEFAULT 1;`)
+		execMigration(`ALTER TABLE nav_table ADD COLUMN is_alive BOOLEAN DEFAULT 1;`)
 	}
 	if !columnExists("nav_table", "last_checked") {
-		DB.Exec(`ALTER TABLE nav_table ADD COLUMN last_checked DATETIME;`)
+		execMigration(`ALTER TABLE nav_table ADD COLUMN last_checked DATETIME;`)
 	}
 	if !columnExists("nav_table", "tags") {
-		DB.Exec(`ALTER TABLE nav_table ADD COLUMN tags TEXT DEFAULT '';`)
+		execMigration(`ALTER TABLE nav_table ADD COLUMN tags TEXT DEFAULT '';`)
 	}
 
 	// catelog_sort: 分类内排序（2026-06）
 	if !columnExists("nav_table", "catelog_sort") {
-		DB.Exec(`ALTER TABLE nav_table ADD COLUMN catelog_sort INTEGER;`)
-		DB.Exec(`UPDATE nav_table SET catelog_sort = sort WHERE catelog_sort IS NULL;`)
+		execMigration(`ALTER TABLE nav_table ADD COLUMN catelog_sort INTEGER;`)
+		execMigration(`UPDATE nav_table SET catelog_sort = sort WHERE catelog_sort IS NULL;`)
 	}
 
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_catelog (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);`
 	_, err = DB.Exec(sql_create_table)
 	utils.CheckErr(err)
 	if !columnExists("nav_catelog", "sort") {
-		DB.Exec(`ALTER TABLE nav_catelog ADD COLUMN sort INTEGER NOT NULL DEFAULT 0;`)
+		execMigration(`ALTER TABLE nav_catelog ADD COLUMN sort INTEGER NOT NULL DEFAULT 0;`)
 	}
 	if !columnExists("nav_catelog", "hide") {
-		DB.Exec(`ALTER TABLE nav_catelog ADD COLUMN hide BOOLEAN;`)
+		execMigration(`ALTER TABLE nav_catelog ADD COLUMN hide BOOLEAN;`)
 	}
 	if !columnExists("nav_catelog", "slug") {
-		DB.Exec(`ALTER TABLE nav_catelog ADD COLUMN slug TEXT DEFAULT '';`)
+		execMigration(`ALTER TABLE nav_catelog ADD COLUMN slug TEXT DEFAULT '';`)
 	}
 
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_tag_slug (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, slug TEXT NOT NULL UNIQUE);`
@@ -153,25 +159,25 @@ func InitDB() {
 
 	// 兼容旧版：如果存在 baseUrl + queryParam 但没有 urlTemplate，则迁移
 	if !columnExists("nav_search_engine", "urlTemplate") {
-		DB.Exec(`ALTER TABLE nav_search_engine ADD COLUMN urlTemplate TEXT;`)
-		DB.Exec(`UPDATE nav_search_engine SET urlTemplate = baseUrl || '?' || queryParam || '={query}' WHERE urlTemplate IS NULL OR urlTemplate = '';`)
+		execMigration(`ALTER TABLE nav_search_engine ADD COLUMN urlTemplate TEXT;`)
+		execMigration(`UPDATE nav_search_engine SET urlTemplate = baseUrl || '?' || queryParam || '={query}' WHERE urlTemplate IS NULL OR urlTemplate = '';`)
 		logger.LogInfo("搜索引擎表升级：已从 baseUrl+queryParam 迁移到 urlTemplate")
 	}
 	if !columnExists("nav_search_engine", "description") {
-		DB.Exec(`ALTER TABLE nav_search_engine ADD COLUMN description TEXT DEFAULT '';`)
+		execMigration(`ALTER TABLE nav_search_engine ADD COLUMN description TEXT DEFAULT '';`)
 	}
 
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_site_config (id INTEGER PRIMARY KEY AUTOINCREMENT, noImageMode BOOLEAN NOT NULL DEFAULT 0, compactMode BOOLEAN NOT NULL DEFAULT 0, faviconApiEnabled BOOLEAN NOT NULL DEFAULT 0, faviconApiTemplate TEXT DEFAULT '');`
 	_, err = DB.Exec(sql_create_table)
 	utils.CheckErr(err)
 	if !columnExists("nav_site_config", "compactMode") {
-		DB.Exec(`ALTER TABLE nav_site_config ADD COLUMN compactMode BOOLEAN NOT NULL DEFAULT 0;`)
+		execMigration(`ALTER TABLE nav_site_config ADD COLUMN compactMode BOOLEAN NOT NULL DEFAULT 0;`)
 	}
 	if !columnExists("nav_site_config", "faviconApiEnabled") {
-		DB.Exec(`ALTER TABLE nav_site_config ADD COLUMN faviconApiEnabled BOOLEAN NOT NULL DEFAULT 0;`)
+		execMigration(`ALTER TABLE nav_site_config ADD COLUMN faviconApiEnabled BOOLEAN NOT NULL DEFAULT 0;`)
 	}
 	if !columnExists("nav_site_config", "faviconApiTemplate") {
-		DB.Exec(`ALTER TABLE nav_site_config ADD COLUMN faviconApiTemplate TEXT DEFAULT 'https://favicon.im/{domain}';`)
+		execMigration(`ALTER TABLE nav_site_config ADD COLUMN faviconApiTemplate TEXT DEFAULT 'https://favicon.im/{domain}';`)
 	}
 
 	// WebDAV 备份配置表
@@ -198,7 +204,7 @@ func InitDB() {
 
 	// 兼容旧表：添加 encryption_key 字段
 	if !columnExists("nav_backup_config", "encryption_key") {
-		DB.Exec(`ALTER TABLE nav_backup_config ADD COLUMN encryption_key TEXT NOT NULL DEFAULT '';`)
+		execMigration(`ALTER TABLE nav_backup_config ADD COLUMN encryption_key TEXT NOT NULL DEFAULT '';`)
 	}
 
 	// 初始化默认搜索引擎
@@ -264,16 +270,16 @@ func InitDB() {
 	}
 	rows.Close()
 	// 性能优化：创建索引加速高频查询
-	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_img_url ON nav_img(url)`)
-	DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_img_url_unique ON nav_img(url)`)
-	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_token_value_disabled ON nav_api_token(value, disabled)`)
-	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_user_name ON nav_user(name)`)
-	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_table_catelog ON nav_table(catelog)`)
-	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_table_alive ON nav_table(is_alive)`)
-	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_table_sort ON nav_table(sort)`)
-	DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_catelog_slug_unique ON nav_catelog(slug) WHERE slug IS NOT NULL AND slug != ''`)
-	DB.Exec(`CREATE INDEX IF NOT EXISTS idx_tag_slug_name ON nav_tag_slug(name)`)
-	DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_slug_unique ON nav_tag_slug(slug)`)
+	execMigration(`CREATE INDEX IF NOT EXISTS idx_img_url ON nav_img(url)`)
+	execMigration(`CREATE UNIQUE INDEX IF NOT EXISTS idx_img_url_unique ON nav_img(url)`)
+	execMigration(`CREATE INDEX IF NOT EXISTS idx_token_value_disabled ON nav_api_token(value, disabled)`)
+	execMigration(`CREATE INDEX IF NOT EXISTS idx_user_name ON nav_user(name)`)
+	execMigration(`CREATE INDEX IF NOT EXISTS idx_table_catelog ON nav_table(catelog)`)
+	execMigration(`CREATE INDEX IF NOT EXISTS idx_table_alive ON nav_table(is_alive)`)
+	execMigration(`CREATE INDEX IF NOT EXISTS idx_table_sort ON nav_table(sort)`)
+	execMigration(`CREATE UNIQUE INDEX IF NOT EXISTS idx_catelog_slug_unique ON nav_catelog(slug) WHERE slug IS NOT NULL AND slug != ''`)
+	execMigration(`CREATE INDEX IF NOT EXISTS idx_tag_slug_name ON nav_tag_slug(name)`)
+	execMigration(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tag_slug_unique ON nav_tag_slug(slug)`)
 
 	logger.LogInfo("数据库初始化成功💗")
 

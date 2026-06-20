@@ -1,7 +1,41 @@
 # Changelog
 
-本文件记录本项目（[thirsty5034/van-nav](https://github.com/thirsty5034/van-nav)）的更新日志。上游项目（[Mereithhh/van-nav](https://github.com/Mereithhh/van-nav)）的历史记录附在末尾。
+本文件记录本项目（[aierdiao/van-nav-diao](https://github.com/aierdiao/van-nav-diao)）的更新日志。本仓库是 [thirsty5034/van-nav](https://github.com/thirsty5034/van-nav) 的公开 fork，上游源头为 [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav)。旧上游历史记录保留在后文，便于追溯。
 
+---
+
+## [1.0.3] - 2026-06-21
+
+### 🔒 Security
+
+- **SSRF DNS 重绑定漏洞修复**：`FetchPageInfoHandler` 新增 `isInternalHost` 函数，对域名执行 DNS 解析后再判断内网地址，防止通过域名绕过 IP 过滤
+
+### 🐛 Bug Fixes
+
+- **4 个 Handler 吞错**：UpdateTool / UpdateUser / AddCatelog / UpdateCatelog service 层错误被忽略，返回假 success；改为 HTTP 500
+- **getIcon 空字符串 panic**：`Preview.Link`/`Preview.Icon` 为空时字符串切片越界；改为 `HasSuffix`/`HasPrefix` 判断
+- **extractDomain 切片越界**：URL 过短时固定偏移切片 panic；改为 `HasPrefix` 判断
+- **GetSuffixFromUrl 越界**：URL 无 `.` 时 `LastIndex` 返回 -1 导致越界；增加守卫
+- **RestoreFromBackup nil DB**：关闭 DB 后写文件失败导致 DB 永久为 nil；改为先写临时文件再原子 rename
+- **ServeContent 304 失效**：`time.Now()` 作为 modtime 导致协商缓存永远 200；改为 `time.Time{}`
+- **302 重定向 immutable 缓存头无效**：主流浏览器不缓存 302；移除无效响应头
+- **数据库迁移静默失败**：30+ 处 `DB.Exec` 错误被忽略；新增 `execMigration` 统一记录错误日志
+- **linkcheck 冗余 DB 写入**：goroutine 内独立写入与末尾批量更新重复；移除冗余调用
+- **API 路径误判**：`Contains(path, "/api")` 误匹配非 API 路径；改为 `HasPrefix(path, "/api/")`
+- **main.go 冗余外层条件**：密码重置外层 `if` 恒为真；去除冗余嵌套
+- **Docker 镜像推送目标错误**：`docker.yml` 镜像发布到正确的 fork 包
+
+### 🚀 New Features
+
+- **Sitemap `<lastmod>`**：站点地图新增 `<lastmod>` 字段，提升搜索引擎收录权重
+
+### ⚙️ Changed
+
+- **首页缓存 TTL 60s**：从 5 秒提升至 60 秒（写操作仍实时失效缓存）
+- **移除冗余 API cache-bust 参数**：前端 `_t` 时间戳参数冗余，Service Worker 已设为 NetworkOnly；移除后恢复正常缓存语义
+- **favicon 并发去重**：`singleflight` 保证相同 URL 并发时只发起一次外部请求
+
+---
 
 ## [2.0.2] - 2026-05-31
 

@@ -93,7 +93,6 @@ func CheckAllLinks() ([]LinkCheckResult, int, int) {
 				if errGet != nil {
 					res.Error = err.Error()
 					res.Alive = false
-					database.UpdateLinkHealth(id, false)
 					results[idx] = res
 					return
 				}
@@ -102,7 +101,6 @@ func CheckAllLinks() ([]LinkCheckResult, int, int) {
 				if errGet != nil {
 					res.Error = errGet.Error()
 					res.Alive = false
-					database.UpdateLinkHealth(id, false)
 					results[idx] = res
 					return
 				}
