@@ -32,7 +32,23 @@ This fork is customized for [diao.page](https://diao.page/). Compared with the u
 
 ## Docker Compose
 
-This fork includes a `docker-compose.yml` for self-hosted deployment:
+The upstream project does not include a `docker-compose.yml`. This fork provides a ready-to-use Compose configuration:
+
+```yaml
+services:
+  van-nav:
+    build: .
+    container_name: van-nav
+    restart: unless-stopped
+    ports:
+      - "6412:6412"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+```
+
+Start it with:
 
 ```bash
 docker compose up -d --build
@@ -40,7 +56,23 @@ docker compose up -d --build
 
 Data is mounted from `./data` to `/app/data`, so `nav.db` and runtime secrets stay outside the container.
 
-本 fork 已包含 `docker-compose.yml`，可直接用于自托管部署：
+上游没有 `docker-compose.yml`。本项目提供开箱即用的 Compose 配置：
+
+```yaml
+services:
+  van-nav:
+    build: .
+    container_name: van-nav
+    restart: unless-stopped
+    ports:
+      - "6412:6412"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+```
+
+启动命令：
 
 ```bash
 docker compose up -d --build
