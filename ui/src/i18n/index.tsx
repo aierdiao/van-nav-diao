@@ -66,7 +66,7 @@ export const I18nProvider: React.FC<{ children: ReactNode; serverLang?: string }
       setLangState(serverLang);
       localStorage.setItem('lang', serverLang);
     }
-  }, [serverLang]);
+  }, [language, serverLang]);
 
   const setLanguage = useCallback((lang: Language) => {
     setLangState(lang);

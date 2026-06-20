@@ -27,7 +27,7 @@ type LinkCheckResult struct {
 var linkCheckClient = &http.Client{
 	Timeout: 5 * time.Second,
 	Transport: &http.Transport{
-		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true}, // codeql[go/disabled-certificate-check] — 导航站需兼容自签名/过期证书的外部站点
+		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true}, // codeql[go/disabled-certificate-check] - 导航站需兼容自签名/过期证书的外部站点
 		MaxIdleConns:        20,
 		MaxIdleConnsPerHost: 10,
 	},
@@ -123,9 +123,15 @@ func CheckAllLinks() ([]LinkCheckResult, int, int) {
 	wg.Wait()
 
 	// 批量更新数据库（一次事务，而非 N 次独立 UPDATE）
-	batchUpdates := make([]struct{ Id int; Alive bool }, 0, len(results))
+	batchUpdates := make([]struct {
+		Id    int
+		Alive bool
+	}, 0, len(results))
 	for _, r := range results {
-		batchUpdates = append(batchUpdates, struct{ Id int; Alive bool }{Id: r.Id, Alive: r.Alive})
+		batchUpdates = append(batchUpdates, struct {
+			Id    int
+			Alive bool
+		}{Id: r.Id, Alive: r.Alive})
 	}
 	if err := database.BatchUpdateLinkHealth(batchUpdates); err != nil {
 		logger.LogError("批量更新链接健康状态失败: %s", err)

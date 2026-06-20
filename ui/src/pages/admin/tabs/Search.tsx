@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
   Card,
   Table,
@@ -14,7 +14,7 @@ import {
   Tooltip,
   Popconfirm,
 } from 'antd';
-import { DragOutlined, DeleteOutlined, EditOutlined, PlusOutlined, CloudDownloadOutlined } from '@ant-design/icons';
+import { DragOutlined, PlusOutlined, CloudDownloadOutlined } from '@ant-design/icons';
 import { DndContext } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -53,7 +53,7 @@ const DraggableRow = ({ children, ...props }: any) => {
     transform: CSS.Transform.toString(transform),
     transition,
     ...(isDragging ? { zIndex: 9999 } : {}),
-    ...(isDarkMode ? { backgroundColor: '#1a1a1a' } : {}),
+    ...(isDarkMode ? { backgroundColor: '#0B1D34' } : {}),
   };
 
   const modifiedListeners = {
@@ -80,7 +80,6 @@ const SearchEngineManager: React.FC = () => {
   const [editingEngine, setEditingEngine] = useState<SearchEngine | null>(null);
   const [form] = Form.useForm();
   const [selectedRows, setSelectedRows] = useState<SearchEngine[]>([]);
-  const [fetchingLogo, setFetchingLogo] = useState(false);
   const [fetchingInfo, setFetchingInfo] = useState(false);
 
   // 获取搜索引擎描述和图标
@@ -130,7 +129,7 @@ const SearchEngineManager: React.FC = () => {
     }
   };
 
-  const loadEngines = async () => {
+  const loadEngines = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchGetAllSearchEngines();
@@ -141,11 +140,11 @@ const SearchEngineManager: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     loadEngines();
-  }, []);
+  }, [loadEngines]);
 
   const validateUrlTemplate = (_: any, value: string) => {
     if (!value) {
@@ -173,7 +172,7 @@ const SearchEngineManager: React.FC = () => {
             alignItems: 'center'
           }}
         >
-          <DragOutlined style={{ color: '#999' }} />
+          <DragOutlined style={{ color: '#64748B' }} />
         </div>
       ),
     },
@@ -356,7 +355,7 @@ return (
         title={
           <Space>
             <span>{t("admin.search.title")}</span>
-            <span style={{ color: '#999', fontSize: 13 }}>{t("admin.search.total", { count: engines.length })}</span>
+            <span style={{ color: '#64748B', fontSize: 13 }}>{t("admin.search.total", { count: engines.length })}</span>
             {selectedRows.length > 0 && (
               <Popconfirm
                 title={t("admin.search.confirm.bulkDelete")}

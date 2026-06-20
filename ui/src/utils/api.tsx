@@ -41,13 +41,15 @@ export const FetchList = async () => {
     const catelogs = [];
     catelogs.push("全部工具")
     data.catelogs.forEach(item => {
-        catelogs.push(item.name)
+        if (item?.name && String(item.name).trim() !== "") {
+            catelogs.push(item.name)
+        }
     })
     if (!data.tools) {
         data.tools = []
     }
     data.tools.forEach(item => {
-        if (!catelogs.includes(item.catelog)) {
+        if (item.catelog && String(item.catelog).trim() !== "" && !catelogs.includes(item.catelog)) {
             catelogs.push(item.catelog);
         }
     });
@@ -183,8 +185,14 @@ export const fetchDeleteApiToken = async (id: number) => {
     const { data } = await axios.delete(`/api/admin/apiToken/${id}`);
     return data?.data || {};
 };
-export const fetchUpdateToolsSort = async (updates: { id: number; sort: number }[]) => {
-    const { data } = await axios.put(`/api/admin/tools/sort`, updates);
+export const fetchUpdateToolsSort = async (
+    updates: { id: number; sort?: number; catelogSort?: number }[],
+    catelog?: string
+) => {
+    const params = new URLSearchParams();
+    if (catelog) params.append('catelog', catelog);
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    const { data } = await axios.put(`/api/admin/tools/sort${suffix}`, updates);
     return data?.data || {};
 };
 
@@ -315,24 +323,5 @@ export const fetchListBackupFiles = async () => {
 // 从备份文件恢复数据库
 export const fetchRestoreBackup = async (filename: string) => {
     const { data } = await axios.post(`/api/admin/backup/restore`, { filename });
-    return data;
-};
-// ==================== 主题美化配置接口 ====================
-
-// 获取主题配置（公开接口）
-export const fetchGetTheme = async () => {
-    const { data } = await axios.get(`/api/theme`);
-    return data;
-};
-
-// 更新主题配置（管理员接口）
-export const fetchUpdateTheme = async (config: any) => {
-    const { data } = await axios.post(`/api/admin/theme`, config);
-    return data;
-};
-
-// 重置主题配置为默认值（管理员接口）
-export const fetchResetTheme = async () => {
-    const { data } = await axios.delete(`/api/admin/theme`);
     return data;
 };

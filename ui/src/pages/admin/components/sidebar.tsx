@@ -33,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [expanded]);
 
   return (
-    <div className={`h-full bg-white dark:bg-[#1a1a1a] border-r border-gray-200 dark:border-[#2a2a2a] transition-all duration-300 relative
+    <div className={`h-full bg-white dark:bg-[#0B1D34] border-r border-gray-200 dark:border-[#10243D] transition-all duration-300 relative
       ${expanded ? 'w-64' : 'w-20'}`}>
       <nav className="pt-4 relative h-full">
         {items.map((item) => (
@@ -42,10 +42,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             to={item.path}
             onClick={() => onChange(item.key)}
             className={`
-              flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] cursor-pointer no-underline
-              border-l-4 
+              flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#172033] cursor-pointer no-underline
+              border-l-4
               ${(currentKey === item.key || location.pathname === item.path)
-                ? 'bg-gray-100 dark:bg-[#2a2a2a] border-blue-500'
+                ? 'bg-gray-100 dark:bg-[#172033] border-[#6B4DFF]'
                 : 'border-transparent'}
             `}
           >
@@ -55,8 +55,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ))}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="absolute bottom-5 -right-3 p-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] rounded-full 
-          bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] shadow-sm z-50 w-6 h-6 
+          className="absolute bottom-5 -right-3 p-2 hover:bg-gray-100 dark:hover:bg-[#172033] rounded-full
+          bg-white dark:bg-[#0B1D34] border border-gray-200 dark:border-[#10243D] shadow-sm z-50 w-6 h-6
           flex items-center justify-center text-sm"
         >
           {expanded ? '←' : '→'}

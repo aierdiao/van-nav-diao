@@ -19,9 +19,9 @@ import {
   Row as AntRow,
   Col,
 } from "antd";
-import { HolderOutlined, DragOutlined, QuestionCircleOutlined, CloudDownloadOutlined, HeartOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { DragOutlined, QuestionCircleOutlined, CloudDownloadOutlined, HeartOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import React, { useCallback, useState, useEffect, useContext, useMemo } from "react";
-import { getFilter, getOptions, mutiSearch } from "../../../utils/admin";
+import { getOptions, mutiSearch } from "../../../utils/admin";
 import {
   fetchAddTool,
   fetchDeleteTool,
@@ -52,6 +52,29 @@ interface DataType {
   [key: string]: any;
 }
 
+const DEFAULT_TOOL_TAG_OPTIONS = [{ label: "Aff", value: "Aff" }];
+
+const parseToolTags = (value: any): string[] => {
+  if (!value) return [];
+  const raw = Array.isArray(value) ? value : String(value).split(/[,，]/);
+  const seen = new Set<string>();
+  return raw
+    .map((item) => String(item).trim())
+    .filter((item) => {
+      const key = item.toLowerCase();
+      if (!item || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+};
+
+const serializeToolTags = (value: any): string => parseToolTags(value).join(",");
+
+const withSerializedTags = (record: any) => ({
+  ...record,
+  tags: serializeToolTags(record?.tags),
+});
+
 interface RowContextProps {
   setActivatorNodeRef?: (element: HTMLElement | null) => void;
   listeners?: SyntheticListenerMap;
@@ -74,7 +97,7 @@ const DragHandle: React.FC = () => {
         alignItems: 'center'
       }}
     >
-      <DragOutlined style={{ color: '#999' }} />
+      <DragOutlined style={{ color: '#64748B' }} />
     </div>
   );
 };
@@ -104,7 +127,7 @@ const Row = ({ children, ...props }: RowProps) => {
     transform: CSS.Translate.toString(transform),
     transition,
     ...(isDragging ? { position: 'relative', zIndex: 9999 } : {}),
-    ...(isDarkMode ? { backgroundColor: '#1a1a1a' } : {}),
+    ...(isDarkMode ? { backgroundColor: '#0B1D34' } : {}),
   };
 
   const contextValue = useMemo<RowContextProps>(
@@ -213,22 +236,22 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         reload();
       }
     },
-    [reload]
+    [reload, t]
   );
   const handleToggleHide = useCallback(async (record: any, hide: boolean) => {
     try {
-      await fetchUpdateTool({ ...record, hide });
+      await fetchUpdateTool(withSerializedTags({ ...record, hide }));
       message.success(t("admin.tools.msg.updateSuccess"));
       reload();
     } catch (error) {
       message.error(t("admin.tools.msg.updateFailed"));
     }
-  }, [reload]);
+  }, [reload, t]);
   const handleUpdate = useCallback(
     async (record: any) => {
       setRequestLoading(true);
       try {
-        await fetchUpdateTool(record);
+        await fetchUpdateTool(withSerializedTags(record));
         message.success(t("admin.tools.msg.updateSuccessLogo"), 3);
         setTimeout(() => {
           reload();
@@ -241,13 +264,13 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         reload();
       }
     },
-    [reload, setShowEdit, setRequestLoading]
+    [reload, setShowEdit, setRequestLoading, t]
   );
   const handleCreate = useCallback(
     async (record: any) => {
       setRequestLoading(true);
       try {
-        await fetchAddTool(record);
+        await fetchAddTool(withSerializedTags(record));
         message.success(t("admin.tools.msg.addSuccessLogo"), 3);
         setTimeout(() => {
           reload();
@@ -260,7 +283,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         reload();
       }
     },
-    [reload, setShowAddModel, setRequestLoading]
+    [reload, setShowAddModel, setRequestLoading, t]
   );
   const handleImport = useCallback(
     async (data: any) => {
@@ -288,7 +311,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         reload();
       }
     },
-    [reload]
+    [reload, t]
   );
   const handleBulkDelete = useCallback(async () => {
     try {
@@ -299,39 +322,39 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       }
       message.success(t("admin.tools.msg.deleteSuccess"));
     } catch (err) {
-      message.success(t("admin.tools.msg.deleteFailed"));
+      message.error(t("admin.tools.msg.deleteFailed"));
     } finally {
       reload();
     }
-  }, [reload, selectedRows]);
+  }, [reload, selectedRows, t]);
   const handleBulkResetLogo = useCallback(async () => {
     try {
       for (const each of selectedRows) {
         try {
-          await fetchUpdateTool({ ...each, logo: "" });
+          await fetchUpdateTool(withSerializedTags({ ...each, logo: "" }));
         } catch (err) { }
       }
       message.success(t("admin.tools.msg.resetSuccess"));
     } catch (err) {
-      message.success(t("admin.tools.msg.resetFailed"));
+      message.error(t("admin.tools.msg.resetFailed"));
     } finally {
       reload();
     }
-  }, [reload, selectedRows]);
+  }, [reload, selectedRows, t]);
   const handleBulkCacheLogo = useCallback(async () => {
     try {
       for (const each of selectedRows) {
         try {
-          await fetchUpdateTool(each);
+          await fetchUpdateTool(withSerializedTags(each));
         } catch (err) { }
       }
       message.success(t("admin.tools.msg.resetSuccess"));
     } catch (err) {
-      message.success(t("admin.tools.msg.resetFailed"));
+      message.error(t("admin.tools.msg.resetFailed"));
     } finally {
       reload();
     }
-  }, [reload, selectedRows]);
+  }, [reload, selectedRows, t]);
   const handleBulkUpdateLogoFromApi = useCallback(async () => {
     if (selectedRows.length === 0) return;
     let success = 0;
@@ -342,7 +365,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         try {
           const res = await fetchGetFaviconFromApi(each.url);
           if (res.success && res.logoUrl) {
-            await fetchUpdateTool({ id: each.id, name: each.name, url: each.url, logo: res.logoUrl, catelog: each.catelog, desc: each.desc, sort: each.sort, hide: each.hide });
+            await fetchUpdateTool(withSerializedTags({ id: each.id, name: each.name, url: each.url, logo: res.logoUrl, catelog: each.catelog, tags: each.tags, desc: each.desc, sort: each.sort, catelogSort: each.catelogSort, hide: each.hide }));
             success++;
           } else {
             fail++;
@@ -356,7 +379,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       message.success(t("admin.tools.msg.updateLogoComplete", { success, fail }));
       reload();
     }
-  }, [reload, selectedRows]);
+  }, [reload, selectedRows, t]);
   const handleBulkUpdateDesc = useCallback(async () => {
     if (selectedRows.length === 0) return;
     let success = 0;
@@ -365,8 +388,6 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     try {
       for (const each of selectedRows) {
         try {
-          // 先获取该工具的当前最新数据（防止前面其他操作已修改过 logo 等字段）
-          const current = store?.tools?.find((t: any) => t.id === each.id) || each;
           const res = await fetchPageInfo(each.url);
           if (res.success) {
             const desc = res.data.description || res.data.title;
@@ -389,7 +410,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       message.success(t("admin.tools.msg.updateLogoComplete", { success, fail }));
       reload();
     }
-  }, [reload, selectedRows, store?.tools]);
+  }, [reload, selectedRows, t]);
   const handleExport = useCallback(async () => {
     const data = await fetchExportTools();
     const jsr = JSON.stringify(data);
@@ -403,7 +424,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     document.documentElement.removeChild(a);
     message.success(t("admin.tools.msg.exportSuccess"));
     reload();
-  }, [reload]);
+  }, [reload, t]);
 
   // ==================== {t("admin.tools.health.title")} ====================
   const handleCheckLinks = useCallback(async () => {
@@ -430,7 +451,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     } finally {
       setChecking(false);
     }
-  }, [reload]);
+  }, [reload, t]);
 
   const handleOrganizeDeadLinks = useCallback(async () => {
     setOrganizing(true);
@@ -452,7 +473,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
     } finally {
       setOrganizing(false);
     }
-  }, [reload]);
+  }, [reload, setStoreData, t]);
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (active.id !== over?.id) {
@@ -460,11 +481,13 @@ export const Tools: React.FC<ToolsProps> = (props) => {
         const activeIndex = previous.findIndex((i) => i.id.toString() === active.id);
         const overIndex = previous.findIndex((i) => i.id.toString() === over?.id);
         const newData = arrayMove(previous, activeIndex, overIndex);
-        const updates = newData.map((item, index) => ({
-          id: item.id,
-          sort: index + 1,
-        }));
-        fetchUpdateToolsSort(updates).then(() => {
+        const updates = newData.map((item, index) => {
+          if (catelogName) {
+            return { id: item.id, catelogSort: index + 1, sort: item.sort };
+          }
+          return { id: item.id, sort: index + 1 };
+        });
+        fetchUpdateToolsSort(updates, catelogName || undefined).then(() => {
           message.success(t("admin.tools.msg.sortUpdated"));
           reload();
         }).catch(() => {
@@ -477,14 +500,14 @@ export const Tools: React.FC<ToolsProps> = (props) => {
 
   // 在 useEffect 中初始化 dataSource
   useEffect(() => {
-    if (Array.isArray(store?.tools)) {
+    if (store?.tools) {
       const filteredData = store.tools
         .filter((item: any) => {
           let show = false;
           if (searchString === "") {
             show = true;
           } else {
-            show = mutiSearch(item.name, searchString) || mutiSearch(item.desc, searchString) || mutiSearch(item.url, searchString);
+            show = mutiSearch(item.name, searchString) || mutiSearch(item.desc, searchString) || mutiSearch(item.url, searchString) || mutiSearch(item.tags || "", searchString);
           }
           if (!catelogName || catelogName === "") {
             show = show && true;
@@ -493,7 +516,14 @@ export const Tools: React.FC<ToolsProps> = (props) => {
           }
           return show;
         })
-        .sort((a: DataType, b: DataType) => a.sort - b.sort);
+        .sort((a: DataType, b: DataType) => {
+          if (catelogName) {
+            const aCatelogSort = a.catelogSort ?? a.sort ?? 0;
+            const bCatelogSort = b.catelogSort ?? b.sort ?? 0;
+            return aCatelogSort - bCatelogSort;
+          }
+          return (a.sort ?? 0) - (b.sort ?? 0);
+        });
       setDataSource(filteredData);
     }
   }, [store?.tools, searchString, catelogName]);
@@ -504,10 +534,10 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       title={
         <Space>
           <span>{t("admin.tools.title")}</span>
-          <span style={{ color: '#999', fontSize: 13 }}>{t("admin.tools.total", { count: store?.tools?.length ?? 0 })}</span>
+          <span style={{ color: '#64748B', fontSize: 13 }}>{t("admin.tools.total", { count: store?.tools?.length ?? 0 })}</span>
           {selectedRows.length > 0 && (
             <Popconfirm
-              title={t("admin.tools.confirm.deleteBulk")}
+              title={t("admin.tools.confirm.delete")}
               onConfirm={() => {
                 handleBulkDelete();
               }}
@@ -682,6 +712,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                       {" "}
                         <img
                           src={`/api/img?url=${record.logo}`}
+                          alt={record.name}
                           width={32}
                           height={32}
                           loading="lazy"
@@ -698,6 +729,22 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 width={60}
               />
               <Table.Column
+                title={t("admin.tools.table.tags")}
+                dataIndex="tags"
+                width={100}
+                render={(tags) => {
+                  const parsedTags = parseToolTags(tags);
+                  if (parsedTags.length === 0) return <span style={{ color: '#94A3B8' }}>-</span>;
+                  return (
+                    <Space size={[4, 4]} wrap>
+                      {parsedTags.map((tag) => (
+                        <Tag key={tag} color={tag.toLowerCase() === "aff" ? "purple" : "default"}>{tag}</Tag>
+                      ))}
+                    </Space>
+                  );
+                }}
+              />
+              <Table.Column
                 title={t("admin.tools.table.url")}
                 dataIndex="url"
                 width={150}
@@ -710,7 +757,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                   </div>
                 )}
               />
-              {/* <Table.Column
+              <Table.Column
                 title={
                   <span>排序
                     <Tooltip title={t("admin.tools.form.sortHint")}>
@@ -718,9 +765,9 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                     </Tooltip>
                   </span>
                 }
-                dataIndex="sort"
                 width={50}
-              /> */}
+                render={(_, record: any) => catelogName ? record.catelogSort : record.sort}
+              />
               <Table.Column title={
                 <span>{t("admin.tools.form.hide")}
                   <Tooltip title={t("admin.tools.form.hideHint")}>
@@ -756,7 +803,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                       <Button
                         type="link"
                         onClick={() => {
-                          updateForm.setFieldsValue(record);
+                          updateForm.setFieldsValue({ ...record, tags: parseToolTags(record.tags) });
                           setShowEdit(true);
                         }}
                       >
@@ -865,6 +912,20 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               <Input.TextArea
                 rows={2}
                 placeholder={t("admin.tools.form.desc")}
+              />
+            </Form.Item>
+            <Form.Item
+              name="tags"
+              label={t("admin.tools.form.tags")}
+              labelCol={{ span: 4 }}
+              tooltip={t("admin.tools.form.tagsTooltip")}
+            >
+              <Select
+                mode="tags"
+                allowClear
+                tokenSeparators={[",", "，"]}
+                options={DEFAULT_TOOL_TAG_OPTIONS}
+                placeholder={t("admin.tools.form.tagsPlaceholder")}
               />
             </Form.Item>
             <Form.Item wrapperCol={{ offset: 4, span: 20 }}>
@@ -990,6 +1051,20 @@ export const Tools: React.FC<ToolsProps> = (props) => {
                 placeholder={t("admin.tools.form.desc")}
               />
             </Form.Item>
+            <Form.Item
+              name="tags"
+              label={t("admin.tools.form.tags")}
+              labelCol={{ span: 4 }}
+              tooltip={t("admin.tools.form.tagsTooltip")}
+            >
+              <Select
+                mode="tags"
+                allowClear
+                tokenSeparators={[",", "，"]}
+                options={DEFAULT_TOOL_TAG_OPTIONS}
+                placeholder={t("admin.tools.form.tagsPlaceholder")}
+              />
+            </Form.Item>
             <Form.Item wrapperCol={{ offset: 4, span: 20 }}>
               <Button
                 type="link"
@@ -1020,6 +1095,14 @@ export const Tools: React.FC<ToolsProps> = (props) => {
               rules={[{ required: true, message: t("admin.tools.form.sortRequired") }]}
             >
               <InputNumber placeholder={t("admin.tools.form.sort")} defaultValue={1} />
+            </Form.Item>
+
+            <Form.Item
+              name="catelogSort"
+              label="分类内排序"
+              labelCol={{ span: 4 }}
+            >
+              <InputNumber placeholder="分类内排序" defaultValue={0} />
             </Form.Item>
 
             <Form.Item
@@ -1085,7 +1168,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             <Statistic
               title={t("admin.tools.status.normal")}
               value={checkSummary.alive}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: '#16A34A' }}
               prefix={<CheckCircleOutlined />}
             />
           </Col>
@@ -1093,7 +1176,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
             <Statistic
               title={t("admin.tools.status.dead")}
               value={checkSummary.dead}
-              valueStyle={{ color: checkSummary.dead > 0 ? '#cf1322' : undefined }}
+              valueStyle={{ color: checkSummary.dead > 0 ? '#DC2626' : undefined }}
               prefix={<CloseCircleOutlined />}
             />
           </Col>
@@ -1157,7 +1240,7 @@ export const Tools: React.FC<ToolsProps> = (props) => {
       )}
 
       {!checkSummary && !checking && (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
+        <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748B' }}>
           {t("admin.tools.health.hint")}
         </div>
       )}

@@ -54,7 +54,7 @@ const DraggableRow = ({ children, ...props }: any) => {
     transform: CSS.Transform.toString(transform),
     transition,
     ...(isDragging ? { zIndex: 9999 } : {}),
-    ...(isDarkMode ? { backgroundColor: '#1a1a1a' } : {}),
+    ...(isDarkMode ? { backgroundColor: '#0B1D34' } : {}),
   };
 
   const modifiedListeners = {
@@ -87,7 +87,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
 
   // 从 store 同步 dataSource
   useEffect(() => {
-    if (Array.isArray(store?.catelogs)) {
+    if (store?.catelogs) {
       setDataSource([...store.catelogs].sort((a: any, b: any) => a.sort - b.sort));
     }
   }, [store?.catelogs]);
@@ -103,7 +103,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
         reload();
       }
     },
-    [reload]
+    [reload, t]
   );
 
   const handleCreate = useCallback(
@@ -118,7 +118,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
         reload();
       }
     },
-    [reload, setShowAddModel]
+    [reload, setShowAddModel, t]
   );
 
   const handleUpdate = useCallback(
@@ -138,7 +138,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
         reload();
       }
     },
-    [reload, setShowEdit, setRequestLoading]
+    [reload, setShowEdit, setRequestLoading, t]
   );
 
   const handleToggleHide = async (record: CatelogItem, hide: boolean) => {
@@ -165,7 +165,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
       setSelectRows([]);
       reload();
     }
-  }, [reload, selectedRows]);
+  }, [reload, selectedRows, t]);
 
   const onDragEnd = async ({ active, over }: any) => {
     if (active.id !== over?.id) {
@@ -201,7 +201,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
       title={
         <Space>
           <span>{t("admin.catelog.title")}</span>
-          <span style={{ color: '#999', fontSize: 13 }}>{t("admin.catelog.total", { count: store?.catelogs?.length ?? 0 })}</span>
+          <span style={{ color: '#64748B', fontSize: 13 }}>{t("admin.catelog.total", { count: store?.catelogs?.length ?? 0 })}</span>
           {selectedRows.length > 0 && (
             <Popconfirm
               title={t("admin.catelog.confirm.bulkDelete")}
@@ -276,7 +276,7 @@ export const Catelog: React.FC<CatelogProps> = (props) => {
                       alignItems: 'center'
                     }}
                   >
-                    <DragOutlined style={{ color: '#999' }} />
+                    <DragOutlined style={{ color: '#64748B' }} />
                   </div>
                 )}
               />

@@ -16,9 +16,9 @@ import (
 // ==================== API Token 内存缓存 ====================
 
 var (
-	apiTokenCache    sync.Map   // map[string]bool — 已启用的 token value 集合
-	apiTokenLoaded   bool       // 缓存是否已加载
-	apiTokenCacheMu  sync.Mutex // 保护加载/失效操作
+	apiTokenCache   sync.Map   // map[string]bool — 已启用的 token value 集合
+	apiTokenLoaded  bool       // 缓存是否已加载
+	apiTokenCacheMu sync.Mutex // 保护加载/失效操作
 )
 
 // loadApiTokenCache 从数据库全量加载已启用的 Token 到内存
@@ -69,7 +69,7 @@ func GetAllSearchEngines() ([]types.SearchEngine, error) {
 	}
 	defer rows.Close()
 
-	var engines []types.SearchEngine
+	var engines = make([]types.SearchEngine, 0)
 	for rows.Next() {
 		var engine types.SearchEngine
 		err := rows.Scan(&engine.Id, &engine.Name, &engine.UrlTemplate, &engine.Logo, &engine.Sort, &engine.Enabled, &engine.Description)
@@ -90,7 +90,7 @@ func GetEnabledSearchEngines() ([]types.SearchEngine, error) {
 	}
 	defer rows.Close()
 
-	var engines []types.SearchEngine
+	var engines = make([]types.SearchEngine, 0)
 	for rows.Next() {
 		var engine types.SearchEngine
 		err := rows.Scan(&engine.Id, &engine.Name, &engine.UrlTemplate, &engine.Logo, &engine.Sort, &engine.Enabled, &engine.Description)
@@ -216,7 +216,7 @@ func GetAllTokens() ([]types.Token, error) {
 	}
 	defer rows.Close()
 
-	var tokens []types.Token
+	var tokens = make([]types.Token, 0)
 	for rows.Next() {
 		var token types.Token
 		err := rows.Scan(&token.Id, &token.Name, &token.Value, &token.Disabled)
@@ -237,7 +237,7 @@ func GetAllCatelogs() ([]types.Catelog, error) {
 	}
 	defer rows.Close()
 
-	catelogs := make([]types.Catelog, 0)
+	var catelogs = make([]types.Catelog, 0)
 	for rows.Next() {
 		var catelog types.Catelog
 		var hide interface{}
@@ -263,13 +263,14 @@ func GetAllCatelogs() ([]types.Catelog, error) {
 
 // 获取所有设置（键值对形式）
 func GetAllSettings() (map[string]string, error) {
-	sql := `SELECT id, favicon, title, govRecord, logo192, logo512, hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount FROM nav_setting ORDER BY id ASC LIMIT 1`
+	sql := `SELECT id, favicon, title, logo192, logo512, hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount, deployment_version, language, COALESCE(customCss,'') FROM nav_setting ORDER BY id ASC LIMIT 1`
 	row := DB.QueryRow(sql)
 
 	var setting types.Setting
 	var hideGithub, hideAdmin, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine interface{}
 	var pcColumnCount interface{}
-	err := row.Scan(&setting.Id, &setting.Favicon, &setting.Title, &setting.GovRecord, &setting.Logo192, &setting.Logo512, &hideAdmin, &hideGithub, &hideToggleJumpTarget, &jumpTargetBlank, &showSearchEngine, &pcColumnCount)
+	var deploymentVersion, language, customCss string
+	err := row.Scan(&setting.Id, &setting.Favicon, &setting.Title, &setting.Logo192, &setting.Logo512, &hideAdmin, &hideGithub, &hideToggleJumpTarget, &jumpTargetBlank, &showSearchEngine, &pcColumnCount, &deploymentVersion, &language, &customCss)
 	if err != nil {
 		return make(map[string]string), nil
 	}
@@ -277,7 +278,6 @@ func GetAllSettings() (map[string]string, error) {
 	settings := make(map[string]string)
 	settings["favicon"] = setting.Favicon
 	settings["title"] = setting.Title
-	settings["govRecord"] = setting.GovRecord
 	settings["logo192"] = setting.Logo192
 	settings["logo512"] = setting.Logo512
 
@@ -333,6 +333,11 @@ func GetAllSettings() (map[string]string, error) {
 	} else {
 		settings["pcColumnCount"] = "3"
 	}
+	if customCss != "" {
+		settings["customCss"] = customCss
+	}
+	settings["language"] = language
+	settings["deploymentVersion"] = deploymentVersion
 
 	return settings, nil
 }
@@ -355,7 +360,7 @@ func DeleteAllSearchEngines() error {
 	return err
 }
 
-// 批量插入工具
+// 批量插入工具（在事务内先清空再插入，避免 WAL 可见性问题）
 func InsertTools(tools []types.Tool) error {
 	tx, err := DB.Begin()
 	if err != nil {
@@ -363,7 +368,12 @@ func InsertTools(tools []types.Tool) error {
 	}
 	defer tx.Rollback()
 
-	stmt, err := tx.Prepare(`INSERT INTO nav_table (id, name, url, logo, catelog, desc, sort, hide) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+	// 在同一事务内先清空
+	if _, err := tx.Exec(`DELETE FROM nav_table`); err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`INSERT INTO nav_table (name, url, logo, catelog, tags, desc, sort, catelog_sort, hide) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return err
 	}
@@ -374,7 +384,7 @@ func InsertTools(tools []types.Tool) error {
 		if tool.Hide {
 			hide = 1
 		}
-		_, err := stmt.Exec(tool.Id, tool.Name, tool.Url, tool.Logo, tool.Catelog, tool.Desc, tool.Sort, hide)
+		_, err := stmt.Exec(tool.Name, tool.Url, tool.Logo, tool.Catelog, tool.Tags, tool.Desc, tool.Sort, tool.CatelogSort, hide)
 		if err != nil {
 			return err
 		}
@@ -383,7 +393,7 @@ func InsertTools(tools []types.Tool) error {
 	return tx.Commit()
 }
 
-// 批量插入分类
+// 批量插入分类（在事务内先清空再插入，避免 WAL 可见性问题）
 func InsertCatelogs(catelogs []types.Catelog) error {
 	tx, err := DB.Begin()
 	if err != nil {
@@ -391,7 +401,12 @@ func InsertCatelogs(catelogs []types.Catelog) error {
 	}
 	defer tx.Rollback()
 
-	stmt, err := tx.Prepare(`INSERT INTO nav_catelog (id, name, sort, hide) VALUES (?, ?, ?, ?)`)
+	// 在同一事务内先清空
+	if _, err := tx.Exec(`DELETE FROM nav_catelog`); err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`INSERT INTO nav_catelog (name, sort, hide) VALUES (?, ?, ?)`)
 	if err != nil {
 		return err
 	}
@@ -402,7 +417,7 @@ func InsertCatelogs(catelogs []types.Catelog) error {
 		if catelog.Hide {
 			hide = 1
 		}
-		_, err := stmt.Exec(catelog.Id, catelog.Name, catelog.Sort, hide)
+		_, err := stmt.Exec(catelog.Name, catelog.Sort, hide)
 		if err != nil {
 			return err
 		}
@@ -411,7 +426,7 @@ func InsertCatelogs(catelogs []types.Catelog) error {
 	return tx.Commit()
 }
 
-// 批量插入搜索引擎
+// 批量插入搜索引擎（在事务内先清空再插入，避免 WAL 可见性问题）
 func InsertSearchEngines(engines []types.SearchEngine) error {
 	tx, err := DB.Begin()
 	if err != nil {
@@ -419,7 +434,12 @@ func InsertSearchEngines(engines []types.SearchEngine) error {
 	}
 	defer tx.Rollback()
 
-	stmt, err := tx.Prepare(`INSERT INTO nav_search_engine (id, name, urlTemplate, logo, sort, enabled, description) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+	// 在同一事务内先清空
+	if _, err := tx.Exec(`DELETE FROM nav_search_engine`); err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`INSERT INTO nav_search_engine (name, urlTemplate, logo, sort, enabled, description) VALUES (?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return err
 	}
@@ -430,7 +450,7 @@ func InsertSearchEngines(engines []types.SearchEngine) error {
 		if !engine.Enabled {
 			enabled = 0
 		}
-		_, err := stmt.Exec(engine.Id, engine.Name, engine.UrlTemplate, engine.Logo, engine.Sort, enabled, engine.Description)
+		_, err := stmt.Exec(engine.Name, engine.UrlTemplate, engine.Logo, engine.Sort, enabled, engine.Description)
 		if err != nil {
 			return err
 		}
@@ -463,8 +483,6 @@ func UpdateSettingField(key string, value string) error {
 		sql = `UPDATE nav_setting SET favicon = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
 	case "title":
 		sql = `UPDATE nav_setting SET title = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
-	case "govRecord":
-		sql = `UPDATE nav_setting SET govRecord = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
 	case "logo192":
 		sql = `UPDATE nav_setting SET logo192 = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
 	case "logo512":
@@ -481,6 +499,12 @@ func UpdateSettingField(key string, value string) error {
 		sql = `UPDATE nav_setting SET showSearchEngine = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
 	case "pcColumnCount":
 		sql = `UPDATE nav_setting SET pcColumnCount = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
+	case "customCss":
+		sql = `UPDATE nav_setting SET customCss = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
+	case "language":
+		sql = `UPDATE nav_setting SET language = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
+	case "deploymentVersion":
+		sql = `UPDATE nav_setting SET deployment_version = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
 	default:
 		return nil
 	}
@@ -619,7 +643,10 @@ func UpdateLinkHealth(id int, alive bool) error {
 }
 
 // BatchUpdateLinkHealth 批量更新链接健康状态（单次事务，替代 N 次独立 UPDATE）
-func BatchUpdateLinkHealth(updates []struct{ Id int; Alive bool }) error {
+func BatchUpdateLinkHealth(updates []struct {
+	Id    int
+	Alive bool
+}) error {
 	tx, err := DB.Begin()
 	if err != nil {
 		return err
@@ -713,7 +740,6 @@ func IncrementDeploymentVersion() (string, error) {
 	return newVersion, nil
 }
 
-
 // ==================== 重构新增：用户与认证操作 ====================
 
 // GetUserByName 根据用户名查询用户
@@ -730,7 +756,7 @@ func GetAllActiveApiTokens() ([]types.Token, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var results []types.Token
+	var results = make([]types.Token, 0)
 	for rows.Next() {
 		var token types.Token
 		if err := rows.Scan(&token.Id, &token.Name, &token.Value, &token.Disabled); err != nil {
@@ -753,7 +779,7 @@ func InsertApiToken(token types.Token) error {
 
 // UpdateUserNameAndPassword 更新用户名和密码
 func UpdateUserNameAndPassword(id int, name string, hashedPassword string) error {
-	_, err := DB.Exec(`UPDATE nav_user SET name = ?, password = ? WHERE id = ?`, name, hashedPassword, id)
+	_, err := DB.Exec(`UPDATE nav_user SET name = ?, password = ?, token_version = COALESCE(token_version, 1) + 1 WHERE id = ?`, name, hashedPassword, id)
 	return err
 }
 
@@ -768,29 +794,29 @@ func DisableApiToken(id string) error {
 
 // UpdateUserPasswordById 更新指定用户的密码
 func UpdateUserPasswordById(userId int, hashedPassword string) error {
-	_, err := DB.Exec(`UPDATE nav_user SET password = ? WHERE id = ?`, hashedPassword, userId)
+	_, err := DB.Exec(`UPDATE nav_user SET password = ?, token_version = COALESCE(token_version, 1) + 1 WHERE id = ?`, hashedPassword, userId)
 	return err
 }
 
 // ResetAdminPassword 重置管理员密码（main.go 专用）
 func ResetAdminPassword(hashedPassword string) error {
-	_, err := DB.Exec(`UPDATE nav_user SET password = ? WHERE id = (SELECT id FROM nav_user ORDER BY id ASC LIMIT 1)`, hashedPassword)
+	_, err := DB.Exec(`UPDATE nav_user SET password = ?, token_version = COALESCE(token_version, 1) + 1 WHERE id = (SELECT id FROM nav_user ORDER BY id ASC LIMIT 1)`, hashedPassword)
 	return err
 }
 
-// GetUserTokenVersion 获取用户当前的 token_version（默认值 1，向后兼容旧 token）
+// GetUserTokenVersion returns the current login token version for a user.
 func GetUserTokenVersion(uid int) int {
 	var version int
 	err := DB.QueryRow(`SELECT COALESCE(token_version, 1) FROM nav_user WHERE id = ?`, uid).Scan(&version)
 	if err != nil {
-		return 1 // 出错时默认返回 1，确保旧 token 仍可验证
+		return 1
 	}
 	return version
 }
 
-// IncrementUserTokenVersion 递增用户的 token_version（密码修改后调用，使旧 token 失效）
+// IncrementUserTokenVersion revokes existing login JWTs for the user.
 func IncrementUserTokenVersion(uid int) error {
-	_, err := DB.Exec(`UPDATE nav_user SET token_version = token_version + 1 WHERE id = ?`, uid)
+	_, err := DB.Exec(`UPDATE nav_user SET token_version = COALESCE(token_version, 1) + 1 WHERE id = ?`, uid)
 	return err
 }
 
@@ -798,22 +824,24 @@ func IncrementUserTokenVersion(uid int) error {
 
 // GetAllToolRows 查询所有工具（按 sort 排序）
 func GetAllToolRows() ([]types.Tool, error) {
-	rows, err := DB.Query(`SELECT id, name, url, logo, catelog, desc, sort, hide, is_alive, last_checked, COALESCE(created_at, '2020-01-01 00:00:00') FROM nav_table ORDER BY sort`)
+	rows, err := DB.Query(`SELECT id, name, url, logo, catelog, COALESCE(tags, ''), desc, sort, catelog_sort, hide, is_alive, last_checked FROM nav_table ORDER BY sort`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	results := make([]types.Tool, 0)
+	var results = make([]types.Tool, 0)
 	for rows.Next() {
 		var tool types.Tool
-		var hide, sortVal, isAlive, lastChecked interface{}
-		var createdAt interface{}
-		if err := rows.Scan(&tool.Id, &tool.Name, &tool.Url, &tool.Logo, &tool.Catelog, &tool.Desc, &sortVal, &hide, &isAlive, &lastChecked, &createdAt); err != nil {
+		var hide, sortVal, catelogSortVal, isAlive, lastChecked interface{}
+		if err := rows.Scan(&tool.Id, &tool.Name, &tool.Url, &tool.Logo, &tool.Catelog, &tool.Tags, &tool.Desc, &sortVal, &catelogSortVal, &hide, &isAlive, &lastChecked); err != nil {
 			return nil, err
 		}
 		tool.Hide = hide != nil && hide.(int64) != 0
 		if sortVal != nil {
 			tool.Sort = int(sortVal.(int64))
+		}
+		if catelogSortVal != nil {
+			tool.CatelogSort = int(catelogSortVal.(int64))
 		}
 		if isAlive == nil {
 			alive := true
@@ -826,9 +854,6 @@ func GetAllToolRows() ([]types.Tool, error) {
 			if t, ok := lastChecked.(time.Time); ok {
 				tool.LastChecked = t.Format("2006-01-02 15:04:05")
 			}
-		}
-		if createdAt != nil {
-			tool.CreatedAt = createdAt.(string)
 		}
 		results = append(results, tool)
 	}
@@ -846,8 +871,8 @@ func InsertToolRow(data types.AddToolDto) (int64, error) {
 			tx.Rollback()
 		}
 	}()
-	result, err := tx.Exec(`INSERT INTO nav_table (name, url, logo, catelog, desc, sort, hide, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-		data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide)
+	result, err := tx.Exec(`INSERT INTO nav_table (name, url, logo, catelog, tags, desc, sort, catelog_sort, hide) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		data.Name, data.Url, data.Logo, data.Catelog, data.Tags, data.Desc, data.Sort, data.CatelogSort, data.Hide)
 	if err != nil {
 		return 0, err
 	}
@@ -860,8 +885,8 @@ func InsertToolRow(data types.AddToolDto) (int64, error) {
 
 // UpdateToolRow 全字段更新工具
 func UpdateToolRow(data types.UpdateToolDto) error {
-	_, err := DB.Exec(`UPDATE nav_table SET name = ?, url = ?, logo = ?, catelog = ?, desc = ?, sort = ?, hide = ? WHERE id = ?`,
-		data.Name, data.Url, data.Logo, data.Catelog, data.Desc, data.Sort, data.Hide, data.Id)
+	_, err := DB.Exec(`UPDATE nav_table SET name = ?, url = ?, logo = ?, catelog = ?, tags = ?, desc = ?, sort = ?, catelog_sort = ?, hide = ? WHERE id = ?`,
+		data.Name, data.Url, data.Logo, data.Catelog, data.Tags, data.Desc, data.Sort, data.CatelogSort, data.Hide, data.Id)
 	return err
 }
 
@@ -902,19 +927,27 @@ func UpdateToolLogoUrl(id int64, logo string) error {
 }
 
 // UpdateToolSortBatch 批量更新工具排序
-func UpdateToolSortBatch(updates []types.UpdateToolsSortDto) error {
+func UpdateToolSortBatch(updates []types.UpdateToolsSortDto, catelog string) error {
 	tx, err := DB.Begin()
 	if err != nil {
 		return err
 	}
-	stmt, err := tx.Prepare(`UPDATE nav_table SET sort = ? WHERE id = ?`)
+	query := `UPDATE nav_table SET sort = ? WHERE id = ?`
+	if catelog != "" {
+		query = `UPDATE nav_table SET catelog_sort = ? WHERE id = ?`
+	}
+	stmt, err := tx.Prepare(query)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 	defer stmt.Close()
 	for _, u := range updates {
-		if _, err := stmt.Exec(u.Sort, u.Id); err != nil {
+		value := u.Sort
+		if catelog != "" && u.CatelogSort > 0 {
+			value = u.CatelogSort
+		}
+		if _, err := stmt.Exec(value, u.Id); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -994,11 +1027,11 @@ func DeleteCatelogById(id string) error {
 func GetSettingRow() (types.Setting, error) {
 	var s types.Setting
 	var hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount interface{}
-	var deploymentVersion, language string
-	err := DB.QueryRow(`SELECT id, favicon, title, govRecord, logo192, logo512, hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount, COALESCE(deployment_version,''), COALESCE(language,'zh-CN') FROM nav_setting ORDER BY id ASC LIMIT 1`).Scan(
-		&s.Id, &s.Favicon, &s.Title, &s.GovRecord, &s.Logo192, &s.Logo512,
+	var deploymentVersion, language, customCss string
+	err := DB.QueryRow(`SELECT id, favicon, title, logo192, logo512, hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount, COALESCE(deployment_version,''), COALESCE(language,'zh-CN'), COALESCE(customCss,'') FROM nav_setting ORDER BY id ASC LIMIT 1`).Scan(
+		&s.Id, &s.Favicon, &s.Title, &s.Logo192, &s.Logo512,
 		&hideAdmin, &hideGithub, &hideToggleJumpTarget, &jumpTargetBlank,
-		&showSearchEngine, &pcColumnCount, &deploymentVersion, &language,
+		&showSearchEngine, &pcColumnCount, &deploymentVersion, &language, &customCss,
 	)
 	if err != nil {
 		return types.Setting{
@@ -1018,6 +1051,7 @@ func GetSettingRow() (types.Setting, error) {
 	}
 	s.DeploymentVersion = deploymentVersion
 	s.Language = language
+	s.CustomCss = customCss
 	return s, nil
 }
 
@@ -1027,10 +1061,10 @@ func UpdateSettingRow(data types.Setting) error {
 	if lang != "zh-CN" && lang != "en-US" {
 		lang = "zh-CN"
 	}
-	_, err := DB.Exec(`UPDATE nav_setting SET favicon=?, title=?, govRecord=?, logo192=?, logo512=?, hideAdmin=?, hideGithub=?, hideToggleJumpTarget=?, jumpTargetBlank=?, showSearchEngine=?, pcColumnCount=?, language=? WHERE id=(SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`,
-		data.Favicon, data.Title, data.GovRecord, data.Logo192, data.Logo512,
+	_, err := DB.Exec(`UPDATE nav_setting SET favicon=?, title=?, logo192=?, logo512=?, hideAdmin=?, hideGithub=?, hideToggleJumpTarget=?, jumpTargetBlank=?, showSearchEngine=?, pcColumnCount=?, language=?, customCss=? WHERE id=(SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`,
+		data.Favicon, data.Title, data.Logo192, data.Logo512,
 		data.HideAdmin, data.HideGithub, data.HideToggleJumpTarget, data.JumpTargetBlank,
-		data.ShowSearchEngine, data.PcColumnCount, lang)
+		data.ShowSearchEngine, data.PcColumnCount, lang, data.CustomCss)
 	return err
 }
 
@@ -1066,10 +1100,10 @@ func SyncDeploymentVersion(version string) {
 // GetSiteConfigRow 查询站点配置行（含 NULL 安全转换）
 func GetSiteConfigRow() (types.SiteConfig, error) {
 	var cfg types.SiteConfig
-	var noImageMode, compactMode, faviconApiEnabled, sortByClicks interface{}
+	var noImageMode, compactMode, faviconApiEnabled interface{}
 	var faviconApiTemplate interface{}
-	err := DB.QueryRow(`SELECT id, noImageMode, compactMode, faviconApiEnabled, COALESCE(faviconApiTemplate, 'https://favicon.im/{domain}'), COALESCE(sortByClicks, 0) FROM nav_site_config ORDER BY id ASC LIMIT 1`).Scan(
-		&cfg.Id, &noImageMode, &compactMode, &faviconApiEnabled, &faviconApiTemplate, &sortByClicks,
+	err := DB.QueryRow(`SELECT id, noImageMode, compactMode, faviconApiEnabled, COALESCE(faviconApiTemplate, 'https://favicon.im/{domain}') FROM nav_site_config ORDER BY id ASC LIMIT 1`).Scan(
+		&cfg.Id, &noImageMode, &compactMode, &faviconApiEnabled, &faviconApiTemplate,
 	)
 	if err != nil {
 		return types.SiteConfig{Id: 1, FaviconApiEnabled: true, FaviconApiTemplate: "https://favicon.im/{domain}"}, err
@@ -1077,7 +1111,6 @@ func GetSiteConfigRow() (types.SiteConfig, error) {
 	cfg.NoImageMode = noImageMode != nil && noImageMode.(int64) != 0
 	cfg.CompactMode = compactMode != nil && compactMode.(int64) != 0
 	cfg.FaviconApiEnabled = faviconApiEnabled != nil && faviconApiEnabled.(int64) != 0
-	cfg.SortByClicks = sortByClicks != nil && sortByClicks.(int64) != 0
 	if faviconApiTemplate != nil {
 		cfg.FaviconApiTemplate = faviconApiTemplate.(string)
 	} else {
@@ -1088,8 +1121,8 @@ func GetSiteConfigRow() (types.SiteConfig, error) {
 
 // UpdateSiteConfigRow 更新站点配置行
 func UpdateSiteConfigRow(data types.SiteConfig) error {
-	_, err := DB.Exec(`UPDATE nav_site_config SET noImageMode=?, compactMode=?, faviconApiEnabled=?, faviconApiTemplate=?, sortByClicks=? WHERE id=(SELECT id FROM nav_site_config ORDER BY id ASC LIMIT 1)`,
-		data.NoImageMode, data.CompactMode, data.FaviconApiEnabled, data.FaviconApiTemplate, data.SortByClicks)
+	_, err := DB.Exec(`UPDATE nav_site_config SET noImageMode=?, compactMode=?, faviconApiEnabled=?, faviconApiTemplate=? WHERE id=(SELECT id FROM nav_site_config ORDER BY id ASC LIMIT 1)`,
+		data.NoImageMode, data.CompactMode, data.FaviconApiEnabled, data.FaviconApiTemplate)
 	return err
 }
 

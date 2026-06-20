@@ -5,7 +5,6 @@ type Setting struct {
 	Id                   int    `json:"id"`
 	Favicon              string `json:"favicon"`
 	Title                string `json:"title"`
-	GovRecord            string `json:"govRecord"`
 	Logo192              string `json:"logo192"`
 	Logo512              string `json:"logo512"`
 	HideAdmin            bool   `json:"hideAdmin"`
@@ -16,6 +15,7 @@ type Setting struct {
 	PcColumnCount        int    `json:"pcColumnCount"`
 	DeploymentVersion    string `json:"deploymentVersion"`
 	Language             string `json:"language"`
+	CustomCss            string `json:"customCss"`
 }
 
 type Token struct {
@@ -42,12 +42,13 @@ type Tool struct {
 	Url         string `json:"url"`
 	Logo        string `json:"logo"`
 	Catelog     string `json:"catelog"`
+	Tags        string `json:"tags"`
 	Desc        string `json:"desc"`
 	Sort        int    `json:"sort"`
+	CatelogSort int    `json:"catelogSort"`
 	Hide        bool   `json:"hide"`
 	IsAlive     *bool  `json:"is_alive,omitempty"`
 	LastChecked string `json:"last_checked,omitempty"`
-	CreatedAt   string `json:"created_at,omitempty"`
 }
 
 type Catelog struct {
@@ -75,7 +76,6 @@ type SiteConfig struct {
 	CompactMode        bool   `json:"compactMode"`
 	FaviconApiEnabled  bool   `json:"faviconApiEnabled"`
 	FaviconApiTemplate string `json:"faviconApiTemplate"`
-	SortByClicks       bool   `json:"sortByClicks"`
 }
 
 // WebDAV 备份配置模型
@@ -95,40 +95,4 @@ type BackupConfig struct {
 	Enabled          bool   `json:"enabled"`
 	CreatedAt        string `json:"createdAt"`
 	UpdatedAt        string `json:"updatedAt"`
-}
-
-// ==================== 主题美化配置相关 ====================
-
-// 主题色彩配置
-type ThemeColors struct {
-	Primary        string `json:"primary"`
-	BgBase         string `json:"bgBase"`
-	BgCard         string `json:"bgCard"`
-	TextPrimary    string `json:"textPrimary"`
-	TextSecondary  string `json:"textSecondary"`
-	Border         string `json:"border"`
-}
-
-// 主题布局配置
-type ThemeLayout struct {
-	CardBorderRadius string `json:"cardBorderRadius"`
-	CardShadow       string `json:"cardShadow"`
-	CardPadding      string `json:"cardPadding"`
-	CardGap          string `json:"cardGap"`
-}
-
-// 主题排版配置
-type ThemeTypography struct {
-	TitleFontSize   string `json:"titleFontSize"`
-	TitleFontWeight string `json:"titleFontWeight"`
-	DescFontSize    string `json:"descFontSize"`
-}
-
-// 完整主题配置
-type ThemeConfig struct {
-	Version    string         `json:"version"`
-	Colors     ThemeColors    `json:"colors"`
-	Layout     ThemeLayout    `json:"layout"`
-	Typography ThemeTypography `json:"typography"`
-	CustomCSS  string         `json:"customCSS"`
 }

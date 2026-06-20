@@ -31,23 +31,27 @@ type AddCatelogDto struct {
 	Hide bool   `json:"hide"`
 }
 type UpdateToolDto struct {
-	Id      int    `json:"id"`
-	Name    string `json:"name"`
-	Url     string `json:"url"`
-	Logo    string `json:"logo"`
-	Catelog string `json:"catelog"`
-	Desc    string `json:"desc"`
-	Sort    int    `json:"sort"`
-	Hide    bool   `json:"hide"`
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	Url         string `json:"url"`
+	Logo        string `json:"logo"`
+	Catelog     string `json:"catelog"`
+	Tags        string `json:"tags"`
+	Desc        string `json:"desc"`
+	Sort        int    `json:"sort"`
+	CatelogSort int    `json:"catelogSort"`
+	Hide        bool   `json:"hide"`
 }
 type AddToolDto struct {
-	Name    string `json:"name"`
-	Url     string `json:"url"`
-	Logo    string `json:"logo"`
-	Catelog string `json:"catelog"`
-	Desc    string `json:"desc"`
-	Sort    int    `json:"sort"`
-	Hide    bool   `json:"hide"`
+	Name        string `json:"name"`
+	Url         string `json:"url"`
+	Logo        string `json:"logo"`
+	Catelog     string `json:"catelog"`
+	Tags        string `json:"tags"`
+	Desc        string `json:"desc"`
+	Sort        int    `json:"sort"`
+	CatelogSort int    `json:"catelogSort"`
+	Hide        bool   `json:"hide"`
 }
 
 type FetchPageInfoResponse struct {
@@ -59,8 +63,9 @@ type MaxSortResponse struct {
 	MaxSort int `json:"maxSort"`
 }
 type UpdateToolsSortDto struct {
-	Id   int `json:"id"`
-	Sort int `json:"sort"`
+	Id          int `json:"id"`
+	Sort        int `json:"sort"`
+	CatelogSort int `json:"catelogSort"`
 }
 
 // ==================== 网站健康检测相关 ====================
@@ -77,10 +82,10 @@ type LinkCheckResult struct {
 
 // 检测响应
 type LinkCheckResponse struct {
-	Total   int                `json:"total"`
-	Alive   int                `json:"alive"`
-	Dead    int                `json:"dead"`
-	Results []LinkCheckResult  `json:"results"`
+	Total   int               `json:"total"`
+	Alive   int               `json:"alive"`
+	Dead    int               `json:"dead"`
+	Results []LinkCheckResult `json:"results"`
 }
 
 // 整理失效链接响应
@@ -92,40 +97,37 @@ type OrganizeDeadLinksResponse struct {
 
 // 导出配置响应
 type ExportConfigResponse struct {
-	ExportTime    string         `json:"export_time"`
-	Version       string         `json:"version"`
-	Tools         []Tool         `json:"tools"`
-	Catelogs      []Catelog      `json:"categories"`
-	SearchEngines []SearchEngine `json:"search_engines"`
-	ApiTokens     []Token        `json:"api_tokens"`
-	Settings      map[string]string `json:"settings"`
+	ExportTime    string                 `json:"export_time"`
+	Version       string                 `json:"version"`
+	Tools         []Tool                 `json:"tools"`
+	Catelogs      []Catelog              `json:"categories"`
+	SearchEngines []SearchEngine         `json:"search_engines"`
+	ApiTokens     []Token                `json:"api_tokens"`
+	Settings      map[string]string      `json:"settings"`
 	SiteConfig    map[string]interface{} `json:"site_config"`
-	ThemeConfig   map[string]interface{} `json:"theme_config,omitempty"`
 }
 
 // 导入配置请求
 type ImportConfigRequest struct {
-	Tools         []Tool         `json:"tools"`
-	Catelogs      []Catelog      `json:"categories"`
-	SearchEngines []SearchEngine `json:"search_engines"`
-	ApiTokens     []Token        `json:"api_tokens"`
-	Settings      map[string]string `json:"settings"`
+	Tools         []Tool                 `json:"tools"`
+	Catelogs      []Catelog              `json:"categories"`
+	SearchEngines []SearchEngine         `json:"search_engines"`
+	ApiTokens     []Token                `json:"api_tokens"`
+	Settings      map[string]string      `json:"settings"`
 	SiteConfig    map[string]interface{} `json:"site_config"`
-	ThemeConfig   map[string]interface{} `json:"theme_config,omitempty"`
 }
 
 // 导入配置响应
 type ImportConfigResponse struct {
-	Success       bool                    `json:"success"`
-	Message       string                  `json:"message"`
-	ToolsImported int                     `json:"tools_imported"`
-	ToolsSkipped  int                     `json:"tools_skipped"`
-	CatelogsImported int                  `json:"categories_imported"`
-	SearchEnginesImported int             `json:"search_engines_imported"`
-	ApiTokensImported int                 `json:"api_tokens_imported"`
-	ApiTokensSkipped int                  `json:"api_tokens_skipped"`
-	SettingsUpdated int                   `json:"settings_updated"`
-	SiteConfigUpdated int                 `json:"site_config_updated"`
-	ThemeConfigUpdated int                 `json:"theme_config_updated"`
-	Errors        []string                `json:"errors"`
+	Success               bool     `json:"success"`
+	Message               string   `json:"message"`
+	ToolsImported         int      `json:"tools_imported"`
+	ToolsSkipped          int      `json:"tools_skipped"`
+	CatelogsImported      int      `json:"categories_imported"`
+	SearchEnginesImported int      `json:"search_engines_imported"`
+	ApiTokensImported     int      `json:"api_tokens_imported"`
+	ApiTokensSkipped      int      `json:"api_tokens_skipped"`
+	SettingsUpdated       int      `json:"settings_updated"`
+	SiteConfigUpdated     int      `json:"site_config_updated"`
+	Errors                []string `json:"errors"`
 }

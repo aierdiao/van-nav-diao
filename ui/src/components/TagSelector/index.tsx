@@ -68,7 +68,7 @@ const TagSelector = (props: TagSelectorProps) => {
     return originTags;
   }, [tags, onTagChange, currTag, t]);
   return (
-    <div className="tag-selector span-3" onWheel={handleWheel}>
+    <div className="tag-selector span-full" onWheel={handleWheel}>
       <div className="tag-selector-wrapper">
         {renderTags()}
       </div>

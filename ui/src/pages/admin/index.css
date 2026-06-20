@@ -23,7 +23,7 @@
 
 /* 暗色模式滚动条 */
 body.dark-mode ::-webkit-scrollbar-track {
-  background: #2a2a2a;
+  background: #10243D;
 }
 
 body.dark-mode ::-webkit-scrollbar-thumb {
@@ -58,12 +58,12 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
 
 /* 暗色模式适配 - Ant Design Card */
 body.dark-mode .ant-card {
-  background-color: #1a1a1a;
+  background-color: #0B1D34;
 }
 
 body.dark-mode .ant-card-head {
-  background-color: #1a1a1a;
-  border-bottom-color: #2a2a2a;
+  background-color: #0B1D34;
+  border-bottom-color: #10243D;
 }
 
 body.dark-mode .ant-card-head-title {
@@ -71,28 +71,28 @@ body.dark-mode .ant-card-head-title {
 }
 
 body.dark-mode .ant-table {
-  background-color: #1a1a1a;
+  background-color: #0B1D34;
 }
 
 body.dark-mode .ant-table-thead > tr > th {
-  background-color: #1a1a1a;
+  background-color: #0B1D34;
   color: rgba(255, 255, 255, 0.6);
-  border-bottom-color: #2a2a2a;
+  border-bottom-color: #10243D;
 }
 
 body.dark-mode .ant-table-tbody > tr > td {
-  background-color: #1a1a1a;
+  background-color: #0B1D34;
   color: rgba(255, 255, 255, 0.6);
-  border-bottom-color: #2a2a2a;
+  border-bottom-color: #10243D;
 }
 
 body.dark-mode .ant-table-tbody > tr:hover > td {
-  background-color: #2a2a2a !important;
+  background-color: #10243D !important;
 }
 
 /* 修复：多选工具时被选中的行变白蓝色 */
 body.dark-mode .ant-table-row-selected > td {
-  background-color: #1a3a5c !important;
+  background-color: #1A1040 !important;
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
@@ -102,8 +102,8 @@ body.dark-mode .ant-input-group-wrapper .ant-input-group {
 }
 
 body.dark-mode .ant-input-search-button {
-  background-color: #1890ff !important;
-  border-color: #1890ff !important;
+  background-color: #6B4DFF !important;
+  border-color: #6B4DFF !important;
 }
 
 /* 修复：共 X 条文字黑色 */
@@ -117,14 +117,14 @@ body.dark-mode .ant-pagination-options {
 }
 
 body.dark-mode .ant-pagination .ant-select-selector {
-  background-color: #222222 !important;
-  border-color: #333333 !important;
+  background-color: #0B1D34 !important;
+  border-color: #1E293B !important;
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
 body.dark-mode .ant-pagination-item {
-  background-color: #222222 !important;
-  border-color: #333333 !important;
+  background-color: #0B1D34 !important;
+  border-color: #1E293B !important;
 }
 
 body.dark-mode .ant-pagination-item a {
@@ -132,16 +132,16 @@ body.dark-mode .ant-pagination-item a {
 }
 
 body.dark-mode .ant-pagination-item:hover {
-  border-color: #1890ff !important;
+  border-color: #6B4DFF !important;
 }
 
 body.dark-mode .ant-pagination-item:hover a {
-  color: #1890ff !important;
+  color: #6B4DFF !important;
 }
 
 body.dark-mode .ant-pagination-item-active {
-  background-color: #1890ff !important;
-  border-color: #1890ff !important;
+  background-color: #6B4DFF !important;
+  border-color: #6B4DFF !important;
 }
 
 body.dark-mode .ant-pagination-item-active a {
@@ -150,24 +150,24 @@ body.dark-mode .ant-pagination-item-active a {
 
 body.dark-mode .ant-pagination-prev .ant-pagination-item-link,
 body.dark-mode .ant-pagination-next .ant-pagination-item-link {
-  background-color: #222222 !important;
-  border-color: #333333 !important;
+  background-color: #0B1D34 !important;
+  border-color: #1E293B !important;
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
 body.dark-mode .ant-pagination-prev:hover .ant-pagination-item-link,
 body.dark-mode .ant-pagination-next:hover .ant-pagination-item-link {
-  border-color: #1890ff !important;
-  color: #1890ff !important;
+  border-color: #6B4DFF !important;
+  color: #6B4DFF !important;
 }
 
 body.dark-mode .ant-modal-content {
-  background-color: #1a1a1a;
+  background-color: #0B1D34;
 }
 
 body.dark-mode .ant-modal-header {
-  background-color: #1a1a1a;
-  border-bottom-color: #2a2a2a;
+  background-color: #0B1D34;
+  border-bottom-color: #10243D;
 }
 
 body.dark-mode .ant-modal-title {
@@ -180,8 +180,8 @@ body.dark-mode .ant-form-item-label > label {
 
 body.dark-mode .ant-input,
 body.dark-mode .ant-input-number-input {
-  background-color: #222222;
-  border-color: #333333;
+  background-color: #0B1D34;
+  border-color: #1E293B;
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -191,13 +191,13 @@ body.dark-mode .ant-input-number-input::placeholder {
 }
 
 body.dark-mode .ant-select-selector {
-  background-color: #222222;
-  border-color: #333333;
+  background-color: #0B1D34;
+  border-color: #1E293B;
   color: rgba(255, 255, 255, 0.6);
 }
 
 body.dark-mode .ant-select-dropdown {
-  background-color: #1a1a1a !important;
+  background-color: #0B1D34 !important;
 }
 
 body.dark-mode .ant-select-item {
@@ -205,11 +205,11 @@ body.dark-mode .ant-select-item {
 }
 
 body.dark-mode .ant-select-item:hover {
-  background-color: #2a2a2a !important;
+  background-color: #10243D !important;
 }
 
 body.dark-mode .ant-select-item-option-selected {
-  background-color: #1a3a5c !important;
+  background-color: #1A1040 !important;
 }
 
 body.dark-mode .ant-select-arrow {
@@ -218,8 +218,8 @@ body.dark-mode .ant-select-arrow {
 
 /* 修复：Form 中 Select 组件背景白色（如默认跳转方式选择框）*/
 body.dark-mode .ant-form-item .ant-select-selector {
-  background-color: #222222 !important;
-  border-color: #333333 !important;
+  background-color: #0B1D34 !important;
+  border-color: #1E293B !important;
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
@@ -234,28 +234,28 @@ body.dark-mode .ant-space {
 
 /* 修复：Modal 中 Select 组件变白（ant-select-outlined, ant-select-single 等）*/
 body.dark-mode .ant-select-outlined {
-  background-color: #222222 !important;
-  border-color: #333333 !important;
+  background-color: #0B1D34 !important;
+  border-color: #1E293B !important;
 }
 
 body.dark-mode .ant-select-single {
-  background-color: #222222 !important;
+  background-color: #0B1D34 !important;
 }
 
 body.dark-mode .ant-select-outlined:not(.ant-select-disabled):hover {
-  border-color: #1890ff !important;
+  border-color: #6B4DFF !important;
 }
 
 body.dark-mode .ant-modal-body .ant-select-selector,
 body.dark-mode .ant-modal-content .ant-select-selector {
-  background-color: #222222 !important;
-  border-color: #333333 !important;
+  background-color: #0B1D34 !important;
+  border-color: #1E293B !important;
 }
 
 /* 修复：Card extra 区域（如分类筛选）的 Select 组件夜间模式变白 */
 body.dark-mode .ant-card-extra .ant-select-selector {
-  background-color: #222222 !important;
-  border-color: #333333 !important;
+  background-color: #0B1D34 !important;
+  border-color: #1E293B !important;
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
@@ -297,19 +297,19 @@ body.dark-mode header button:hover {
 
 /* 修复：搜索框和搜索按钮中间白色区域（ant-input-affix-wrapper）*/
 body.dark-mode .ant-input-affix-wrapper {
-  background-color: #222222 !important;
-  border-color: #333333 !important;
+  background-color: #0B1D34 !important;
+  border-color: #1E293B !important;
 }
 
 body.dark-mode .ant-input-affix-wrapper:not(.ant-input-affix-wrapper-disabled):hover {
-  border-color: #1890ff !important;
+  border-color: #6B4DFF !important;
 }
 
 body.dark-mode .ant-input-affix-wrapper-focused,
 body.dark-mode .ant-input-affix-wrapper:focus,
 body.dark-mode .ant-input-affix-wrapper:focus-within {
-  border-color: #1890ff !important;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+  border-color: #6B4DFF !important;
+  box-shadow: 0 0 0 2px rgba(107, 77, 255, 0.2) !important;
 }
 
 /* 修复：操作成功/失败弹窗背景白色 */
@@ -318,19 +318,19 @@ body.dark-mode .ant-message {
 }
 
 body.dark-mode .ant-message-notice-content {
-  background-color: #1a1a1a !important;
+  background-color: #0B1D34 !important;
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
 body.dark-mode .ant-notification {
-  background-color: #1a1a1a !important;
+  background-color: #0B1D34 !important;
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
 body.dark-mode .ant-notification-notice {
-  background-color: #1a1a1a !important;
+  background-color: #0B1D34 !important;
   color: rgba(255, 255, 255, 0.8) !important;
-  border-color: #2a2a2a !important;
+  border-color: #10243D !important;
 }
 
 body.dark-mode .ant-notification-notice-message {
@@ -342,7 +342,7 @@ body.dark-mode .ant-notification-notice-description {
 }
 
 body.dark-mode .ant-dropdown-menu {
-  background-color: #1a1a1a;
+  background-color: #0B1D34;
 }
 
 body.dark-mode .ant-dropdown-menu-item {
@@ -350,75 +350,75 @@ body.dark-mode .ant-dropdown-menu-item {
 }
 
 body.dark-mode .ant-dropdown-menu-item:hover {
-  background-color: #2a2a2a;
+  background-color: #10243D;
 }
 
 body.dark-mode .ant-popover {
-  background-color: #1a1a1a;
+  background-color: #0B1D34;
 }
 
 body.dark-mode .ant-popover-arrow {
-  background-color: #1a1a1a;
+  background-color: #0B1D34;
 }
 
 body.dark-mode .ant-message,
 body.dark-mode .ant-notification {
-  background-color: #1a1a1a;
+  background-color: #0B1D34;
   color: rgba(255, 255, 255, 0.6);
 }
 
 body.dark-mode .ant-btn-default {
-  background-color: #222222;
-  border-color: #333333;
+  background-color: #0B1D34;
+  border-color: #1E293B;
   color: rgba(255, 255, 255, 0.6);
 }
 
 body.dark-mode .ant-btn-default:hover {
-  background-color: #333333;
-  border-color: #444444;
+  background-color: #1E293B;
+  border-color: #334155;
 }
 
 body.dark-mode .ant-btn-dashed {
-  background-color: #222222 !important;
-  border-color: #333333 !important;
+  background-color: #0B1D34 !important;
+  border-color: #1E293B !important;
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
 body.dark-mode .ant-btn-dashed:hover {
-  background-color: #333333 !important;
-  border-color: #444444 !important;
+  background-color: #1E293B !important;
+  border-color: #334155 !important;
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
 body.dark-mode .ant-switch {
-  background-color: #333333;
+  background-color: #1E293B;
 }
 
 body.dark-mode .ant-switch.ant-switch-checked {
-  background-color: #1890ff;
+  background-color: #6B4DFF;
 }
 
 body.dark-mode .ant-checkbox-checked .ant-checkbox-inner {
-  background-color: #1890ff !important;
-  border-color: #1890ff !important;
+  background-color: #6B4DFF !important;
+  border-color: #6B4DFF !important;
 }
 
 body.dark-mode .ant-checkbox-inner {
-  background-color: #222222 !important;
-  border-color: #333333 !important;
+  background-color: #0B1D34 !important;
+  border-color: #1E293B !important;
 }
 
 body.dark-mode .ant-table-selection-column {
-  background-color: #1a1a1a !important;
+  background-color: #0B1D34 !important;
 }
 
 body.dark-mode .ant-table-thead > tr > th.ant-table-column-has-sorts {
-  border-color: #2a2a2a !important;
+  border-color: #10243D !important;
 }
 
 body.dark-mode .ant-tag {
-  background-color: #2a2a2a;
-  border-color: #333333;
+  background-color: #10243D;
+  border-color: #1E293B;
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -427,15 +427,15 @@ body.dark-mode .ant-spin-dot-item {
 }
 
 body.dark-mode .ant-table-row-expand-icon {
-  background-color: #1a1a1a;
-  border-color: #333333;
+  background-color: #0B1D34;
+  border-color: #1E293B;
   color: rgba(255, 255, 255, 0.6);
 }
 
 /* 修复：部署版本信息卡片夜间模式 */
 body.dark-mode .ant-card[title="部署版本信息"] {
-  background-color: #1a1a1a;
-  border-color: #2a2a2a;
+  background-color: #0B1D34;
+  border-color: #10243D;
 }
 
 body.dark-mode .ant-card[title="部署版本信息"] .ant-card-head-title {
@@ -456,26 +456,24 @@ body.dark-mode .ant-statistic-content-prefix {
 }
 
 /* ===== 修复：@dnd-kit 拖拽排序在暗色模式下的行变白 ===== */
-/* 暗色模式下所有 <tr> 行设置背景色，防止 @dnd-kit 的 transform transition 导致合成层丢失背景 */
 body.dark-mode .ant-table-tbody > tr {
-  background-color: #1a1a1a;
+  background-color: #0B1D34;
 }
 
-/* 暗色模式下所有 <td> 单元格强制保持背景色，防止浏览器合成层覆盖 */
 body.dark-mode .ant-table-tbody > tr > td {
-  background-color: #1a1a1a !important;
-  border-bottom-color: #2a2a2a !important;
+  background-color: #0B1D34 !important;
+  border-bottom-color: #10243D !important;
 }
 
 /* 修复：TimePicker 暗色模式 */
 body.dark-mode .ant-picker {
-  background-color: #222222;
-  border-color: #333333;
+  background-color: #0B1D34;
+  border-color: #1E293B;
 }
 
 body.dark-mode .ant-picker:hover,
 body.dark-mode .ant-picker-focused {
-  border-color: #1890ff;
+  border-color: #6B4DFF;
 }
 
 body.dark-mode .ant-picker-input > input {
@@ -492,11 +490,11 @@ body.dark-mode .ant-picker-clear {
 }
 
 .nav-dark-picker-dropdown .ant-picker-panel-container {
-  background-color: #1a1a1a !important;
+  background-color: #0B1D34 !important;
 }
 
 .nav-dark-picker-dropdown .ant-picker-header {
-  border-bottom-color: #2a2a2a !important;
+  border-bottom-color: #10243D !important;
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
@@ -505,7 +503,7 @@ body.dark-mode .ant-picker-clear {
 }
 
 .nav-dark-picker-dropdown .ant-picker-header button:hover {
-  color: #1890ff !important;
+  color: #6B4DFF !important;
 }
 
 .nav-dark-picker-dropdown .ant-picker-content {
@@ -517,24 +515,24 @@ body.dark-mode .ant-picker-clear {
 }
 
 .nav-dark-picker-dropdown .ant-picker-time-panel-cell-inner:hover {
-  background-color: #2a2a2a !important;
+  background-color: #10243D !important;
 }
 
 .nav-dark-picker-dropdown .ant-picker-time-panel-cell-selected .ant-picker-time-panel-cell-inner {
-  background-color: #1a3a5c !important;
+  background-color: #1A1040 !important;
 }
 
 .nav-dark-picker-dropdown .ant-picker-panel {
-  border-bottom-color: #2a2a2a !important;
+  border-bottom-color: #10243D !important;
 }
 
 .nav-dark-picker-dropdown .ant-picker-time-panel-column {
-  border-inline-start-color: #2a2a2a !important;
+  border-inline-start-color: #10243D !important;
 }
 
 /* 修复：InputNumber 暗色模式 addon 区域 */
 body.dark-mode .ant-input-group-addon {
-  background-color: #1a1a1a;
-  border-color: #333333;
+  background-color: #0B1D34;
+  border-color: #1E293B;
   color: rgba(255, 255, 255, 0.6);
 }

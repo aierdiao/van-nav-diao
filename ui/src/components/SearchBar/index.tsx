@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, type FocusEvent } from "react";
 import { useTranslation } from "../../i18n";
 import "./index.css";
 
@@ -11,34 +11,44 @@ const SearchBar = (props: SearchBarProps) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // 页面加载后直接聚焦搜索框，确保输入法从首次按键就正常激活
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  // 页面重新可见时（如从外部页面返回），自动恢复焦点
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === "visible") {
         setTimeout(() => inputRef.current?.focus(), 100);
       }
     };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
 
-  // 智能唤回：点击空白区域时自动抓回焦点，点击链接/按钮等可聚焦元素时正常放行
-  const handleBlur = useCallback((ev: React.FocusEvent<HTMLInputElement>) => {
-    // relatedTarget 存在 → 用户点击了可聚焦元素（<a>/<button>/<input>等）→ 放行
-    // relatedTarget 为 null → 用户点击了非聚焦区域 → 抓回焦点
+  const handleBlur = useCallback((ev: FocusEvent<HTMLInputElement>) => {
     if (!ev.relatedTarget) {
       setTimeout(() => inputRef.current?.focus(), 0);
     }
   }, []);
 
   return (
-    <div className="search span-3">
+    <div className="search span-full">
       <div className="search-wraper">
+        <svg
+          className="search-icon"
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
         <input
           ref={inputRef}
           id="search-bar"
@@ -47,9 +57,10 @@ const SearchBar = (props: SearchBarProps) => {
           value={props.searchString}
           onBlur={handleBlur}
           onChange={(ev) => {
-            props.setSearchText(ev.target.value);
+            const v = ev.target.value;
+            props.setSearchText(v);
           }}
-        ></input>
+        />
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { Button, Card, Form, Input, InputNumber, message, Modal, Select, Space, Spin, Switch, Table, TimePicker, Upload } from "antd";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchUpdateSetting, fetchUpdateLanguage, fetchUpdateUser, fetchUpdateSiteConfig, fetchExportConfig, fetchImportConfig, fetchGetDeploymentVersion, fetchGetBackupConfig, fetchSaveBackupConfig, fetchTestBackupConnection, fetchBackupNow, fetchGetBackupStatus, fetchListBackupFiles, fetchRestoreBackup } from "../../../utils/api";
 import { useData } from "../hooks/useData";
 import { CloudDownloadOutlined, CloudUploadOutlined, CloudServerOutlined, ExclamationCircleOutlined, SyncOutlined, WarningOutlined, RollbackOutlined } from "@ant-design/icons";
@@ -23,7 +23,6 @@ export const Setting: React.FC<SettingProps> = (props) => {
   const [importing, setImporting] = useState(false);
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [importPreview, setImportPreview] = useState<any>(null);
-  const [importFile, setImportFile] = useState<File | null>(null);
   const [deploymentVersion, setDeploymentVersion] = useState<string>("v1.13.1.1");
 
   // 备份相关状态
@@ -128,7 +127,25 @@ export const Setting: React.FC<SettingProps> = (props) => {
     } finally {
       setBackupTesting(false);
     }
-  }, [backupForm]);
+  }, [backupForm, t]);
+
+  // 加载备份文件列表
+  const loadBackupFiles = useCallback(async () => {
+    setBackupFilesLoading(true);
+    try {
+      const res = await fetchListBackupFiles();
+      if (res?.success && res?.data) {
+        setBackupFiles(res.data);
+      } else {
+        setBackupFiles([]);
+      }
+    } catch (e) {
+      console.error("获取备份文件列表失败:", e);
+      setBackupFiles([]);
+    } finally {
+      setBackupFilesLoading(false);
+    }
+  }, []);
 
   // 立即备份
   const handleBackupNow = useCallback(async () => {
@@ -155,25 +172,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
     } finally {
       setBackupNowLoading(false);
     }
-  }, []);
-
-  // 加载备份文件列表
-  const loadBackupFiles = useCallback(async () => {
-    setBackupFilesLoading(true);
-    try {
-      const res = await fetchListBackupFiles();
-      if (res?.success && res?.data) {
-        setBackupFiles(res.data);
-      } else {
-        setBackupFiles([]);
-      }
-    } catch (e) {
-      console.error("获取备份文件列表失败:", e);
-      setBackupFiles([]);
-    } finally {
-      setBackupFilesLoading(false);
-    }
-  }, []);
+  }, [loadBackupFiles, t]);
 
   // 从备份恢复数据库
   const handleRestoreBackup = useCallback(async (filename: string) => {
@@ -204,7 +203,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
         }
       },
     });
-  }, []);
+  }, [t]);
 
   // 初始加载备份文件列表
   useEffect(() => {
@@ -238,7 +237,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
     } finally {
       setBackupLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     userForm.setFieldsValue(store?.user ?? {})
@@ -258,7 +257,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
         setLanguage(store.setting.language);
       }
     }
-  }, [store, setLanguage])
+  }, [language, setLanguage, siteConfigForm, settingForm, store, t, userForm])
   const handleUpdateUser = useCallback(
     async (values: any) => {
       try {
@@ -270,7 +269,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
         reload();
       }
     },
-    [reload, store]
+    [reload, store, t]
   );
   const handleUpdateWebSite = useCallback(
     async (values: any) => {
@@ -288,7 +287,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
         reload();
       }
     },
-    [reload]
+    [reload, t]
   );
   const handleUpdateSiteConfig = useCallback(
     async (values: any) => {
@@ -301,7 +300,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
         reload();
       }
     },
-    [reload]
+    [reload, t]
   );
 
   // 导出配置
@@ -337,7 +336,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
     } catch (err) {
       message.error(t("admin.settings.msg.exportFailedDetail") + (err as any).message);
     }
-  }, []);
+  }, [t]);
 
   // 导入文件选择
   const handleImportFileSelect = useCallback((file: File) => {
@@ -350,7 +349,6 @@ export const Setting: React.FC<SettingProps> = (props) => {
           message.error(t("admin.settings.msg.importFormatInvalid"));
           return;
         }
-        setImportFile(file);
         setImportPreview(content);
         setImportModalVisible(true);
       } catch {
@@ -359,7 +357,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
     };
     reader.readAsText(file);
     return false; // 阻止自动上传
-  }, []);
+  }, [t]);
 // 确认导入
   const handleImportConfirm = useCallback(async () => {
     if (!importPreview) return;
@@ -399,7 +397,6 @@ export const Setting: React.FC<SettingProps> = (props) => {
         });
         setImportModalVisible(false);
         setImportPreview(null);
-        setImportFile(null);
         // 刷新图标缓存：逐个触发工具图标缓存
         if (importPreview.tools && importPreview.tools.length > 0) {
           try {
@@ -420,7 +417,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
     } finally {
       setImporting(false);
     }
-  }, [importPreview, reload]);
+  }, [importPreview, reload, t]);
 
   // 构建预览表格列
   const previewColumns = [
@@ -462,7 +459,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
         }
         style={{ marginBottom: 32 }}
         extra={
-          <span style={{ fontSize: 12, color: '#999' }}>
+          <span style={{ fontSize: 12, color: '#64748B' }}>
             <ExclamationCircleOutlined style={{ marginRight: 4 }} />
             {t("admin.settings.importExport.description")}
           </span>
@@ -504,7 +501,6 @@ export const Setting: React.FC<SettingProps> = (props) => {
         onCancel={() => {
           setImportModalVisible(false);
           setImportPreview(null);
-          setImportFile(null);
         }}
         confirmLoading={importing}
         okText={t("admin.settings.modal.importConfirm")}
@@ -512,7 +508,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
         width={600}
       >
         <div style={{ marginBottom: 16 }}>
-          <ExclamationCircleOutlined style={{ color: '#faad14', marginRight: 8 }} />
+          <ExclamationCircleOutlined style={{ color: '#F59E0B', marginRight: 8 }} />
           {t("admin.settings.modal.importDescription")}
         </div>
         <Table
@@ -523,8 +519,8 @@ export const Setting: React.FC<SettingProps> = (props) => {
           style={{ marginBottom: 16 }}
         />
         {importPreview?.api_tokens?.length > 0 && (
-          <div style={{ marginBottom: 16, padding: 8, background: '#fff7e6', borderRadius: 4, border: '1px solid #ffd591' }}>
-            <WarningOutlined style={{ color: '#fa8c16', marginRight: 8 }} />
+          <div style={{ marginBottom: 16, padding: 8, background: '#FFF7E6', borderRadius: 4, border: '1px solid rgba(245,158,11,0.35)' }}>
+            <WarningOutlined style={{ color: '#F59E0B', marginRight: 8 }} />
             <strong>{t("admin.settings.modal.importTokenAlert")}</strong>{t("admin.settings.modal.importTokenAlertContent")}
           </div>
         )}
@@ -602,14 +598,6 @@ export const Setting: React.FC<SettingProps> = (props) => {
             >
               <Input placeholder={t("admin.settings.site.titlePlaceholder")}></Input>
             </Form.Item>
-            <Form.Item
-              label={t("admin.settings.site.govRecord")}
-              name="govRecord"
-            >
-              <Input placeholder={t("admin.settings.site.govRecordPlaceholder")}></Input>
-            </Form.Item>
-
-
             <Form.Item label={t("admin.settings.site.jumpTarget")} name="jumpTargetBlank" rules={[{ required: true, message: t("admin.settings.site.jumpTargetRequired") }]}
               tooltip={t("admin.settings.site.jumpTargetTooltip")}
                           >
@@ -662,6 +650,9 @@ export const Setting: React.FC<SettingProps> = (props) => {
             <Form.Item label={t("admin.settings.site.pcColumnCount")} name="pcColumnCount" tooltip={t("admin.settings.site.pcColumnCountTooltip")}>
               <InputNumber min={2} max={8} placeholder={t("admin.settings.site.pcColumnCountPlaceholder")} style={{ width: '100%' }} />
             </Form.Item>
+            <Form.Item label={t("admin.settings.site.customCss")} name="customCss" tooltip={t("admin.settings.site.customCssTooltip")}>
+              <Input.TextArea rows={6} placeholder={t("admin.settings.site.customCssPlaceholder")} style={{ fontFamily: 'monospace', fontSize: 13 }} />
+            </Form.Item>
             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
               <Button type="primary" htmlType="submit">
                 {t("admin.settings.btn.submit")}
@@ -683,14 +674,6 @@ export const Setting: React.FC<SettingProps> = (props) => {
             </Form.Item>
             <Form.Item label={t("admin.settings.config.compactMode")} name="compactMode" tooltip={t("admin.settings.config.compactModeTooltip")}>
               <Switch defaultChecked={Boolean(store?.siteConfig?.compactMode)} />
-            </Form.Item>
-            <Form.Item label={t("admin.settings.config.sortByClicks")} tooltip={t("admin.settings.config.sortByClicksTooltip")}>
-              <Form.Item name="sortByClicks" valuePropName="checked" noStyle>
-                <Switch defaultChecked={Boolean(store?.siteConfig?.sortByClicks)} />
-              </Form.Item>
-              <span style={{ marginLeft: 12, fontSize: 12, color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)' }}>
-                {t("admin.settings.config.sortByClicksNote")}
-              </span>
             </Form.Item>
             <Form.Item
               label={t("admin.settings.config.faviconApiTemplate")}
@@ -729,24 +712,24 @@ export const Setting: React.FC<SettingProps> = (props) => {
         }
         style={{ marginTop: 32 }}
         extra={
-          <span style={{ fontSize: 12, color: '#999' }}>
+          <span style={{ fontSize: 12, color: '#64748B' }}>
             {t("admin.settings.backup.description")}
           </span>
         }
       >
         {/* 备份状态显示 */}
-        <div style={{ marginBottom: 24, padding: 16, borderRadius: 8, background: isDark ? '#222' : '#fafafa', border: isDark ? '1px solid #333' : '1px solid #f0f0f0' }}>
+        <div style={{ marginBottom: 24, padding: 16, borderRadius: 8, background: isDark ? '#0B1D34' : '#F7F7FA', border: isDark ? '1px solid #1E293B' : '1px solid #E5E7EB' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <span style={{ fontWeight: 500, color: isDark ? 'rgba(255,255,255,0.6)' : undefined }}>{t("admin.settings.backup.statusLabel")}</span>
             {backupStatus.lastBackupTime ? (
               <>
                 <span style={{ color: isDark ? 'rgba(255,255,255,0.6)' : undefined }}>{t("admin.settings.backup.statusTime").replace("{time}", backupStatus.lastBackupTime || "")}</span>
-                <span style={{ color: backupStatus.lastBackupStatus === '成功' ? '#52c41a' : '#ff4d4f' }}>
+                <span style={{ color: backupStatus.lastBackupStatus === '成功' ? '#16A34A' : '#DC2626' }}>
                   {t("admin.settings.backup.statusValue").replace("{status}", backupStatus.lastBackupStatus || t("admin.settings.backup.statusUnknown"))}
                 </span>
               </>
             ) : (
-              <span style={{ color: '#999' }}>{t("admin.settings.backup.statusNone")}</span>
+              <span style={{ color: '#64748B' }}>{t("admin.settings.backup.statusNone")}</span>
             )}
             <Button
               size="small"
@@ -935,7 +918,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
           </Button>
         }
       >
-        <div style={{ marginBottom: 16, color: isDark ? 'rgba(255,255,255,0.6)' : '#666' }}>
+        <div style={{ marginBottom: 16, color: isDark ? 'rgba(255,255,255,0.6)' : '#64748B' }}>
           {t("admin.settings.backup.files.description")}
         </div>
         <Table
@@ -1004,7 +987,7 @@ export const Setting: React.FC<SettingProps> = (props) => {
         marginTop: 24,
         padding: '12px 0',
         textAlign: 'center',
-        color: isDark ? 'rgba(255,255,255,0.3)' : '#bbb',
+        color: isDark ? 'rgba(255,255,255,0.3)' : '#64748B',
         fontSize: 13,
       }}>
         VanNav {deploymentVersion}

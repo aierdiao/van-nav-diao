@@ -2,173 +2,125 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 主题CSS变量默认值 */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--diao-bg-page);
+  overflow: hidden;
+}
+
 :root {
-  /* 布局变量 */
   --width-small: 500px;
   --width-medium: 700px;
   --width-large: 1060px;
-  
-  /* 色彩系统 - 亮色主题 */
-  --van-nav-primary: #1677ff;
-  --van-nav-bg-base: #f5f5f5;
-  --van-nav-bg-card: #ffffff;
-  --van-nav-text-primary: #000000e0;
-  --van-nav-text-secondary: #000000a6;
-  --van-nav-border: #d9d9d9;
-  
-  /* 布局系统 */
-  --van-nav-card-radius: 8px;
-  --van-nav-card-shadow: 0 1px 2px 0 rgba(0,0,0,0.03), 0 1px 6px -1px rgba(0,0,0,0.02), 0 2px 4px 0 rgba(0,0,0,0.02);
-  --van-nav-card-padding: 16px;
-  --van-nav-card-gap: 16px;
-  
-  /* 排版系统 */
-  --van-nav-title-size: 16px;
-  --van-nav-title-weight: 600;
-  --van-nav-desc-size: 13px;
 }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--van-nav-bg-base);
-  overflow-y: auto;
-  overflow-x: hidden;
-  overflow-anchor: none;
-  color: var(--van-nav-text-primary);
+/* ═══════════════════════════════════════════════════════════════
+   TMACG Brand Design Tokens — Light Mode
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* Page & Surface */
+  --diao-bg-page: #F7F7FA;           /* TMACG surface — soft cool gray */
+  --diao-bg-card: #FFFFFF;           /* TMACG canvas — clean white */
+  --diao-bg-card-hover: #FAFAFC;     /* Subtle lift on hover */
+  --diao-bg-input: #F7F7FA;          /* Input background */
+  --diao-bg-input-focus: #FFFFFF;    /* Input focus background */
+  --diao-bg-tag: #F0ECFF;            /* TMACG primary-soft — purple-tinted tag */
+  --diao-bg-tag-hover: #E4DCFF;      /* TMACG primary-soft-2 */
+  --diao-bg-tag-active: #6B4DFF;     /* TMACG primary — purple accent */
+  --diao-bg-compact-hover: #F0ECFF;  /* Compact card hover with purple tint */
+
+  /* Text */
+  --diao-text-primary: #0B1220;      /* TMACG ink-deep */
+  --diao-text-secondary: #475569;    /* TMACG slate */
+  --diao-text-muted: #94A3B8;        /* TMACG muted */
+  --diao-text-on-primary: #FFFFFF;   /* TMACG on-primary */
+  --diao-text-on-dark: #FFFFFF;      /* TMACG on-dark */
+
+  /* Borders */
+  --diao-border: #E5E7EB;            /* TMACG hairline */
+  --diao-border-light: #EEF0F4;      /* TMACG hairline-soft */
+  --diao-border-strong: #CBD5E1;     /* TMACG hairline-strong */
+  --diao-border-focus: #6B4DFF;      /* TMACG primary — purple focus ring */
+
+  /* Shadows — TMACG elevation tokens */
+  --diao-shadow-card: rgba(15, 23, 42, 0.04) 0px 1px 2px 0px;
+  --diao-shadow-card-hover: rgba(15, 23, 42, 0.10) 0px 12px 32px -12px;
+  --diao-shadow-purple-glow: rgba(107, 77, 255, 0.20) 0px 16px 48px -16px;
+
+  /* Semantic */
+  --diao-success: #16A34A;
+  --diao-success-soft: #EAF8EF;
+  --diao-warning: #F59E0B;
+  --diao-warning-soft: #FFF7E6;
+  --diao-error: #DC2626;
+  --diao-error-soft: #FEECEC;
+  --diao-info: #2563EB;
+  --diao-info-soft: #EEF5FF;
+
+  /* Icons */
+  --diao-icon: #64748B;
+  --diao-icon-hover: #0B1220;
+
+  /* Radii */
+  --diao-radius-card: 12px;
+  --diao-radius-tag: 6px;
 }
 
-/* 隐藏全局滚动条 */
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
-  display: none;
-}
-html, body {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* ═══════════════════════════════════════════════════════════════
+   TMACG Brand Design Tokens — Dark Mode
+   ═══════════════════════════════════════════════════════════════ */
+body.dark-mode {
+  --diao-bg-page: #030A14;           /* TMACG brand-navy-deep */
+  --diao-bg-card: #0B1D34;           /* TMACG brand-navy-mid */
+  --diao-bg-card-hover: #10243D;     /* TMACG brand-navy-soft */
+  --diao-bg-input: #0B1D34;          /* Navy mid for inputs */
+  --diao-bg-input-focus: #10243D;    /* Slightly lighter on focus */
+  --diao-bg-tag: #10243D;            /* Navy-soft for inactive tags */
+  --diao-bg-tag-hover: #172033;      /* TMACG brand-ink-soft */
+  --diao-bg-tag-active: #D8DEE9;     /* Inverted: light bg in dark mode for contrast pop */
+  --diao-bg-compact-hover: #172033;  /* Ink-soft for compact hover */
+
+  --diao-text-primary: #FFFFFF;      /* TMACG on-dark */
+  --diao-text-secondary: #AAB4C5;    /* TMACG on-dark-muted */
+  --diao-text-muted: #64748B;        /* TMACG steel */
+  --diao-text-on-primary: #0B1220;   /* Dark text on inverted light bg */
+  --diao-text-on-dark: #FFFFFF;
+
+  --diao-border: #1E293B;            /* Dark hairline */
+  --diao-border-light: #172033;      /* Dark hairline soft */
+  --diao-border-strong: #334155;     /* Dark hairline strong */
+  --diao-border-focus: #6B4DFF;      /* Purple focus ring — same in both modes */
+
+  --diao-shadow-card: rgba(3, 10, 20, 0.32) 0px 1px 2px 0px;
+  --diao-shadow-card-hover: rgba(3, 10, 20, 0.48) 0px 12px 32px -12px;
+  --diao-shadow-purple-glow: rgba(107, 77, 255, 0.24) 0px 16px 48px -16px;
+
+  --diao-icon: #94A3B8;
+  --diao-icon-hover: #D8DEE9;
 }
 
-/* 禁用滚动锚定，防止搜索结果变化导致页面跳动 */
-html, body {
-  overflow-anchor: none;
+/* ═══════════════════════════════════════════════════════════════
+   Dark Mode — Component Overrides (only what tokens can't cover)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Autofill override — prevent browser from using its own colors */
+body.dark-mode input:-webkit-autofill,
+body.dark-mode input:-webkit-autofill:hover,
+body.dark-mode input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 30px var(--diao-bg-input) inset !important;
+  -webkit-text-fill-color: var(--diao-text-primary) !important;
+  caret-color: var(--diao-text-primary);
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   Base Elements
+   ═══════════════════════════════════════════════════════════════ */
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
-}
-
-
-
-/* 暗色模式 CSS 变量覆盖 */
-body.dark-mode {
-  --van-nav-bg-base: #1a1a1a;
-  --van-nav-bg-card: #2a2a2a;
-  --van-nav-text-primary: rgba(255, 255, 255, 0.85);
-  --van-nav-text-secondary: rgba(255, 255, 255, 0.6);
-  --van-nav-border: #404040;
-}
-
-body.dark-mode .github-link-box svg {
-  fill: white;
-}
-body.dark-mode .github-link-box svg:hover {
-  fill: #f1f1f1;
-}
-body.dark-mode .admin-link-box svg {
-  fill: white;
-}
-body.dark-mode .admin-link-box svg:hover {
-  fill: #f1f1f1;
-}
-body.dark-mode .theme-switch-box svg {
-  fill: white;
-}
-body.dark-mode .theme-switch-box svg:hover {
-  fill: #f1f1f1;
-}
-
-/* 亮色模式下的主色调应用 */
-body:not(.dark-mode) input:focus,
-body:not(.dark-mode) input:focus-visible {
-  border: 1px solid var(--van-nav-primary);
-}
-
-body.dark-mode .select-tag-active {
-  background-color: var(--van-nav-primary);
-  border: 1px solid var(--van-nav-primary);
-  color: #fff;
-}
-body.dark-mode .select-tag {
-  border: 1px solid var(--van-nav-border);
-  color: var(--van-nav-text-secondary);
-  background-color: var(--van-nav-bg-card);
-}
-body.dark-mode .select-tag:hover {
-  background-color: var(--van-nav-border);
-  border: 1px solid var(--van-nav-border);
-}
-body.dark-mode input {
-  background-color: var(--van-nav-bg-card);
-  border: 1px solid var(--van-nav-border);
-  color: var(--van-nav-text-primary);
-}
-body.dark-mode input:hover {
-  background-color: var(--van-nav-border);
-  border: 1px solid var(--van-nav-border);
-}
-body.dark-mode input:focus,
-input:focus-visible {
-  background-color: var(--van-nav-bg-card);
-  border: 1px solid var(--van-nav-primary);
-  color: var(--van-nav-text-primary);
-}
-
-/* 卡片样式使用CSS变量 */
-.card-box {
-  background-color: var(--van-nav-bg-card);
-  border-radius: var(--van-nav-card-radius);
-  box-shadow: var(--van-nav-card-shadow);
-}
-
-body.dark-mode .card-box {
-  background-color: var(--van-nav-bg-card);
-}
-body.dark-mode .card-box:hover {
-  box-shadow: 2px 2px 12px 0px #292929;
-}
-body.dark-mode .card-right-title {
-  color: var(--van-nav-text-secondary);
-}
-body.dark-mode .card-right-bottom {
-  color: var(--van-nav-text-secondary);
-}
-body.dark-mode .card-tag {
-  background-color: #383838;
-  color: var(--van-nav-text-secondary);
-}
-
-@media (max-width: 1060px) and (min-width: 700px) {
-  body.dark-mode span.card-tag {
-    background-color: var(--van-nav-bg-card) !important;
-  }
-}
-
-@media (max-width: 700px) and (min-width: 500px) {
-  body.dark-mode a.card-box {
-    background-color: var(--van-nav-bg-base);
-  }
-}
-@media (max-width: 500px) {
-  body.dark-mode a.card-box {
-    background-color: var(--van-nav-bg-base);
-  }
-}
-
-/* 自定义CSS注入点 */
-#van-nav-custom-css {
-  /* 由前端动态生成 */
 }

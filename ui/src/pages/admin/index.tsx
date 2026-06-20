@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ExitIcon, StarFilledIcon } from '@radix-ui/react-icons';
 import { MenuItem, Sidebar } from './components/sidebar';
@@ -9,7 +9,6 @@ import {
   BackpackIcon,
   TableIcon,
   MagnifyingGlassIcon,
-  ColorWheelIcon,
 } from '@radix-ui/react-icons';
 import { useOnce } from '../../utils/useOnce';
 import { useGlobalTheme } from '../../utils/useGlobalTheme';
@@ -22,13 +21,12 @@ const getMenuItems = (t: (key: string) => string): MenuItem[] => [
   { key: 'search-engines', icon: <MagnifyingGlassIcon className="w-5 h-5" />, label: t('admin.search.title'), path: '/admin/search-engines' },
   { key: 'api-token', icon: <StarFilledIcon className="w-5 h-5" />, label: t('admin.token.title'), path: '/admin/api-token' },
   { key: 'settings', icon: <GearIcon className="w-5 h-5" />, label: t('admin.settings.title'), path: '/admin/settings' },
-  { key: 'theme', icon: <ColorWheelIcon className="w-5 h-5" />, label: t('admin.sidebar.theme'), path: '/admin/theme' },
 ];
 
 export const AdminPage = () => {
   useGlobalTheme();
   const { t } = useTranslation();
-  const menuItems = getMenuItems(t);
+  const menuItems = useMemo(() => getMenuItems(t), [t]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -47,7 +45,7 @@ export const AdminPage = () => {
     if (currentItem) {
       setCurrentKey(currentItem.key);
     }
-  }, [location]);
+  }, [location, menuItems]);
 
   // 处理{t('admin.header.logout')}
   const handleLogout = () => {
@@ -56,9 +54,9 @@ export const AdminPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#121212]">
+    <div className="min-h-screen bg-[#F7F7FA] dark:bg-[#030A14]">
       {/* Header */}
-      <header className="bg-white dark:bg-[#1a1a1a] border-b border-gray-200 dark:border-[#2a2a2a]">
+      <header className="bg-white dark:bg-[#0B1D34] border-b border-gray-200 dark:border-[#10243D]">
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -92,7 +90,7 @@ export const AdminPage = () => {
         {/* Sidebar */}
         <Sidebar items={menuItems} currentKey={currentKey} onChange={setCurrentKey} />
         {/* Main Content Area */}
-        <main className="flex-1 overflow-auto bg-gray-50 dark:bg-[#121212]">
+        <main className="flex-1 overflow-auto bg-[#F7F7FA] dark:bg-[#030A14]">
           <div className="p-4 h-full">
             <Outlet />
           </div>
@@ -102,4 +100,4 @@ export const AdminPage = () => {
   );
 };
 
-export default AdminPage; 
+export default AdminPage;

@@ -18,26 +18,12 @@ func AddApiTokenInDB(data types.Token) error {
 	return database.InsertApiToken(data)
 }
 
-// UpdateUser 更新用户名和密码，同时使旧 token 失效
 func UpdateUser(data types.UpdateUserDto) error {
 	hashedPassword, err := utils.HashPassword(data.Password)
 	if err != nil {
 		return err
 	}
-	// 递增 token_version，使旧 token 失效
-	if err := database.IncrementUserTokenVersion(int(data.Id)); err != nil {
-		return err
-	}
 	return database.UpdateUserNameAndPassword(int(data.Id), data.Name, hashedPassword)
-}
-
-// UpdatePassword 仅更新密码（不更新用户名），同时使旧 token 失效
-func UpdatePassword(uid int, hashedPassword string) error {
-	// 递增 token_version，使旧 token 失效
-	if err := database.IncrementUserTokenVersion(uid); err != nil {
-		return err
-	}
-	return database.UpdateUserPasswordById(uid, hashedPassword)
 }
 
 func DeleteApiToken(id string) error {

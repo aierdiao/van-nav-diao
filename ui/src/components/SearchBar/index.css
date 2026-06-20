@@ -1,7 +1,26 @@
+.search-wraper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
-.search input{
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--diao-text-muted);
+  pointer-events: none;
+  z-index: 1;
+  transition: color 0.2s;
+}
 
-    width: 100%;
-    transition: all .3s;
-  
+/* 为搜索图标预留左侧空间，使用 ID 选择器确保优先级 */
+#search-bar {
+  padding-left: 42px;
+}
+
+.search input {
+  width: 100%;
+  transition: all 0.2s;
 }

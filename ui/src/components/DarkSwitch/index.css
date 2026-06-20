@@ -1,11 +1,33 @@
 .theme-switch-box {
   cursor: pointer;
-}
-.theme-switch-box svg {
-  fill: #3d3d3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
   transition: all 0.3s;
 }
-
+.theme-switch-box:hover {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+}
+.theme-switch-box svg {
+  fill: var(--diao-icon);
+  transition: fill 0.2s;
+}
 .theme-switch-box svg:hover {
-  fill: #121212;
+  fill: var(--diao-icon-hover);
+}
+
+body.dark-mode .theme-switch-box {
+  background: rgba(11, 29, 52, 0.75);
+  box-shadow: 0 1px 2px rgba(3, 10, 20, 0.32);
+}
+body.dark-mode .theme-switch-box:hover {
+  background: rgba(11, 29, 52, 0.9);
 }

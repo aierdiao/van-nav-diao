@@ -1,19 +1,24 @@
 .select-tag {
   cursor: pointer;
-  color: var(--van-nav-text-secondary);
-  border: 1px solid var(--van-nav-border);
-  transition: all 0.3s;
+  color: var(--diao-text-secondary);
+  border: 1px solid var(--diao-border);
+  background-color: var(--diao-bg-tag);
+  transition: all 0.2s;
   box-sizing: border-box;
 }
+
 .select-tag:hover {
-  border: 1px solid var(--van-nav-primary);
-  color: var(--van-nav-primary);
+  background-color: var(--diao-bg-tag-hover);
+  color: var(--diao-text-primary);
+  border-color: var(--diao-border-strong);
 }
+
 .select-tag-active {
-  color: #ffffff;
-  background-color: var(--van-nav-primary);
-  border: 1px solid var(--van-nav-primary);
+  color: var(--diao-text-on-primary);
+  background-color: var(--diao-bg-tag-active);
+  border: 1px solid var(--diao-bg-tag-active);
 }
+
 .tag-selector {
   width: 100%;
 }

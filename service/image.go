@@ -55,6 +55,17 @@ func GetImgFromDB(url1 string) (types.Img, error) {
 	if found {
 		return img, nil
 	}
+	// 缓存未命中：如果 URL 是外部链接（http/https），尝试实时抓取并同步缓存
+	if strings.HasPrefix(url1, "http://") || strings.HasPrefix(url1, "https://") {
+		base64ImgValue := utils.GetImgBase64FromUrl(url1)
+		if base64ImgValue != "" {
+			// 同步写入数据库，确保后续请求直接命中缓存
+			if err := database.InsertImage(urlEncoded, base64ImgValue); err != nil {
+				logger.LogError("GetImgFromDB: cache insert error for %s: %v", url1, err)
+			}
+			return types.Img{Id: 0, Url: url1, Value: base64ImgValue}, nil
+		}
+	}
 	// 返回默认占位图
 	var nullImg string
 	l := strings.Split(url1, ".")

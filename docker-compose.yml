@@ -1,6 +1,6 @@
 services:
   van-nav:
-    image: ghcr.io/thirsty5034/van-nav:latest
+    build: .
     container_name: van-nav
     restart: unless-stopped
     ports:

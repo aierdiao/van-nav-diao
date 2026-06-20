@@ -34,7 +34,6 @@ const zhCN: Record<string, string> = {
   "admin.sidebar.searchEngines": "搜索引擎管理",
   "admin.sidebar.apiToken": "API Token",
   "admin.sidebar.settings": "系统设置",
-  "admin.sidebar.theme": "主题美化",
 
   // ==================== Admin / Tools 管理 ====================
   // 标题与统计
@@ -45,6 +44,7 @@ const zhCN: Record<string, string> = {
   "admin.tools.table.sort": "排序",
   "admin.tools.table.name": "名称",
   "admin.tools.table.category": "分类",
+  "admin.tools.table.tags": "标签",
   "admin.tools.table.url": "网址",
   "admin.tools.table.hidden": "隐藏",
   "admin.tools.table.hidden.tooltip": "开启后只有登录后才会展示该工具",
@@ -94,6 +94,9 @@ const zhCN: Record<string, string> = {
   "admin.tools.form.category": "分类",
   "admin.tools.form.categoryPlaceholder": "请选择分类",
   "admin.tools.form.categoryRequired": "请选择分类",
+  "admin.tools.form.tags": "标签",
+  "admin.tools.form.tagsPlaceholder": "选择 Aff 或输入自定义标签",
+  "admin.tools.form.tagsTooltip": "标签会显示在前台卡片上，不参与分类筛选",
   "admin.tools.form.desc": "描述",
   "admin.tools.form.descPlaceholder": "请输入描述",
   "admin.tools.form.sort": "排序",
@@ -122,7 +125,6 @@ const zhCN: Record<string, string> = {
 
   // 删除确认
   "admin.tools.confirm.delete": "确定要删除 {name} 吗？",
-  "admin.tools.confirm.deleteBulk": "确定要删除选中的工具吗？",
 
   // 操作结果消息
   "admin.tools.msg.addSuccess": "添加成功! Logo 将在 3 秒后刷新并加载！",
@@ -372,8 +374,6 @@ const zhCN: Record<string, string> = {
   "admin.settings.site.title_label": "网站标题",
   "admin.settings.site.titlePlaceholder": "请输入网站标题",
   "admin.settings.site.titleRequired": "请输入网站 title",
-  "admin.settings.site.govRecord": "公信部备案",
-  "admin.settings.site.govRecordPlaceholder": "请输入网站备案信息",
   "admin.settings.site.jumpTarget": "默认跳转方式",
   "admin.settings.site.jumpTargetTooltip": "选择点击卡片后默认的跳转方式",
   "admin.settings.site.jumpTargetRequired": "这是必填项",
@@ -398,6 +398,9 @@ const zhCN: Record<string, string> = {
   "admin.settings.site.pcColumnCount": "电脑端标签列数",
   "admin.settings.site.pcColumnCountTooltip": "设置首页工具卡片在电脑端的列数（2-8），默认 3 列",
   "admin.settings.site.pcColumnCountPlaceholder": "默认 3",
+  "admin.settings.site.customCss": "自定义 CSS",
+  "admin.settings.site.customCssTooltip": "自定义首页样式，会注入到首页的 <style> 标签中，可覆盖默认样式",
+  "admin.settings.site.customCssPlaceholder": "/* 自定义 CSS 样式 */\n.card-box { border-radius: 12px; }",
 
   // ---- 修改网站配置 ----
   "admin.settings.config.title": "修改网站配置",
@@ -410,9 +413,6 @@ const zhCN: Record<string, string> = {
   "admin.settings.config.faviconApiTemplateTooltip": "使用 {domain} 占位符表示工具主域名，默认使用 https://favicon.im/{domain}",
   "admin.settings.config.faviconApiTemplateRequired": "请输入 API 地址模板",
   "admin.settings.config.faviconApiTemplateValidator": "模板必须包含 {domain} 占位符",
-  "admin.settings.config.sortByClicks": "智能排序（按使用频率）",
-  "admin.settings.config.sortByClicksTooltip": "开启后，全部工具 Tab 将根据用户点击频率自动重排，新工具享有 14 天冷启动曝光",
-  "admin.settings.config.sortByClicksNote": "提示：开启后，系统将根据用户在当前浏览器中的点击频次进行个性化重排。由于点击数据存储于本地浏览器（localStorage），不同用户的排序结果将因其使用习惯而异。",
 
   // ---- 数据备份 ----
   "admin.settings.backup.title": "数据备份",
@@ -585,7 +585,6 @@ const zhCN: Record<string, string> = {
   "home.searchEngine.category": "搜索",
   "home.searchEngine.desc": "在 {name} 中搜索 「{query}」",
   "home.searchEngine.name": "使用 {name} 搜索",
-  "home.admin.button": "管理后台",
 };
 
 export default zhCN;

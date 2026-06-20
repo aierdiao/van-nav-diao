@@ -13,5 +13,7 @@ export function useOnce(callback: () => void | (() => void), deps?: React.Depend
       hasRun.current = true;
       return callback();
     }
+    // useOnce intentionally accepts a caller-provided dependency list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 }

@@ -46,7 +46,7 @@ export const ApiToken: React.FC<ApiTokenProps> = (props) => {
       title={
         <Space>
           <span>{t('admin.apiToken.title')}</span>
-          <span style={{ color: '#999', fontSize: 13 }}>{t('admin.apiToken.total', { count: store?.tokens?.length ?? 0 })}</span>
+          <span style={{ color: '#64748B', fontSize: 13 }}>{t('admin.apiToken.total', { count: store?.tokens?.length ?? 0 })}</span>
         </Space>
       }
       extra={

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"sync"
 
 	"github.com/mereith/nav/database"
@@ -29,7 +30,7 @@ func ImportTools(data []types.Tool) ImportToolsResult {
 		}
 		_, err := database.InsertToolRow(types.AddToolDto{
 			Name: v.Name, Url: v.Url, Logo: v.Logo, Catelog: v.Catelog,
-			Desc: v.Desc, Sort: v.Sort, Hide: v.Hide,
+			Tags: v.Tags, Desc: v.Desc, Sort: v.Sort, CatelogSort: v.CatelogSort, Hide: v.Hide,
 		})
 		if err != nil {
 			skipped++
@@ -112,8 +113,8 @@ func UpdateToolIcon(id int64, logo string) error {
 	return nil
 }
 
-func UpdateToolsSort(updates []types.UpdateToolsSortDto) error {
-	err := database.UpdateToolSortBatch(updates)
+func UpdateToolsSort(updates []types.UpdateToolsSortDto, catelog string) error {
+	err := database.UpdateToolSortBatch(updates, catelog)
 	if err == nil {
 		InvalidateAllDataCache()
 	}
@@ -138,4 +139,25 @@ func UpdateToolDesc(id int, desc string) error {
 		InvalidateAllDataCache()
 	}
 	return err
+}
+
+// nextCatelogSortTx 获取指定分类内的下一个排序值（在事务内执行）
+func nextCatelogSortTx(tx *sql.Tx, catelog string) (int, error) {
+	var maxSort sql.NullInt64
+	query := `SELECT MAX(COALESCE(NULLIF(catelog_sort, 0), sort)) FROM nav_table WHERE catelog = ?`
+	err := tx.QueryRow(query, catelog).Scan(&maxSort)
+	if err != nil || !maxSort.Valid {
+		return 1, nil
+	}
+	return int(maxSort.Int64) + 1, nil
+}
+
+// nextGlobalSortTx 获取全局下一个排序值（在事务内执行）
+func nextGlobalSortTx(tx *sql.Tx) (int, error) {
+	var maxSort sql.NullInt64
+	err := tx.QueryRow(`SELECT MAX(sort) FROM nav_table`).Scan(&maxSort)
+	if err != nil || !maxSort.Valid {
+		return 1, nil
+	}
+	return int(maxSort.Int64) + 1, nil
 }

@@ -38,11 +38,6 @@ func ExportFullConfig() (*types.ExportConfigResponse, error) {
 		return nil, err
 	}
 
-	themeConfig, err := GetThemeConfigAsMap()
-	if err != nil {
-		return nil, err
-	}
-
 	return &types.ExportConfigResponse{
 		ExportTime:    time.Now().Format("2006-01-02T15:04:05Z"),
 		Version:       "1.0",
@@ -52,7 +47,6 @@ func ExportFullConfig() (*types.ExportConfigResponse, error) {
 		ApiTokens:     tokens,
 		Settings:      settings,
 		SiteConfig:    siteConfig,
-		ThemeConfig:   themeConfig,
 	}, nil
 }
 
@@ -63,12 +57,7 @@ func ImportFullConfig(req types.ImportConfigRequest) types.ImportConfigResponse 
 		Errors:  make([]string, 0),
 	}
 
-	// 1. 导入分类（先清空）
-	if err := database.DeleteAllCatelogs(); err != nil {
-		result.Success = false
-		result.Errors = append(result.Errors, "清空分类失败: "+err.Error())
-		return result
-	}
+	// 1. 导入分类（事务内先清空再插入）
 	if err := database.InsertCatelogs(req.Catelogs); err != nil {
 		result.Success = false
 		result.Errors = append(result.Errors, "导入分类失败: "+err.Error())
@@ -76,12 +65,7 @@ func ImportFullConfig(req types.ImportConfigRequest) types.ImportConfigResponse 
 	}
 	result.CatelogsImported = len(req.Catelogs)
 
-	// 2. 导入工具（先清空）
-	if err := database.DeleteAllTools(); err != nil {
-		result.Success = false
-		result.Errors = append(result.Errors, "清空工具失败: "+err.Error())
-		return result
-	}
+	// 2. 导入工具（事务内先清空再插入）
 	if err := database.InsertTools(req.Tools); err != nil {
 		result.Success = false
 		result.Errors = append(result.Errors, "导入工具失败: "+err.Error())
@@ -89,12 +73,7 @@ func ImportFullConfig(req types.ImportConfigRequest) types.ImportConfigResponse 
 	}
 	result.ToolsImported = len(req.Tools)
 
-	// 3. 导入搜索引擎（先清空）
-	if err := database.DeleteAllSearchEngines(); err != nil {
-		result.Success = false
-		result.Errors = append(result.Errors, "清空搜索引擎失败: "+err.Error())
-		return result
-	}
+	// 3. 导入搜索引擎（事务内先清空再插入）
 	if err := database.InsertSearchEngines(req.SearchEngines); err != nil {
 		result.Success = false
 		result.Errors = append(result.Errors, "导入搜索引擎失败: "+err.Error())
@@ -130,15 +109,6 @@ func ImportFullConfig(req types.ImportConfigRequest) types.ImportConfigResponse 
 			result.Errors = append(result.Errors, "更新网站配置失败: "+err.Error())
 		} else {
 			result.SiteConfigUpdated = 1
-		}
-	}
-
-	// 7. 导入主题配置（容错跳过：若字段不存在则跳过，不覆盖当前主题）
-	if req.ThemeConfig != nil && len(req.ThemeConfig) > 0 {
-		if err := database.SaveThemeConfig(req.ThemeConfig); err != nil {
-			result.Errors = append(result.Errors, "导入主题配置失败: "+err.Error())
-		} else {
-			result.ThemeConfigUpdated = 1
 		}
 	}
 

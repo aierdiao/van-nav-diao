@@ -26,7 +26,6 @@ func JWTMiddleware() gin.HandlerFunc {
 			rawToken = strings.TrimPrefix(rawToken, "Bearer ")
 		}
 
-		// API Token 走独立通道，不验证 version（不受密码修改影响）
 		if database.HasApiToken(rawToken) {
 			c.Set("username", "apiToken")
 			c.Set("uid", 1)
@@ -34,7 +33,6 @@ func JWTMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 普通登录 Token 走这里，验证 version
 		token, err := utils.ParseJWT(rawToken)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -45,9 +43,17 @@ func JWTMiddleware() gin.HandlerFunc {
 			return
 		}
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			uid := int(claims["id"].(float64))
+			uidFloat, ok := claims["id"].(float64)
+			if !ok {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"success":      false,
+					"errorMessage": "未登录",
+				})
+				c.Abort()
+				return
+			}
+			uid := int(uidFloat)
 			expectedVersion := database.GetUserTokenVersion(uid)
-			// 兼容旧 token（无 version 字段视为 version=1）
 			claimVersion := 1
 			if v, ok := claims["version"].(float64); ok {
 				claimVersion = int(v)
