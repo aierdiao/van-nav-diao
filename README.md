@@ -13,9 +13,9 @@ The upstream fork is based on the original [Mereithhh/van-nav](https://github.co
 本 fork 面向 [diao.page](https://diao.page/) 定制。在保留 Van Nav 轻量导航站底座的基础上，主要差异包括：
 
 - 分类页和标签页 URL：`/category/{slug}`、`/tag/{slug}`，支持后台自定义 slug，并自动生成 sitemap 和 `llms.txt`；
-- 工具级标签、可点击标签、`Aff` 返利标签、标签搜索，以及旧 `阿刁有返利` 分类到 `Aff` 标签的迁移；
+- 工具级标签、可点击标签、`Aff` 返利标签、标签搜索；
 - 更紧凑的卡片布局：两行描述、底部分类和可选标签、移动端双列、稳定的图标兜底；
-- 后台描述长度限制、分类排序、分类内工具排序、搜索引擎管理、WebDAV 备份，以及支持新版字段的全局导入导出；
+- 后台描述长度限制、分类排序、分类内工具排序，以及支持新版字段的全局导入导出；
 - Chrome 书签导入导出，尽量保留文件夹顺序和书签顺序；
 - 选择性吸收上游 v2.4.2 的安全和维护修复，并包含当前定制站点所需的数据结构迁移；
 - 基础 SEO、无障碍和 PageSpeed/cache/service-worker 优化。
