@@ -15,6 +15,7 @@ const Catelog = React.lazy(() => import('./pages/admin/tabs/Catelog').then(modul
 const ApiToken = React.lazy(() => import('./pages/admin/tabs/ApiToken').then(module => ({ default: module.ApiToken })));
 const Setting = React.lazy(() => import('./pages/admin/tabs/Setting').then(module => ({ default: module.Setting })));
 const SearchEngine = React.lazy(() => import('./pages/admin/tabs/Search'));
+const SeoManager = React.lazy(() => import('./pages/admin/tabs/SeoManager').then(module => ({ default: module.SeoManager })));
 
 /**
  * 主题同步组件：监听路由变化和 storage 变化，全局同步主题
@@ -127,6 +128,7 @@ function App() {
               <Route path="search-engines" element={<SearchEngine />} />
               <Route path="api-token" element={<ApiToken />} />
               <Route path="settings" element={<Setting />} />
+              <Route path="seo" element={<SeoManager />} />
             </Route>
           </Routes>
           {/* 全局主题同步 */}

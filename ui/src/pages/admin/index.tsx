@@ -9,6 +9,7 @@ import {
   BackpackIcon,
   TableIcon,
   MagnifyingGlassIcon,
+  GlobeIcon,
 } from '@radix-ui/react-icons';
 import { useOnce } from '../../utils/useOnce';
 import { useGlobalTheme } from '../../utils/useGlobalTheme';
@@ -20,6 +21,7 @@ const getMenuItems = (t: (key: string) => string): MenuItem[] => [
   { key: 'categories', icon: <TableIcon className="w-5 h-5" />, label: t('admin.catelog.title'), path: '/admin/categories' },
   { key: 'search-engines', icon: <MagnifyingGlassIcon className="w-5 h-5" />, label: t('admin.search.title'), path: '/admin/search-engines' },
   { key: 'api-token', icon: <StarFilledIcon className="w-5 h-5" />, label: t('admin.token.title'), path: '/admin/api-token' },
+  { key: 'seo', icon: <GlobeIcon className="w-5 h-5" />, label: t('admin.seo.title'), path: '/admin/seo' },
   { key: 'settings', icon: <GearIcon className="w-5 h-5" />, label: t('admin.settings.title'), path: '/admin/settings' },
 ];
 

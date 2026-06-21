@@ -160,6 +160,14 @@ export const fetchDeleteCatelog = async (id: number) => {
     const { data } = await axios.delete(`/api/admin/catelog/${id}`);
     return data?.data || {};
 };
+export const fetchUpdateCatelogSeo = async (id: number, payload: { metaTitle: string; metaDescription: string; metaKeywords: string; ogImage: string }) => {
+    const { data } = await axios.put(`/api/admin/catelog/${id}/seo`, payload);
+    return data || {};
+};
+export const fetchUpdateTagSlugSeo = async (name: string, payload: { metaTitle: string; metaDescription: string; metaKeywords: string; ogImage: string }) => {
+    const { data } = await axios.put(`/api/admin/tagSlug/${encodeURIComponent(name)}/seo`, payload);
+    return data || {};
+};
 
 export const fetchUpdateSetting = async (payload: any) => {
     const { data } = await axios.put(`/api/admin/setting`, payload);

@@ -16,6 +16,10 @@ type Setting struct {
 	DeploymentVersion    string `json:"deploymentVersion"`
 	Language             string `json:"language"`
 	CustomCss            string `json:"customCss"`
+	MetaTitle            string `json:"metaTitle"`
+	MetaDescription      string `json:"metaDescription"`
+	MetaKeywords         string `json:"metaKeywords"`
+	OgImage              string `json:"ogImage"`
 }
 
 type Token struct {
@@ -52,17 +56,25 @@ type Tool struct {
 }
 
 type Catelog struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
-	Slug string `json:"slug"`
-	Sort int    `json:"sort"`
-	Hide bool   `json:"hide"`
+	Id              int    `json:"id"`
+	Name            string `json:"name"`
+	Slug            string `json:"slug"`
+	Sort            int    `json:"sort"`
+	Hide            bool   `json:"hide"`
+	MetaTitle       string `json:"metaTitle"`
+	MetaDescription string `json:"metaDescription"`
+	MetaKeywords    string `json:"metaKeywords"`
+	OgImage         string `json:"ogImage"`
 }
 
 type TagSlug struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
-	Slug string `json:"slug"`
+	Id              int    `json:"id"`
+	Name            string `json:"name"`
+	Slug            string `json:"slug"`
+	MetaTitle       string `json:"metaTitle"`
+	MetaDescription string `json:"metaDescription"`
+	MetaKeywords    string `json:"metaKeywords"`
+	OgImage         string `json:"ogImage"`
 }
 
 // 搜索引擎模型 - 使用 URL 模板方式

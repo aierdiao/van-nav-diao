@@ -7,10 +7,16 @@ import (
 )
 
 func migration_2024_12_13() {
+	// 只在 sort 列尚未有 NOT NULL 约束时才运行（幂等守卫）
+	var notnull int
+	if err := DB.QueryRow(`SELECT "notnull" FROM pragma_table_info('nav_catelog') WHERE name='sort'`).Scan(&notnull); err != nil || notnull == 1 {
+		return
+	}
+
 	// 1. 首先更新现有的 NULL 值为 0
 	sql_update_null_sort := `
-        UPDATE nav_catelog 
-        SET sort = 0 
+        UPDATE nav_catelog
+        SET sort = 0
         WHERE sort IS NULL;
     `
 

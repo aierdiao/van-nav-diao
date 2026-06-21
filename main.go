@@ -165,7 +165,9 @@ func main() {
 			admin.POST("/catelog", handler.AddCatelogHandler)
 			admin.DELETE("/catelog/:id", handler.DeleteCatelogHandler)
 			admin.PUT("/catelog/:id", handler.UpdateCatelogHandler)
+			admin.PUT("/catelog/:id/seo", handler.UpdateCatelogSeoHandler)
 			admin.PUT("/tagSlug", handler.UpdateTagSlugHandler)
+			admin.PUT("/tagSlug/:name/seo", handler.UpdateTagSlugSeoHandler)
 
 			// 搜索引擎管理路由
 			admin.GET("/searchEngine", handler.GetAllSearchEnginesHandler)

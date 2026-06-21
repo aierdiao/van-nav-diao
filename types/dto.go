@@ -37,6 +37,13 @@ type UpdateTagSlugDto struct {
 	Name string `json:"name"`
 	Slug string `json:"slug"`
 }
+
+type UpdatePageSeoDto struct {
+	MetaTitle       string `json:"metaTitle"`
+	MetaDescription string `json:"metaDescription"`
+	MetaKeywords    string `json:"metaKeywords"`
+	OgImage         string `json:"ogImage"`
+}
 type UpdateToolDto struct {
 	Id          int    `json:"id"`
 	Name        string `json:"name"`

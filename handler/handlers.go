@@ -691,6 +691,42 @@ func UpdateTagSlugHandler(c *gin.Context) {
 	})
 }
 
+func UpdateCatelogSeoHandler(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "errorMessage": "无效的分类 ID"})
+		return
+	}
+	var data types.UpdatePageSeoDto
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
+	if err := service.UpdateCatelogSeo(id, data); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"success": true, "message": "分类 SEO 更新成功"})
+}
+
+func UpdateTagSlugSeoHandler(c *gin.Context) {
+	name := c.Param("name")
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "errorMessage": "无效的标签名"})
+		return
+	}
+	var data types.UpdatePageSeoDto
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
+	if err := service.UpdateTagSlugSeo(name, data); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "errorMessage": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"success": true, "message": "标签 SEO 更新成功"})
+}
+
 func mustGetTagSlugs() []types.TagSlug {
 	tagSlugs, err := service.GetAllTagSlugs()
 	if err != nil {

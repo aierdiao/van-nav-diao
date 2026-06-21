@@ -100,6 +100,32 @@ func InitDB() {
 	if !columnExists("nav_setting", "customCss") {
 		execMigration(`ALTER TABLE nav_setting ADD COLUMN customCss TEXT DEFAULT '';`)
 	}
+	if !columnExists("nav_setting", "metaTitle") {
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN metaTitle TEXT DEFAULT '';`)
+	}
+	if !columnExists("nav_setting", "metaDescription") {
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN metaDescription TEXT DEFAULT '';`)
+	}
+	if !columnExists("nav_setting", "metaKeywords") {
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN metaKeywords TEXT DEFAULT '';`)
+	}
+	if !columnExists("nav_setting", "ogImage") {
+		execMigration(`ALTER TABLE nav_setting ADD COLUMN ogImage TEXT DEFAULT '';`)
+	}
+
+	// 标签页 SEO 字段
+	if !columnExists("nav_tag_slug", "metaTitle") {
+		execMigration(`ALTER TABLE nav_tag_slug ADD COLUMN metaTitle TEXT DEFAULT '';`)
+	}
+	if !columnExists("nav_tag_slug", "metaDescription") {
+		execMigration(`ALTER TABLE nav_tag_slug ADD COLUMN metaDescription TEXT DEFAULT '';`)
+	}
+	if !columnExists("nav_tag_slug", "metaKeywords") {
+		execMigration(`ALTER TABLE nav_tag_slug ADD COLUMN metaKeywords TEXT DEFAULT '';`)
+	}
+	if !columnExists("nav_tag_slug", "ogImage") {
+		execMigration(`ALTER TABLE nav_tag_slug ADD COLUMN ogImage TEXT DEFAULT '';`)
+	}
 
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_table (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, url TEXT, logo TEXT, catelog TEXT, desc TEXT);`
 	_, err = DB.Exec(sql_create_table)
@@ -143,6 +169,20 @@ func InitDB() {
 	_, err = DB.Exec(sql_create_table)
 	utils.CheckErr(err)
 	migration_2024_12_13()
+
+	// 分类页 SEO 字段（必须在 migration_2024_12_13 之后，防止被 DROP TABLE 覆盖）
+	if !columnExists("nav_catelog", "metaTitle") {
+		execMigration(`ALTER TABLE nav_catelog ADD COLUMN metaTitle TEXT DEFAULT '';`)
+	}
+	if !columnExists("nav_catelog", "metaDescription") {
+		execMigration(`ALTER TABLE nav_catelog ADD COLUMN metaDescription TEXT DEFAULT '';`)
+	}
+	if !columnExists("nav_catelog", "metaKeywords") {
+		execMigration(`ALTER TABLE nav_catelog ADD COLUMN metaKeywords TEXT DEFAULT '';`)
+	}
+	if !columnExists("nav_catelog", "ogImage") {
+		execMigration(`ALTER TABLE nav_catelog ADD COLUMN ogImage TEXT DEFAULT '';`)
+	}
 
 	sql_create_table = `CREATE TABLE IF NOT EXISTS nav_api_token (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, value TEXT, disabled INTEGER);`
 	_, err = DB.Exec(sql_create_table)

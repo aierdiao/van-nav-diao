@@ -48,3 +48,19 @@ func UpdateTagSlug(data types.UpdateTagSlugDto) error {
 	}
 	return err
 }
+
+func UpdateCatelogSeo(id int, data types.UpdatePageSeoDto) error {
+	err := database.UpdateCatelogSeoFields(id, data.MetaTitle, data.MetaDescription, data.MetaKeywords, data.OgImage)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
+}
+
+func UpdateTagSlugSeo(name string, data types.UpdatePageSeoDto) error {
+	err := database.UpdateTagSlugSeoFields(name, data.MetaTitle, data.MetaDescription, data.MetaKeywords, data.OgImage)
+	if err == nil {
+		InvalidateAllDataCache()
+	}
+	return err
+}

@@ -146,17 +146,20 @@ const Content = (props: any) => {
   const categoryCount = categoryItems.filter((item: any) => !item?.isAll).length;
   const routeNotFound = (routeMode === "category" && slug && data?.categoryItems && !activeCategory) || (routeMode === "tag" && slug && tagSlugItems.length > 0 && !activeTag);
   const seoTitle = activeCategory
-    ? `${activeCategory.name} - ${pageTitle}`
+    ? (activeCategory.metaTitle || `${activeCategory.name} - ${pageTitle}`)
     : activeTag
-      ? `${activeTag.name}标签 - ${pageTitle}`
-      : pageTitle;
+      ? (activeTag.metaTitle || `${activeTag.name}标签 - ${pageTitle}`)
+      : (data?.setting?.metaTitle || pageTitle);
+  const customMetaDesc = data?.setting?.metaDescription || '';
   const seoDescription = activeCategory
-    ? `${pageTitle} 的 ${activeCategory.name} 分类页，整理相关工具和常用网址。`
+    ? (activeCategory.metaDescription || `${pageTitle} 的 ${activeCategory.name} 分类页，整理相关工具和常用网址。`)
     : activeTag
-      ? `${pageTitle} 的 ${activeTag.name} 标签页，整理相关工具和常用网址。`
-      : toolCount > 0
-        ? `${pageTitle}，收录 ${toolCount} 个 AI、运营、跨境电商和实用工具，按 ${categoryCount || '多个'} 个分类整理。`
-        : `${pageTitle}，AI、运营、跨境电商和实用工具导航。`;
+      ? (activeTag.metaDescription || `${pageTitle} 的 ${activeTag.name} 标签页，整理相关工具和常用网址。`)
+      : customMetaDesc || (toolCount > 0
+          ? `${pageTitle}，收录 ${toolCount} 个 AI、运营、跨境电商和实用工具，按 ${categoryCount || '多个'} 个分类整理。`
+          : `${pageTitle}，AI、运营、跨境电商和实用工具导航。`);
+  const seoKeywords = activeCategory?.metaKeywords || activeTag?.metaKeywords || data?.setting?.metaKeywords || '';
+  const seoOgImage = activeCategory?.ogImage || activeTag?.ogImage || data?.setting?.ogImage || '';
   const canonicalUrl = typeof window !== "undefined" ? window.location.origin + window.location.pathname : "";
 
   // 监听窗口大小变化
@@ -440,13 +443,16 @@ const Content = (props: any) => {
         <meta name="description" content={seoDescription} />
         <meta name="robots" content={routeNotFound ? "noindex,follow" : "index,follow"} />
         {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+        {seoKeywords && <meta name="keywords" content={seoKeywords} />}
         <meta property="og:type" content="website" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
         {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
-        <meta name="twitter:card" content="summary" />
+        {seoOgImage && <meta property="og:image" content={seoOgImage} />}
+        <meta name="twitter:card" content={seoOgImage ? "summary_large_image" : "summary"} />
         <meta name="twitter:title" content={seoTitle} />
         <meta name="twitter:description" content={seoDescription} />
+        {seoOgImage && <meta name="twitter:image" content={seoOgImage} />}
         {data?.setting?.customCss && <style type="text/css">{data.setting.customCss}</style>}
       </Helmet>
       <div className="topbar">

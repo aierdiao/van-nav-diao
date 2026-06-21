@@ -283,7 +283,7 @@ func GetAllTokens() ([]types.Token, error) {
 
 // 获取所有分类
 func GetAllCatelogs() ([]types.Catelog, error) {
-	sql := `SELECT id, name, COALESCE(slug, ''), sort, hide FROM nav_catelog ORDER BY sort ASC`
+	sql := `SELECT id, name, COALESCE(slug, ''), sort, hide, COALESCE(metaTitle,''), COALESCE(metaDescription,''), COALESCE(metaKeywords,''), COALESCE(ogImage,'') FROM nav_catelog ORDER BY sort ASC`
 	rows, err := DB.Query(sql)
 	if err != nil {
 		return nil, err
@@ -295,7 +295,7 @@ func GetAllCatelogs() ([]types.Catelog, error) {
 		var catelog types.Catelog
 		var hide interface{}
 		var sort interface{}
-		err := rows.Scan(&catelog.Id, &catelog.Name, &catelog.Slug, &sort, &hide)
+		err := rows.Scan(&catelog.Id, &catelog.Name, &catelog.Slug, &sort, &hide, &catelog.MetaTitle, &catelog.MetaDescription, &catelog.MetaKeywords, &catelog.OgImage)
 		if err != nil {
 			return nil, err
 		}
@@ -316,14 +316,14 @@ func GetAllCatelogs() ([]types.Catelog, error) {
 
 // 获取所有设置（键值对形式）
 func GetAllSettings() (map[string]string, error) {
-	sql := `SELECT id, favicon, title, logo192, logo512, hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount, deployment_version, language, COALESCE(customCss,'') FROM nav_setting ORDER BY id ASC LIMIT 1`
+	sql := `SELECT id, favicon, title, logo192, logo512, hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount, deployment_version, language, COALESCE(customCss,''), COALESCE(metaTitle,''), COALESCE(metaDescription,''), COALESCE(metaKeywords,''), COALESCE(ogImage,'') FROM nav_setting ORDER BY id ASC LIMIT 1`
 	row := DB.QueryRow(sql)
 
 	var setting types.Setting
 	var hideGithub, hideAdmin, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine interface{}
 	var pcColumnCount interface{}
-	var deploymentVersion, language, customCss string
-	err := row.Scan(&setting.Id, &setting.Favicon, &setting.Title, &setting.Logo192, &setting.Logo512, &hideAdmin, &hideGithub, &hideToggleJumpTarget, &jumpTargetBlank, &showSearchEngine, &pcColumnCount, &deploymentVersion, &language, &customCss)
+	var deploymentVersion, language, customCss, metaTitle, metaDescription, metaKeywords, ogImage string
+	err := row.Scan(&setting.Id, &setting.Favicon, &setting.Title, &setting.Logo192, &setting.Logo512, &hideAdmin, &hideGithub, &hideToggleJumpTarget, &jumpTargetBlank, &showSearchEngine, &pcColumnCount, &deploymentVersion, &language, &customCss, &metaTitle, &metaDescription, &metaKeywords, &ogImage)
 	if err != nil {
 		return make(map[string]string), nil
 	}
@@ -391,6 +391,10 @@ func GetAllSettings() (map[string]string, error) {
 	}
 	settings["language"] = language
 	settings["deploymentVersion"] = deploymentVersion
+	settings["metaTitle"] = metaTitle
+	settings["metaDescription"] = metaDescription
+	settings["metaKeywords"] = metaKeywords
+	settings["ogImage"] = ogImage
 
 	return settings, nil
 }
@@ -462,7 +466,7 @@ func InsertCatelogs(catelogs []types.Catelog) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare(`INSERT INTO nav_catelog (name, slug, sort, hide) VALUES (?, ?, ?, ?)`)
+	stmt, err := tx.Prepare(`INSERT INTO nav_catelog (name, slug, sort, hide, metaTitle, metaDescription, metaKeywords, ogImage) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return err
 	}
@@ -477,7 +481,7 @@ func InsertCatelogs(catelogs []types.Catelog) error {
 		if err != nil {
 			return err
 		}
-		_, err = stmt.Exec(catelog.Name, slug, catelog.Sort, hide)
+		_, err = stmt.Exec(catelog.Name, slug, catelog.Sort, hide, catelog.MetaTitle, catelog.MetaDescription, catelog.MetaKeywords, catelog.OgImage)
 		if err != nil {
 			return err
 		}
@@ -565,6 +569,14 @@ func UpdateSettingField(key string, value string) (bool, error) {
 		sql = `UPDATE nav_setting SET language = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
 	case "deploymentVersion":
 		sql = `UPDATE nav_setting SET deployment_version = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
+	case "metaTitle":
+		sql = `UPDATE nav_setting SET metaTitle = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
+	case "metaDescription":
+		sql = `UPDATE nav_setting SET metaDescription = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
+	case "metaKeywords":
+		sql = `UPDATE nav_setting SET metaKeywords = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
+	case "ogImage":
+		sql = `UPDATE nav_setting SET ogImage = ? WHERE id = (SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`
 	default:
 		return false, nil
 	}
@@ -1099,7 +1111,7 @@ func DeleteCatelogById(id string) error {
 }
 
 func GetAllTagSlugs() ([]types.TagSlug, error) {
-	rows, err := DB.Query(`SELECT id, name, slug FROM nav_tag_slug ORDER BY lower(name) ASC`)
+	rows, err := DB.Query(`SELECT id, name, slug, COALESCE(metaTitle,''), COALESCE(metaDescription,''), COALESCE(metaKeywords,''), COALESCE(ogImage,'') FROM nav_tag_slug ORDER BY lower(name) ASC`)
 	if err != nil {
 		return nil, err
 	}
@@ -1107,12 +1119,24 @@ func GetAllTagSlugs() ([]types.TagSlug, error) {
 	var results = make([]types.TagSlug, 0)
 	for rows.Next() {
 		var tag types.TagSlug
-		if err := rows.Scan(&tag.Id, &tag.Name, &tag.Slug); err != nil {
+		if err := rows.Scan(&tag.Id, &tag.Name, &tag.Slug, &tag.MetaTitle, &tag.MetaDescription, &tag.MetaKeywords, &tag.OgImage); err != nil {
 			return nil, err
 		}
 		results = append(results, tag)
 	}
 	return results, nil
+}
+
+func UpdateCatelogSeoFields(id int, metaTitle, metaDesc, metaKeywords, ogImage string) error {
+	_, err := DB.Exec(`UPDATE nav_catelog SET metaTitle=?, metaDescription=?, metaKeywords=?, ogImage=? WHERE id=?`,
+		metaTitle, metaDesc, metaKeywords, ogImage, id)
+	return err
+}
+
+func UpdateTagSlugSeoFields(name, metaTitle, metaDesc, metaKeywords, ogImage string) error {
+	_, err := DB.Exec(`UPDATE nav_tag_slug SET metaTitle=?, metaDescription=?, metaKeywords=?, ogImage=? WHERE lower(name)=lower(?)`,
+		metaTitle, metaDesc, metaKeywords, ogImage, name)
+	return err
 }
 
 func InsertTagSlugs(tags []types.TagSlug) error {
@@ -1124,7 +1148,7 @@ func InsertTagSlugs(tags []types.TagSlug) error {
 	if _, err := tx.Exec(`DELETE FROM nav_tag_slug`); err != nil {
 		return err
 	}
-	stmt, err := tx.Prepare(`INSERT INTO nav_tag_slug (name, slug) VALUES (?, ?)`)
+	stmt, err := tx.Prepare(`INSERT INTO nav_tag_slug (name, slug, metaTitle, metaDescription, metaKeywords, ogImage) VALUES (?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return err
 	}
@@ -1138,7 +1162,7 @@ func InsertTagSlugs(tags []types.TagSlug) error {
 		if err != nil {
 			return err
 		}
-		if _, err = stmt.Exec(name, slug); err != nil {
+		if _, err = stmt.Exec(name, slug, tag.MetaTitle, tag.MetaDescription, tag.MetaKeywords, tag.OgImage); err != nil {
 			return err
 		}
 	}
@@ -1207,11 +1231,12 @@ func EnsureTagSlugsFromTools() error {
 func GetSettingRow() (types.Setting, error) {
 	var s types.Setting
 	var hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount interface{}
-	var deploymentVersion, language, customCss string
-	err := DB.QueryRow(`SELECT id, favicon, title, logo192, logo512, hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount, COALESCE(deployment_version,''), COALESCE(language,'zh-CN'), COALESCE(customCss,'') FROM nav_setting ORDER BY id ASC LIMIT 1`).Scan(
+	var deploymentVersion, language, customCss, metaTitle, metaDescription, metaKeywords, ogImage string
+	err := DB.QueryRow(`SELECT id, favicon, title, logo192, logo512, hideAdmin, hideGithub, hideToggleJumpTarget, jumpTargetBlank, showSearchEngine, pcColumnCount, COALESCE(deployment_version,''), COALESCE(language,'zh-CN'), COALESCE(customCss,''), COALESCE(metaTitle,''), COALESCE(metaDescription,''), COALESCE(metaKeywords,''), COALESCE(ogImage,'') FROM nav_setting ORDER BY id ASC LIMIT 1`).Scan(
 		&s.Id, &s.Favicon, &s.Title, &s.Logo192, &s.Logo512,
 		&hideAdmin, &hideGithub, &hideToggleJumpTarget, &jumpTargetBlank,
 		&showSearchEngine, &pcColumnCount, &deploymentVersion, &language, &customCss,
+		&metaTitle, &metaDescription, &metaKeywords, &ogImage,
 	)
 	if err != nil {
 		return types.Setting{
@@ -1232,6 +1257,10 @@ func GetSettingRow() (types.Setting, error) {
 	s.DeploymentVersion = deploymentVersion
 	s.Language = language
 	s.CustomCss = customCss
+	s.MetaTitle = metaTitle
+	s.MetaDescription = metaDescription
+	s.MetaKeywords = metaKeywords
+	s.OgImage = ogImage
 	return s, nil
 }
 
@@ -1241,10 +1270,11 @@ func UpdateSettingRow(data types.Setting) error {
 	if lang != "zh-CN" && lang != "en-US" {
 		lang = "zh-CN"
 	}
-	_, err := DB.Exec(`UPDATE nav_setting SET favicon=?, title=?, logo192=?, logo512=?, hideAdmin=?, hideGithub=?, hideToggleJumpTarget=?, jumpTargetBlank=?, showSearchEngine=?, pcColumnCount=?, language=?, customCss=? WHERE id=(SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`,
+	_, err := DB.Exec(`UPDATE nav_setting SET favicon=?, title=?, logo192=?, logo512=?, hideAdmin=?, hideGithub=?, hideToggleJumpTarget=?, jumpTargetBlank=?, showSearchEngine=?, pcColumnCount=?, language=?, customCss=?, metaTitle=?, metaDescription=?, metaKeywords=?, ogImage=? WHERE id=(SELECT id FROM nav_setting ORDER BY id ASC LIMIT 1)`,
 		data.Favicon, data.Title, data.Logo192, data.Logo512,
 		data.HideAdmin, data.HideGithub, data.HideToggleJumpTarget, data.JumpTargetBlank,
-		data.ShowSearchEngine, data.PcColumnCount, lang, data.CustomCss)
+		data.ShowSearchEngine, data.PcColumnCount, lang, data.CustomCss,
+		data.MetaTitle, data.MetaDescription, data.MetaKeywords, data.OgImage)
 	return err
 }
 
