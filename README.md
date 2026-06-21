@@ -17,6 +17,7 @@ The upstream fork is based on the original [Mereithhh/van-nav](https://github.co
 - 更紧凑的卡片布局：两行描述、底部分类和可选标签、移动端双列、稳定的图标兜底；
 - 后台描述长度限制、分类排序、分类内工具排序，以及支持新版字段的全局导入导出；
 - Chrome 书签导入导出，尽量保留文件夹顺序和书签顺序；
+- **SEO 管理**：后台新增「SEO 管理」侧边栏，可为首页、每个分类页、每个标签页独立设置 `title`、`description`、`keywords`、`og:image`，留空自动生成，全量导入导出完整保留；
 - 选择性吸收上游 v2.4.2 的安全和维护修复，并包含当前定制站点所需的数据结构迁移；
 - 基础 SEO、无障碍和 PageSpeed/cache/service-worker 优化。
 
@@ -67,6 +68,7 @@ This fork is customized for [diao.page](https://diao.page/). Compared with the u
 - compact card layout with two-line descriptions, category plus optional tags, mobile two-column cards, and stable fallback icons;
 - admin description length control, category sorting, per-category tool sorting, search engine management, WebDAV backup, and full config import/export with new fields;
 - Chrome bookmark import/export, preserving folder/category order and bookmark order where possible;
+- **SEO Manager**: a dedicated admin sidebar page to set custom `title`, `description`, `keywords`, and `og:image` for the homepage, each category page, and each tag page independently; falls back to auto-generated values when left blank; fully covered by config import/export;
 - selected upstream v2.4.2 security and maintenance fixes, plus local schema/data migrations for this customized site;
 - basic SEO, accessibility, and PageSpeed-oriented cache/service-worker improvements.
 
