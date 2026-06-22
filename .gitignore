@@ -1,6 +1,9 @@
 # Compiled binary (Go build output)
 van-nav
 
+# Release notes temp file
+_release_tmp.md
+
 # Logs
 logs
 *.log
