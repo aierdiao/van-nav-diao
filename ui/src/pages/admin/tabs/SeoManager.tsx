@@ -156,6 +156,7 @@ export const SeoManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"category" | "tag">("category");
 
   const pageTitle: string = store?.setting?.title || "Van Nav";
+  const seoSiteName: string = store?.setting?.metaTitle || pageTitle;
 
   const categories: SeoItem[] = (store?.catelogs || []).map((c: any) => ({
     id: c.id,
@@ -354,7 +355,7 @@ export const SeoManager: React.FC = () => {
             <SeoForm
               key={`${(selected as SeoItem).type}-${(selected as SeoItem).name}`}
               item={selected as SeoItem}
-              pageTitle={pageTitle}
+              pageTitle={seoSiteName}
               onSave={handleSaveItem}
               saving={saving}
               t={t}

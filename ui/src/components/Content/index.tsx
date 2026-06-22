@@ -65,6 +65,7 @@ const Content = (props: any) => {
 
   const filteredDataRef = useRef<any>([]);
   const pageTitle = data?.setting?.title || "Van Nav";
+  const seoSiteName = data?.setting?.metaTitle || pageTitle;
   const toolCount = Array.isArray(data?.tools) ? data.tools.length : 0;
   const categoryItems = useMemo(() => data?.categoryItems || [], [data?.categoryItems]);
   const routeMode = location.pathname.startsWith("/category/") ? "category" : location.pathname.startsWith("/tag/") ? "tag" : "home";
@@ -146,15 +147,15 @@ const Content = (props: any) => {
   const categoryCount = categoryItems.filter((item: any) => !item?.isAll).length;
   const routeNotFound = (routeMode === "category" && slug && data?.categoryItems && !activeCategory) || (routeMode === "tag" && slug && tagSlugItems.length > 0 && !activeTag);
   const seoTitle = activeCategory
-    ? (activeCategory.metaTitle || `${activeCategory.name} - ${pageTitle}`)
+    ? (activeCategory.metaTitle || `${activeCategory.name} - ${seoSiteName}`)
     : activeTag
-      ? (activeTag.metaTitle || `${activeTag.name}标签 - ${pageTitle}`)
+      ? (activeTag.metaTitle || `${activeTag.name}标签 - ${seoSiteName}`)
       : (data?.setting?.metaTitle || pageTitle);
   const customMetaDesc = data?.setting?.metaDescription || '';
   const seoDescription = activeCategory
-    ? (activeCategory.metaDescription || `${pageTitle} 的 ${activeCategory.name} 分类页，整理相关工具和常用网址。`)
+    ? (activeCategory.metaDescription || `${seoSiteName} 的 ${activeCategory.name} 分类页，整理相关工具和常用网址。`)
     : activeTag
-      ? (activeTag.metaDescription || `${pageTitle} 的 ${activeTag.name} 标签页，整理相关工具和常用网址。`)
+      ? (activeTag.metaDescription || `${seoSiteName} 的 ${activeTag.name} 标签页，整理相关工具和常用网址。`)
       : customMetaDesc || (toolCount > 0
           ? `${pageTitle}，收录 ${toolCount} 个 AI、运营、跨境电商和实用工具，按 ${categoryCount || '多个'} 个分类整理。`
           : `${pageTitle}，AI、运营、跨境电商和实用工具导航。`);
@@ -429,6 +430,46 @@ const Content = (props: any) => {
 
   };
 
+  // JSON-LD structured data
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const realTools = filteredData.filter((item: any) => item.id && item.url?.startsWith("http"));
+  const jsonLdWebSite = routeMode === "home"
+    ? JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": seoSiteName,
+        "url": baseUrl + "/",
+        "description": seoDescription,
+      })
+    : null;
+  const jsonLdItemList = (routeMode === "category" && activeCategory) || (routeMode === "tag" && activeTag)
+    ? JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": seoTitle,
+        "description": seoDescription,
+        "url": canonicalUrl,
+        "numberOfItems": realTools.length,
+        "itemListElement": realTools.slice(0, 20).map((item: any, idx: number) => ({
+          "@type": "ListItem",
+          "position": idx + 1,
+          "name": item.name,
+          "url": item.url,
+          ...(item.desc ? { "description": item.desc } : {}),
+        })),
+      })
+    : null;
+  const jsonLdBreadcrumb = routeMode !== "home" && (activeCategory || activeTag)
+    ? JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": pageTitle, "item": baseUrl + "/" },
+          { "@type": "ListItem", "position": 2, "name": activeCategory?.name || activeTag?.name, "item": canonicalUrl },
+        ],
+      })
+    : null;
+
   return (
     <>
       <Helmet>
@@ -454,6 +495,9 @@ const Content = (props: any) => {
         <meta name="twitter:description" content={seoDescription} />
         {seoOgImage && <meta name="twitter:image" content={seoOgImage} />}
         {data?.setting?.customCss && <style type="text/css">{data.setting.customCss}</style>}
+        {jsonLdWebSite && <script type="application/ld+json">{jsonLdWebSite}</script>}
+        {jsonLdItemList && <script type="application/ld+json">{jsonLdItemList}</script>}
+        {jsonLdBreadcrumb && <script type="application/ld+json">{jsonLdBreadcrumb}</script>}
       </Helmet>
       <div className="topbar">
         <div className="content" style={topbarStyle}>
