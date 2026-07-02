@@ -1,27 +1,18 @@
-## van-nav-diao v1.0.7
-
-### 更新内容
-
-#### 可乐悬浮宠物
-
-- **前台首页新增可乐悬浮宠物**：基于 CSS spritesheet 播放动画，跟随浅色/深色模式切换存在感和活跃度，仅在前台展示，后台管理页不受影响。
-- **随机气泡台词**：贴合导航站、猫粮返利、可乐故事和轻哲学语气，触摸/唤醒专属语句。
-- **睡觉与好奇状态**：新增睡觉三态（趴 / 团 / 侧躺）和好奇抬头状态；浅色模式待机时也有一定概率进入睡觉姿势，不再只有深色模式或首次加载才会睡。
-- **摸猫手型指针**：桌面端悬停时显示自定义手型光标，替代系统光标。
+## van-nav-diao v1.0.8
 
 ### 🐛 Bug Fixes
 
-- **自动漫游 / 自动动作失效修复**：`setPetState` 回调此前依赖动画帧状态，导致自动漫游、自动挥手等长定时器被高频清空重建、实际几乎不会触发；改用 ref 记录当前帧后彻底修复。
-- **主题切换误触发位置重置**：监听深浅色的 `MutationObserver` 此前对任意 `body`/`html` class 变化都会重置宠物位置；现在只在深浅色真正切换时才重置。
-- **图集加载无失败反馈**：新增 `onerror` 日志，spritesheet 加载失败时不再静默。
-- **对话气泡无障碍**：气泡新增 `aria-live="polite"`，屏幕阅读器可播报台词。
-- **单帧状态多余定时器**：`idle`/`waiting`/`curious-up` 等单帧状态不再建立无意义的帧切换定时器。
-- **摸猫光标闪烁**：不再全局隐藏系统光标，只在自定义手型指针显示时才隐藏，避免鼠标按下瞬间出现短暂光标消失。
+- **可乐跑动途中动作错乱修复**：移动（跑开/漫游）和自动动作（挥手 / 看代码 / 好奇抬头）此前共用同一个计时器，且自动动作会无条件切换精灵状态，导致跑动途中如果自动动作定时器恰好触发，猫会在还在用 CSS 平移的过程中突然切成挥手/看代码的贴图，看起来像"动作贴图在平移"；现在移动优先，移动进行中自动动作会跳过，移动结束才恢复调度。
+
+### 🧹 Warnings Cleanup
+
+- **CI 依赖升级**：`.github/workflows/release.yml` 升级 `actions/checkout`、`actions/setup-node`、`actions/setup-go`、`goreleaser-action` 到 Node 24 原生大版本，消除 "Node.js 20 is deprecated" 强制转 Node 24 的警告；`goreleaser-action` 的 `version` 从 `latest` 改成显式的 `~> v2`，消除版本锁定提示。
+- **go vet 清理**：`goscraper/goscraper.go` 中 `parseDocument` 循环后一段永远走不到的 `return nil` 死代码已删除，`go vet ./...` 恢复无输出。
 
 ### Docker 镜像
 
 ```bash
-docker pull ghcr.io/aierdiao/van-nav-diao:v1.0.7
+docker pull ghcr.io/aierdiao/van-nav-diao:v1.0.8
 docker pull ghcr.io/aierdiao/van-nav-diao:latest
 ```
 
@@ -35,7 +26,7 @@ docker compose pull && docker compose up -d
 
 1. 升级前建议备份 `data/nav.db`。
 2. 本版本无数据库 Schema 变更，可直接升级。
-3. 可乐宠物为纯前端功能，不依赖新增后端接口或数据库字段。
+3. 本版本均为 bug 修复和 CI 清理，无新增功能面。
 
 ### 已知风险
 
