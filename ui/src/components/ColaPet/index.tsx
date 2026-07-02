@@ -380,6 +380,8 @@ const ColaPet: React.FC = () => {
   const dialogTimerRef = useRef<number | null>(null);
   const hideDialogTimerRef = useRef<number | null>(null);
   const motionTimerRef = useRef<number | null>(null);
+  const moveTimerRef = useRef<number | null>(null);
+  const isMovingRef = useRef(false);
   const roamTimerRef = useRef<number | null>(null);
   const actionTimerRef = useRef<number | null>(null);
   const previousSpriteTimerRef = useRef<number | null>(null);
@@ -450,6 +452,7 @@ const ColaPet: React.FC = () => {
   );
 
   const runBriefMotion = useCallback((nextState: PetState, duration = 4200) => {
+    if (isMovingRef.current) return;
     setPetState(nextState);
     if (motionTimerRef.current) window.clearTimeout(motionTimerRef.current);
     motionTimerRef.current = window.setTimeout(() => {
@@ -473,7 +476,12 @@ const ColaPet: React.FC = () => {
     const sequence = moveSequenceRef.current + 1;
     moveSequenceRef.current = sequence;
 
+    // A move always takes priority over a background action: cancel any
+    // pending action-revert so it can't clobber the running sprite mid-flight
+    // or overwrite the post-move rest state once this move lands.
     if (motionTimerRef.current) window.clearTimeout(motionTimerRef.current);
+    if (moveTimerRef.current) window.clearTimeout(moveTimerRef.current);
+    isMovingRef.current = true;
     setMoveDuration(0);
     positionRef.current = currentPoint;
     setPosition(currentPoint);
@@ -485,7 +493,8 @@ const ColaPet: React.FC = () => {
     setPosition(nextPoint);
     setPetState(movingRight ? "running-right" : "running-left");
 
-    motionTimerRef.current = window.setTimeout(() => {
+    moveTimerRef.current = window.setTimeout(() => {
+      isMovingRef.current = false;
       setPetState(restStateForMode());
     }, duration + 120);
   }, [getLivePosition, restStateForMode, setPetState]);
