@@ -1,4 +1,5 @@
 import React from 'react';
+import ColaPet from '../components/ColaPet';
 import Content from '../components/Content';
 
 const Home: React.FC = () => {
@@ -7,8 +8,9 @@ const Home: React.FC = () => {
       <div className="main">
         <Content />
       </div>
+      <ColaPet />
     </div>
   );
 };
 
-export default Home; 
+export default Home;

@@ -1,0 +1,256 @@
+.cola-pet {
+  --cola-cell-w: 124px;
+  --cola-cell-h: calc(var(--cola-cell-w) * 208 / 192);
+  --cola-frame: 0;
+  --cola-row: 0;
+  --cola-rows: 13;
+  --cola-x: 0px;
+  --cola-y: 0px;
+  --cola-move-ms: 0ms;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  width: var(--cola-cell-w);
+  height: calc(var(--cola-cell-h) + 84px);
+  pointer-events: none;
+  transform: translate3d(var(--cola-x), var(--cola-y), 0);
+  transition: transform var(--cola-move-ms) linear;
+  will-change: transform;
+}
+
+.cola-pet__button {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--cola-cell-w);
+  height: var(--cola-cell-h);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  filter: drop-shadow(0 18px 22px rgba(15, 23, 42, 0.18));
+  transform-origin: 50% 92%;
+  transition:
+    filter 180ms ease,
+    transform 180ms ease;
+}
+
+.cola-pet__petting-hand {
+  position: absolute;
+  left: var(--cola-hand-x, 50%);
+  top: var(--cola-hand-y, 45%);
+  z-index: 4;
+  width: 38px;
+  height: 38px;
+  pointer-events: none;
+  transform: translate(-10px, -30px) rotate(-18deg);
+  transform-origin: 28% 88%;
+  filter:
+    drop-shadow(0 8px 10px rgba(15, 23, 42, 0.2))
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.55));
+  animation: cola-pet-petting-hand 780ms ease-in-out infinite;
+}
+
+.cola-pet__petting-hand svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cola-pet__button--petting {
+  cursor: none;
+}
+
+.cola-pet__button:hover {
+  filter: drop-shadow(0 22px 26px rgba(15, 23, 42, 0.24));
+  transform: translateY(-3px);
+}
+
+.cola-pet--dark .cola-pet__button {
+  filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.46)) saturate(0.9);
+  opacity: 0.92;
+}
+
+.cola-pet__sprite {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: var(--cola-cell-w);
+  height: var(--cola-cell-h);
+  background-repeat: no-repeat;
+  background-size:
+    calc(var(--cola-cell-w) * 8)
+    calc(var(--cola-cell-h) * var(--cola-rows));
+  background-position:
+    calc(var(--cola-frame) * var(--cola-cell-w) * -1)
+    calc(var(--cola-row) * var(--cola-cell-h) * -1);
+  image-rendering: auto;
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 360ms ease,
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cola-pet__sprite--previous {
+  animation: cola-pet-previous-sprite 680ms ease forwards;
+  pointer-events: none;
+}
+
+.cola-pet__sprite--current {
+  animation: cola-pet-current-sprite 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.cola-pet__bubble {
+  position: absolute;
+  right: 8px;
+  bottom: calc(var(--cola-cell-h) - 2px);
+  width: max-content;
+  max-width: min(300px, calc(100vw - 36px));
+  padding: 10px 13px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 16px 16px 6px 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(250, 250, 252, 0.78));
+  box-shadow:
+    0 18px 46px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  color: var(--diao-text-primary);
+  font-size: 13px;
+  line-height: 1.58;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px) scale(0.98);
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.cola-pet__bubble::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  bottom: -7px;
+  width: 13px;
+  height: 13px;
+  border-right: 1px solid rgba(255, 255, 255, 0.78);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.84);
+  transform: rotate(45deg);
+}
+
+.cola-pet__bubble--visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.cola-pet__bubble--catFood {
+  border-color: rgba(217, 199, 143, 0.6);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(255, 248, 224, 0.82));
+}
+
+.cola-pet__bubble--philosophy {
+  border-color: rgba(107, 77, 255, 0.22);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(240, 236, 255, 0.82));
+}
+
+.cola-pet__bubble--story,
+.cola-pet__bubble--dark {
+  border-color: rgba(148, 163, 184, 0.36);
+}
+
+.cola-pet--dark .cola-pet__bubble {
+  border-color: rgba(217, 199, 143, 0.24);
+  background:
+    linear-gradient(135deg, rgba(16, 24, 32, 0.9), rgba(8, 13, 18, 0.78));
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: var(--diao-text-primary);
+}
+
+.cola-pet--dark .cola-pet__bubble::after {
+  border-color: rgba(217, 199, 143, 0.24);
+  background: rgba(13, 20, 27, 0.88);
+}
+
+.cola-pet--tag-left .cola-pet__bubble,
+.cola-pet--left-perch .cola-pet__bubble,
+.cola-pet--left-rest .cola-pet__bubble {
+  left: 8px;
+  right: auto;
+  border-radius: 16px 16px 16px 6px;
+}
+
+.cola-pet--tag-left .cola-pet__bubble::after,
+.cola-pet--left-perch .cola-pet__bubble::after,
+.cola-pet--left-rest .cola-pet__bubble::after {
+  left: 18px;
+  right: auto;
+}
+
+@media (max-width: 720px) {
+  .cola-pet {
+    --cola-cell-w: 82px;
+    height: calc(var(--cola-cell-h) + 72px);
+  }
+
+  .cola-pet__bubble {
+    max-width: min(238px, calc(100vw - 24px));
+    padding: 8px 10px 9px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+@keyframes cola-pet-previous-sprite {
+  from {
+    opacity: 0.86;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.992);
+  }
+}
+
+@keyframes cola-pet-current-sprite {
+  from {
+    opacity: 0;
+    transform: scale(0.992);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cola-pet-petting-hand {
+  0%,
+  100% {
+    transform: translate(-10px, -30px) rotate(-20deg) scale(1);
+  }
+
+  45% {
+    transform: translate(-4px, -24px) rotate(-8deg) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cola-pet,
+  .cola-pet__button,
+  .cola-pet__bubble,
+  .cola-pet__petting-hand {
+    transition: none;
+    animation: none;
+  }
+}
