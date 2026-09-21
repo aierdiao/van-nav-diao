@@ -1,113 +1,40 @@
-# van-nav-diao / 刁页
+# Diaopicks
 
-This repository is a fork of [thirsty5034/van-nav](https://github.com/thirsty5034/van-nav).
+轻量工具收藏与导航站。Cloudflare Workers + Static Assets + D1 + R2，TypeScript / Hono；公开页完整 HTML 与渐进增强，React 仅用于后台和延迟加载的可乐猫咪。
 
-The upstream fork is based on the original [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav).
+## 开发
 
-本仓库是 [thirsty5034/van-nav](https://github.com/thirsty5034/van-nav) 的公开 fork。
-
-上游 fork 基于原始项目 [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav)。
-
-## 与上游的差异
-
-本 fork 面向 [diao.page](https://diao.page/) 定制。在保留 Van Nav 轻量导航站底座的基础上，主要差异包括：
-
-- 分类页和标签页 URL：`/category/{slug}`、`/tag/{slug}`，支持后台自定义 slug，并自动生成 sitemap 和 `llms.txt`；
-- 工具级标签、可点击标签、`Aff` 返利标签、标签搜索；
-- 更紧凑的卡片布局：两行描述、底部分类和可选标签、移动端双列、稳定的图标兜底；
-- 后台描述长度限制、分类排序、分类内工具排序，以及支持新版字段的全局导入导出；
-- Chrome 书签导入导出，尽量保留文件夹顺序和书签顺序；
-- **SEO 管理**：后台新增「SEO 管理」侧边栏，可为首页、每个分类页、每个标签页独立设置 `title`、`description`、`keywords`、`og:image`，留空自动生成，全量导入导出完整保留；
-- 选择性吸收上游 v2.4.2 的安全和维护修复，并包含当前定制站点所需的数据结构迁移；
-- 基础 SEO、无障碍和 PageSpeed/cache/service-worker 优化。
-
-## Docker Compose 一键快速启用
-
-在云服务器终端执行以下命令。无论目录是否已存在，都可以用这一组命令拉取最新公开 Compose 配置并启动：
-
-```bash
-mkdir -p van-nav-diao && cd van-nav-diao
-mkdir -p data
-curl -fsSL https://raw.githubusercontent.com/aierdiao/van-nav-diao/main/docker-compose.yml -o docker-compose.yml
-docker compose pull
-docker compose up -d
+```sh
+npm ci
+npm run build
+npm run types
+npx wrangler d1 migrations apply diaopicks-db --local
+npm run dev
 ```
 
-部署完成后访问：
+空库需先导入业务数据并发布。公开页无业务 API 前置依赖；后台始终需要 Cloudflare Access，开发服务器没有免验证后门。
 
-- 前台：`http://服务器IP:6412`
-- 后台：`http://服务器IP:6412/admin`
-- 初始账号/密码：`admin` / `admin`
-
-首次登录后请立即修改后台密码。数据会保存在当前目录的 `./data` 中；如果 `./data/nav.db` 已存在，会继续使用现有数据库。后台支持从 Chrome 书签 HTML 文件快速导入网址。
-
-这套命令始终从 `main` 拉取最新公开 Compose 文件，使用 `ghcr.io/aierdiao/van-nav-diao:latest` 镜像，并把 `./data` 挂载到容器内 `/app/data`。
-
-Compose 配置如下：
-
-```yaml
-services:
-  van-nav:
-    image: ghcr.io/aierdiao/van-nav-diao:latest
-    container_name: van-nav
-    restart: unless-stopped
-    ports:
-      - "6412:6412"
-    volumes:
-      - ./data:/app/data
-    environment:
-      - TZ=Asia/Shanghai
+```sh
+npm run check
+npm test
+npm run build
+npx wrangler deploy --dry-run
 ```
 
-## Differences From Upstream
+## 数据与发布
 
-This fork is customized for [diao.page](https://diao.page/). Compared with the upstream navigation project, it keeps the lightweight Van Nav base while adding and retaining these DIAO-specific changes:
+- D1 保存工具、分类、标签关系、排序、搜索引擎、基本设置和媒体登记，是唯一业务权威数据源。
+- R2 私有桶保存 `uploads/` 图片、`releases/` 派生历史快照和 `published/current.json`。不启用 r2.dev 或桶级公开访问。
+- 保存只更新 D1。发布读取一致快照，剔除隐藏数据，检查图片存在，再使用 R2 ETag 条件写入切换当前快照。并发旧版本无法覆盖新版本，失败不破坏上一份内容。
+- 公开内容缓存 30 秒，HTML 最多再缓存 30 秒，更新延迟上限约 60 秒。管理响应 `private,no-store`；哈希 JS/CSS 一年缓存；媒体需在当前公开快照白名单内才可读取。
+- `/admin` 与 `/api/admin/*` 受 Access 及服务端签名、issuer、audience、邮箱授权校验保护，`workers.dev` 也不能绕过。写操作要求同源 Origin 和自定义请求头。
+- 只接受有正确文件签名且不超过 2 MB 的 PNG/JPEG/WebP/GIF/ICO。SVG 不接受；没有任意 URL 抓取代理。替换图片会产生新内容哈希，旧对象保留以便恢复。
+- `/category/{slug}`、`/tag/{slug}` 是浏览链接。没有 SEO 后台、逐页 SEO 字段、llms.txt、PWA、密码/JWT 用户系统或 VPS 运行依赖。
 
-- category and tag SEO URLs such as `/category/{slug}` and `/tag/{slug}`, with editable slugs, generated sitemap, and `llms.txt`;
-- clickable tool tags, affiliate labels, tag-aware search, and migration from the old `阿刁有返利` category to the `Aff` tool tag;
-- compact card layout with two-line descriptions, category plus optional tags, mobile two-column cards, and stable fallback icons;
-- admin description length control, category sorting, per-category tool sorting, search engine management, WebDAV backup, and full config import/export with new fields;
-- Chrome bookmark import/export, preserving folder/category order and bookmark order where possible;
-- **SEO Manager**: a dedicated admin sidebar page to set custom `title`, `description`, `keywords`, and `og:image` for the homepage, each category page, and each tag page independently; falls back to auto-generated values when left blank; fully covered by config import/export;
-- selected upstream v2.4.2 security and maintenance fixes, plus local schema/data migrations for this customized site;
-- basic SEO, accessibility, and PageSpeed-oriented cache/service-worker improvements.
+## 迁移、备份与恢复
 
-## Docker Compose Quick Start
+详细操作见 [部署与恢复](docs/operations.md)。后台提供简单业务 JSON 导出。完整恢复必须同时备份 D1 与 R2，公开快照不能替代完整备份。旧原始数据、旧源码和迁移核对材料放在被忽略的 `local-output/`，不得提交。
 
-Run these commands on a cloud server. They refresh the public Compose file from `main`, pull `ghcr.io/aierdiao/van-nav-diao:latest`, and start the container:
+## 来源与许可证
 
-```bash
-mkdir -p van-nav-diao && cd van-nav-diao
-mkdir -p data
-curl -fsSL https://raw.githubusercontent.com/aierdiao/van-nav-diao/main/docker-compose.yml -o docker-compose.yml
-docker compose pull
-docker compose up -d
-```
-
-After deployment, open:
-
-- Public site: `http://SERVER_IP:6412`
-- Admin panel: `http://SERVER_IP:6412/admin`
-- Initial account/password: `admin` / `admin`
-
-Change the password after the first login. Data is stored in `./data`, and an existing `./data/nav.db` will be reused. The admin panel can import Chrome bookmark HTML files.
-
-Compose file:
-
-```yaml
-services:
-  van-nav:
-    image: ghcr.io/aierdiao/van-nav-diao:latest
-    container_name: van-nav
-    restart: unless-stopped
-    ports:
-      - "6412:6412"
-    volumes:
-      - ./data:/app/data
-    environment:
-      - TZ=Asia/Shanghai
-```
-
-## License
-
-This project keeps the original MIT License. See [LICENSE](./LICENSE).
+本仓库源自 [thirsty5034/van-nav](https://github.com/thirsty5034/van-nav)，上游基于 [Mereithhh/van-nav](https://github.com/Mereithhh/van-nav)。本次重写运行架构，保留导航体验及 Diaopicks 原 ColaPet 组件、素材、对白。原 MIT 许可证与 WangLu 版权声明保留于 [LICENSE](LICENSE)。

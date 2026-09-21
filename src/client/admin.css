@@ -1,0 +1,275 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #f7f7fa;
+  color: #18202d;
+  font:
+    14px -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+.admin {
+  max-width: 1250px;
+  margin: auto;
+  padding: 28px;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+h1 {
+  font-size: 22px;
+}
+a {
+  color: #6b4dff;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+button,
+.upload {
+  cursor: pointer;
+  border: 1px solid #dcdde5;
+  border-radius: 7px;
+  padding: 9px 13px;
+  background: white;
+  color: #273142;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+button:hover {
+  border-color: #6b4dff;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid #6b4dff;
+  outline-offset: 2px;
+}
+.publish {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin: 22px 0 0;
+}
+.publish button,
+.editor-actions button:first-child {
+  background: #6b4dff;
+  color: white;
+}
+.publish p {
+  font-size: 12px;
+  color: #667085;
+  margin-bottom: 0;
+}
+.message {
+  min-height: 22px;
+  color: #5b3de0;
+}
+.error {
+  color: #c32727 !important;
+}
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+nav .selected {
+  background: #eee9ff;
+  border-color: #6b4dff;
+  color: #5b3de0;
+}
+nav a {
+  margin-left: auto;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+.toolbar h2 {
+  font-size: 18px;
+  margin-right: auto;
+}
+small {
+  color: #667085;
+  font-weight: normal;
+}
+.toolbar input,
+input:not([type="checkbox"]),
+select,
+textarea {
+  border: 1px solid #dcdde5;
+  background: white;
+  border-radius: 7px;
+  padding: 10px;
+}
+.table-wrap {
+  overflow: auto;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #eef0f4;
+  max-width: 300px;
+  overflow-wrap: anywhere;
+}
+td small {
+  display: block;
+  margin-top: 4px;
+}
+td button {
+  padding: 6px 9px;
+  margin: 2px;
+  white-space: nowrap;
+}
+th {
+  font-size: 12px;
+  color: #667085;
+}
+td {
+  font-size: 13px;
+}
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #0b122088;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 20;
+}
+.editor {
+  width: min(650px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+}
+.editor h2 {
+  margin-top: 0;
+}
+.editor form > label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 14px 0;
+}
+.editor input[type="checkbox"] {
+  align-self: flex-start;
+}
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.editor-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+.danger {
+  color: #bc2626;
+  margin-left: auto;
+}
+fieldset {
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 15px;
+}
+.media-grid article {
+  background: white;
+  border: 1px solid #eee;
+  padding: 15px;
+  border-radius: 9px;
+  overflow-wrap: anywhere;
+}
+.media-grid img {
+  height: 64px;
+  width: 64px;
+  object-fit: contain;
+}
+.media-grid p {
+  font-size: 12px;
+}
+.media-grid button {
+  display: block;
+  margin-top: 10px;
+}
+.upload input {
+  display: block;
+  max-width: 240px;
+  margin-top: 5px;
+}
+@media (max-width: 700px) {
+  .admin {
+    padding: 14px;
+  }
+  header h1 {
+    font-size: 18px;
+  }
+  .publish {
+    align-items: flex-start;
+    padding: 15px;
+    flex-direction: column;
+  }
+  .toolbar {
+    flex-wrap: wrap;
+  }
+  .toolbar input {
+    width: 100%;
+    order: 3;
+  }
+  th,
+  td {
+    padding: 10px 7px;
+  }
+  .editor {
+    padding: 18px;
+  }
+  .dialog-backdrop {
+    padding: 8px;
+  }
+  nav a {
+    width: 100%;
+    margin: 8px 0;
+  }
+}

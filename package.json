@@ -1,0 +1,31 @@
+{
+  "name": "diaopicks",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "wrangler dev",
+    "types": "wrangler types",
+    "check": "npm run types && tsc --noEmit && tsc -p tsconfig.server.json --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "hono": "^4.12.0",
+    "jose": "^6.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "esbuild": "^0.25.0",
+    "sharp": "^0.35.4",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "wrangler": "^4.135.0"
+  }
+}

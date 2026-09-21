@@ -1,0 +1,48 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "diaopicks",
+  "main": "src/server/index.ts",
+  "compatibility_date": "2026-09-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "diaopicks-db",
+      "database_id": "c8821096-3dea-4cc6-acd7-9beb8fbb9f5b",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "diaopicks-media",
+    },
+  ],
+  "vars": {
+    "SITE_ORIGIN": "https://diaopicks.com",
+    "ACCESS_ISSUER": "https://im-sun.cloudflareaccess.com",
+    "ACCESS_AUD": "06ae4e091646702c78be2c5d20fc98c94956fd0224de4da352f03a3fd44221bc",
+    "ADMIN_EMAIL": "im.sun@live.com",
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
+  "routes": [
+    {
+      "pattern": "diaopicks.com",
+      "custom_domain": true,
+    },
+    {
+      "pattern": "www.diaopicks.com",
+      "custom_domain": true,
+    },
+  ],
+}
