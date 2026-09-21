@@ -4,7 +4,6 @@ const data: Snapshot = JSON.parse(
   document.querySelector("#public-data")!.textContent!,
 );
 const search = document.querySelector<HTMLInputElement>("#search")!,
-  engine = document.querySelector<HTMLSelectElement>("#engine")!,
   newTab = document.querySelector<HTMLInputElement>("#new-tab")!;
 const cards = new Map(
   [...document.querySelectorAll<HTMLElement>("[data-tool]")].map((e) => [
@@ -31,8 +30,8 @@ function apply() {
   const selected = (parts[1] === "category" ? data.categories : data.tags).find(
     (x) => x.slug === decodeURIComponent(parts[2] || ""),
   );
-  const q =
-    engine.value === "local" ? search.value.trim().toLocaleLowerCase() : "";
+  const keyword = search.value.trim();
+  const q = keyword.toLocaleLowerCase();
   let n = 0;
   const ordered = [...data.tools].sort((a, b) =>
     parts[1] === "category"
@@ -62,6 +61,20 @@ function apply() {
     if (matches) n++;
     document.querySelector("#tools")!.append(el);
   }
+  for (const card of document.querySelectorAll<HTMLElement>(
+    "[data-web-search]",
+  )) {
+    card.hidden = !keyword;
+    const link = card.querySelector<HTMLAnchorElement>("a")!;
+    if (keyword)
+      link.href = link.dataset.searchTemplate!.replaceAll(
+        "{query}",
+        encodeURIComponent(keyword),
+      );
+    else link.removeAttribute("href");
+    card.querySelector(".search-keyword")!.textContent = `「${keyword}」`;
+    document.querySelector("#tools")!.append(card);
+  }
   for (const link of document.querySelectorAll<HTMLElement>(".pill"))
     link.classList.toggle(
       "active",
@@ -78,17 +91,13 @@ function persist() {
   search.value
     ? u.searchParams.set("q", search.value)
     : u.searchParams.delete("q");
-  engine.value !== "local"
-    ? u.searchParams.set("engine", engine.value)
-    : u.searchParams.delete("engine");
+  u.searchParams.delete("engine");
   history.replaceState(null, "", u);
   apply();
 }
 function restore() {
   const u = new URL(location.href);
   search.value = u.searchParams.get("q") || "";
-  const v = u.searchParams.get("engine") || "local";
-  engine.value = [...engine.options].some((o) => o.value === v) ? v : "local";
   apply();
 }
 search.addEventListener("compositionstart", () => (composing = true));
@@ -99,21 +108,10 @@ search.addEventListener("compositionend", () => {
 search.addEventListener("input", () => {
   if (!composing) persist();
 });
-engine.addEventListener("change", persist);
 document.querySelector("#search-form")!.addEventListener("submit", (e) => {
   e.preventDefault();
   if (composing) return;
-  const selected = data.search_engines.find(
-    (x) => String(x.id) === engine.value,
-  );
-  if (selected && search.value.trim()) {
-    const url = selected.url_template.replaceAll(
-      "{query}",
-      encodeURIComponent(search.value.trim()),
-    );
-    if (newTab.checked) window.open(url, "_blank", "noopener,noreferrer");
-    else location.assign(url);
-  } else persist();
+  persist();
 });
 document.addEventListener("click", (e) => {
   const a = (e.target as Element).closest<HTMLAnchorElement>("a[data-filter]");
