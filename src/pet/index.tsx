@@ -59,7 +59,7 @@ type PreviousSprite = {
 
 const PET_ASSET = "/pets/cola/spritesheet.webp";
 const DESKTOP_PET_WIDTH = 124;
-const MOBILE_PET_WIDTH = 82;
+const MOBILE_PET_WIDTH = 64;
 const PET_ASPECT = 208 / 192;
 
 const STATE_META: Record<
@@ -307,7 +307,7 @@ const getDestinationPoint = (key: PositionKey): PetPoint => {
     x: Math.max(0, (available - width) * positions[key]),
     y: Math.max(
       0,
-      (zone?.height || 230) - height - (isMobileViewport() ? 72 : 84) - 8,
+      (zone?.height || 230) - height - (isMobileViewport() ? 108 : 84) - 8,
     ),
   };
 };
@@ -405,6 +405,20 @@ const ColaPet: React.FC = () => {
   const modeRef = useRef<PetMode>(mode);
   const spriteKeyRef = useRef(0);
   const moveSequenceRef = useRef(0);
+
+  useEffect(
+    () => () => {
+      moveSequenceRef.current += 1;
+      for (const timer of [
+        motionTimerRef,
+        moveTimerRef,
+        previousSpriteTimerRef,
+      ]) {
+        if (timer.current) window.clearTimeout(timer.current);
+      }
+    },
+    [],
+  );
 
   const meta = STATE_META[state];
 

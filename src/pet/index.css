@@ -308,3 +308,17 @@
   max-width: 100%;
   color: var(--ink);
 }
+
+@media (max-width: 1100px) {
+  .cola-pet {
+    --cola-cell-w: 64px;
+  }
+  #pet-zone .cola-dialog .cola-pet__bubble {
+    left: auto;
+    right: 0;
+    top: auto;
+    bottom: 130px;
+    width: max-content;
+    max-width: min(230px, calc(100vw - 24px));
+  }
+}
